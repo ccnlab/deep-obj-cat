@@ -1,0 +1,85 @@
+\documentclass[11pt]{letter}
+\usepackage[english]{babel}
+\usepackage{times}
+% following is for pdflatex vs. old(dvi) latex
+% \newif\ifpdf
+% \ifx\pdfoutput\undefined
+%     \pdffalse           % we are not running PDFLaTeX
+%     \usepackage[dvips]{graphicx}
+% \else
+%     \pdfoutput=1        % we are running PDFLaTeX
+%     \pdftrue
+    \usepackage[pdftex]{graphicx}
+% \fi
+\usepackage{one-in-margins}
+
+% tell pdflatex to prefer .pdf files over .png files!!
+% \ifpdf
+  \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.mps,.tif}
+% \fi
+
+% pick one of the following
+%\address{2016 Alpine Dr\\
+%Boulder, CO  80304\\ 303-448-1810\\}
+
+\address{
+\hspace{-.5in}\includegraphics[width=.4in]{/home/oreilly/tex/CU_logo}\\
+\vspace{-.5in}\\
+{\Large \bf University of Colorado Boulder}\\
+\vspace{.01in}\\
+{\large \bf Randall C. O'Reilly}\\
+Professor\\
+{\bf Department of Psychology \& Neuroscience, Center for Neuroscience, Institute of
+Cognitive Science}\\
+\rule[1pt]{6.4in}{1pt}\\
+{\scriptsize \begin{tabular}{lll}
+  Muenzinger Psychology and Neuroscience Building & \hspace{2.0in} & (303) 492-0054\\
+  345 UCB & & Fax: (303) 492-2967\\
+  Boulder, Colorado 80309-0345 & & Email: randy.oreilly@colorado.edu\\
+\end{tabular}}
+\vspace{.01in}\\
+}
+
+% for pre-printed letterhead
+%\address{\vspace*{.5in}}
+
+\signature{Randall O'Reilly}
+
+% pre-signed!
+\signature{\vspace{-.5in}\includegraphics[width=1.25in]{/home/oreilly/tex/ror_sig}\\
+Randall O'Reilly}
+
+% for pre-printed letterhead
+%\signature{Randall O'Reilly\\Associate Professor, Psychology\\
+%  oreilly@psych.colorado.edu}
+
+% to change the date
+% \date{8th December, 2003}
+
+\begin{document}
+
+\begin{letter}
+% replace address of sender here
+{ Keith J. Holyoak, Editor\\ 
+Department of Psychology \\
+University of California, Los Angeles \\
+405 Hilgard Avenue \\
+Los Angeles, CA 90095-1563 \\}
+
+\opening{Dear Keith:}
+
+Please consider our manuscript, {\em Deep Predictive Learning: A Comprehensive Model of Three Visual Streams}, for publication in {\em Psychological Review}.  The original document is in LaTeX, so we are submitting a PDF version.  This is a comprehensive paper on a comprehensive model of predictive learning in the visual system, and it is roughly 34k words long (including appendix, but excluding references) and has 291 references.  We believe the scope of the work justifies the length, but would certainly be receptive to reviewer comments for where to cut.
+
+We have formatted the paper in this initial submission for the benefit of the reviewers, not the copyeditors, with the figures in place so they can be examined in the context in which they are discussed.  I personally find it extremely aggravating to constantly flip back to the end to see the figures, but if any reviewers would prefer the traditional copyediting format, it is easy to provide that.
+
+\closing{Sincerely,}
+
+% \cc{someone}
+% \encl{stuff}
+% \ps{postscript}
+
+\end{letter}
+\end{document}
+
+
+

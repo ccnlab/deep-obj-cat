@@ -1,0 +1,758 @@
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\subsection{Leabra Algorithm
+Equations}\label{leabra-algorithm-equations}
+
+The pseudocode for Leabra is given here, showing exactly how the pieces
+of the algorithm fit together, using the equations and variables from
+the actual code. The implementation contains a number of optimizations
+(including vectorization and GPU code), but this provides the core math
+in simple form.
+
+See the \texttt{Matlab} directory in the emergent \url{svn} source
+directory for a complete implementation of these equations in Matlab,
+coded by Sergio Verduzco-Flores --- this can be a lot simpler to read
+than the highly optimized C++ source code.
+
+\subsubsection{Timing}\label{timing}
+
+Leabra is organized around the following timing, based on an
+internally-generated alpha-frequency (10 Hz, 100 msec periods) cycle of
+expectation followed by outcome, supported by neocortical circuitry in
+the deep layers and the thalamus, as hypothesized in the
+\url{DeepLeabra} extension to standard Leabra:
+
+\begin{itemize}
+\tightlist
+\item
+  A \textbf{Trial} lasts 100 msec (10 Hz, alpha frequency), and
+  comprises one sequence of expectation --- outcome learning, organized
+  into 4 quarters.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Biologically, the deep neocortical layers (layers 5, 6) and the
+    thalamus have a natural oscillatory rhythm at the alpha frequency.
+    Specific dynamics in these layers organize the cycle of expectation
+    vs. outcome within the alpha cycle.
+  \end{itemize}
+\item
+  A \textbf{Quarter} lasts 25 msec (40 Hz, gamma frequency) --- the
+  first 3 quarters (75 msec) form the expectation / minus phase, and the
+  final quarter are the outcome / plus phase.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Biologically, the superficial neocortical layers (layers 2, 3) have
+    a gamma frequency oscillation, supporting the quarter-level
+    organization.
+  \end{itemize}
+\item
+  A \textbf{Cycle} represents 1 msec of processing, where each neuron
+  updates its membrane potential etc according to the above equations.
+\end{itemize}
+
+\subsubsection{Variables}\label{variables}
+
+LeabraUnits are organized into LeabraLayers, which sometimes have unit
+groups (which are now typically purely virtual, not actual Unit\_Group
+objects). The LeabraUnit has the following key parameters, along with a
+number of others that are used for other non-default algorithms and
+various optimizations, etc.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{act} = activation sent to other units
+\item
+  \textbf{act\_nd} = non-depressed activation --- prior to application
+  of any short-term plasticity
+\item
+  \textbf{net\_raw} = raw netinput, prior to time-averaging
+\item
+  \textbf{net} = time-averaged excitatory conductance (net input)
+\item
+  \textbf{gc\_i} = inhibitory conductance, computed from FFFB inhibition
+  function typically
+\item
+  \textbf{I\_net} = net current, combining excitatory, inhibitory, and
+  leak channels
+\item
+  \textbf{v\_m} = membrane potential
+\item
+  \textbf{v\_m\_eq} = equilibrium membrane potential --- not reset by
+  spikes --- just keeps integrating
+\item
+  \textbf{adapt} = adaptation current
+\item
+  \textbf{avg\_ss} = super-short term running average activation
+\item
+  \textbf{avg\_s} = short-term running average activation, integrates
+  over avg\_ss, represents plus phase learning signal
+\item
+  \textbf{avg\_m} = medium-term running average activation, integrates
+  over avg\_s, represents minus phase learning signal
+\item
+  \textbf{avg\_l} = long-term running average activation, integrates
+  over avg\_m, drives long-term floating average for Hebbian learning
+\item
+  \textbf{avg\_l\_lrn} = how much to use the avg\_l-based Hebbian
+  learning for this receiving unit's learning --- in addition to the
+  basic error-driven learning --- this can optionally be dynamically
+  updated based on the avg\_l factor and average level of error in the
+  receiving layer, so that this Hebbian learning constraint can be
+  stronger as a unit gets too active and needs to be regulated more
+  strongly, and in proportion to average error levels in the layer.
+\item
+  \textbf{avg\_s\_eff} = effective avg\_s value used in learning ---
+  includes a small fraction (.1) of the avg\_m value, for reasons
+  explained below.
+\end{itemize}
+
+Units are connected via synapses parameterized with the following
+variables. These are actually stored in an optimized vector format, but
+the LeabraCon object contains the variables as a template.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{wt} = net effective synaptic weight between objects ---
+  subject to contrast enhancement compared to fwt and swt
+\item
+  \textbf{dwt} = delta-wt --- change in synaptic weights due to
+  learning
+\item
+  \textbf{dwavg} = time-averaged absolute value of weight change, for
+  normalizing weight changes
+\item
+  \textbf{moment} = momentum integration of weight changes
+\item
+  \textbf{fwt} = fast weight --- used for advanced fast and slow weight
+  learning dynamic --- otherwise equal to swt --- stored as
+  non-contrast enhanced value
+\item
+  \textbf{swt} = slow weight --- standard learning rate weight ---
+  stored as non-contrast enhanced value --- optional
+\end{itemize}
+
+\subsubsection{Activation Update Cycle (every 1 msec): Net input,
+Inhibition,
+Activation}\label{activation-update-cycle-every-1-msec-net-input-inhibition-activation}
+
+For every cycle of activation updating, compute the net input,
+inhibition, membrane potential, and activation:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Net input} (see LeabraUnitSpec.cpp for code):
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{\texttt{net\_raw}}\texttt{\ +=\ (sum\ over\ recv\ connections\ of:)\ scale\_eff\ *\ act\ *\ wt}
+
+    \begin{itemize}
+    \item
+      \textbf{scale\_eff} =
+      \verb\https://grey.colorado.edu/emergent/index.php/Leabra_Netin_Scaling\ factor that includes 1/N to compute an average, plus
+      wt\_scale.rel and abs relative and absolute scaling terms.
+    \item
+      \textbf{act} = sending unit activation
+    \item
+      \textbf{wt} = receiving connection weight value between sender and
+      receiver
+    \item
+      does this very efficiently by using a sender-based computation,
+      that only sends \emph{changes} (deltas) in activation values ---
+      typically only a few percent of neurons send on any given cycle.
+    \end{itemize}
+  \item
+    \textbf{\texttt{net}}\texttt{\ +=\ dt.integ\ *\ dt.net\_dt\ *\ (net\_raw\ -\ net)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      time integration of net input, using net\_dt (1/1.4 default), and
+      global integration time constant, dt.integ (1 = 1 msec default)
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Inhibition} (see LeabraLayerSpec.cpp for code) -- earlier versions of Leabra used an explicit k-Winners-Take-All inhibition function, but the FFFB equations here are much simpler and produce desirable flexibility in overall activation levels:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{\texttt{ffi}}\texttt{\ =\ ff\ *\ MAX(netin.avg\ -\ ff0,\ 0)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      feedforward component of inhibition with ff multiplier (1 by
+      default) --- has ff0 offset and can't be negative (that's what
+      the MAX(.. ,0) part does).
+    \item
+      \textbf{netin.avg} is average of net variable across unit group or
+      layer, depending on what level this is being computed at (both are
+      supported)
+    \end{itemize}
+  \item
+    \textbf{\texttt{fbi}}\texttt{\ +=\ fb\_dt\ *\ (fb\ *\ acts.avg\ -\ fbi)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      feedback component of inhibition with fb multiplier (1 by default)
+      --- requires time integration to dampen oscillations that
+      otherwise occur --- fb\_dt = 1/1.4 default
+    \end{itemize}
+  \item
+    \textbf{\texttt{gc\_i}}\texttt{\ =\ gi\ *\ (ffi\ +\ fbi)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      total inhibitory conductance, with global gi multiplier ---
+      default of gi=1.8 typically produces good sparse distributed
+      representations in reasonably large layers (25 units or more)
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Membrane potential} (see LeabraUnitSpec.cpp for code)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{\texttt{I\_net}}\texttt{\ =\ net\ *\ (e\_rev.e\ -\ v\_m)\ +\ gc\_l\ *\ (e\_rev.l\ -\ v\_m)\ +\ gc\_i\ *\ (e\_rev.i\ -\ v\_m)\ +\ noise}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      net current = sum of individual ionic channels: e = excitatory, l
+      = leak (gc\_l is a constant, 0.1 default), and i = inhibitory
+    \item
+      e\_rev are reversal potentials: in normalized values derived from
+      biophysical values, e\_rev.e = 1, .l = 0.3, i = 0.25
+    \item
+      noise is typically gaussian if added
+    \end{itemize}
+  \item
+    if ex:
+    \textbf{\texttt{I\_net}}\texttt{\ +=\ g\_bar.l\ *\ exp\_slope\ *\ exp((v\_m\ -\ thr)\ /\ exp\_slope)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      this is the exponential component of AdEx, if in use (typically
+      only for discrete spiking), exp\_slope = .02 default
+    \end{itemize}
+  \item
+    \textbf{\texttt{v\_m}}\texttt{\ +=\ dt.integ\ *\ dt.vm\_dt\ *\ (I\_net\ -\ adapt)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      in , we use a simple midpoint method that evaluates v\_m with a
+      half-step time constant, and then uses this half-step v\_m to
+      compute full step in above I\_net equation. vm\_dt = 1/3.3
+      default.
+    \item
+      v\_m is always computed as in discrete spiking, even when using
+      rate code, with v\_m reset to vm\_r etc --- this provides a more
+      natural way to integrate adaptation and short-term plasticity
+      mechanisms, which drive off of the discrete spiking.
+    \end{itemize}
+  \item
+    \textbf{\texttt{I\_net\_r}}\texttt{\ =\ net\ *\ (e\_rev.e\ -\ v\_m\_eq)\ +\ gc\_l\ *\ (e\_rev.l\ -\ v\_m\_eq)\ +\ gc\_i\ *\ (e\_rev.i\ -\ v\_m\_eq)\ +\ noise}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      rate-coded version of I\_net, to provide adequate coupling with
+      v\_m\_eq.
+    \end{itemize}
+  \item
+    \textbf{\texttt{v\_m\_eq}}\texttt{\ +=\ dt.integ\ *\ dt.vm\_dt\ *\ (I\_net\_r\ -\ adapt)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      the \emph{equilibrium} version of the membrane potential does
+      \emph{not} reset with spikes, and is important for rate code per
+      below
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Activation} (see LeabraUnitSpec.cpp for code)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{\texttt{g\_e\_thr}}\texttt{\ =\ (gc\_i\ *\ (e\_rev\_i\ -\ thr)\ +\ gc\_l\ *\ (e\_rev\_l\ -\ thr)\ -\ adapt)\ /\ (thr\ -\ e\_rev.e)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      the amount of excitatory conductance required to put the neuron
+      exactly at the firing threshold, thr = .5 default.
+    \end{itemize}
+  \item
+    \texttt{if(v\_m\ \textgreater{}\ spk\_thr)\ \{\ spike\ =\ 1;\ v\_m\ =\ vm\_r;\ I\_net\ =\ 0.0\ \}\ else\ \{\ spike\ =\ 0\ \}}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      spk\_thr is spiking threshold (1.2 default, different from rate
+      code thr), vm\_r = .3 is the reset value of the membrane potential
+      after spiking --- we also have an optional refractory period
+      after spiking, default = 3 cycles, where the vm equations are
+      simply not computed, and vm remains at vm\_r.
+    \item
+      if using spiking mode, then \textbf{act} = spike, otherwise, rate
+      code function is below
+    \end{itemize}
+  \item
+    \texttt{if(v\_m\_eq\ \textless{}=\ thr)\ \{\ }\textbf{\texttt{new\_act}}\texttt{\ =\ NXX1(v\_m\_eq\ -\ thr)\ \}\ else\ \{\ }\textbf{\texttt{new\_act}}\texttt{\ =\ NXX1(net\ -\ g\_e\_thr)\ \}}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      it is important that the time to first ``spike'' be governed by
+      v\_m integration dynamics, but after that point, it is essential
+      that activation drive directly from the excitatory conductance
+      (g\_e or net) relative to the g\_e\_thr threshold --- activation
+      rates are linear in this term, but not even a well-defined
+      function of v\_m\_eq --- earlier versions of Leabra only used the
+      v\_m\_eq-based term, and this led to some very strange behavior.
+    \item
+      NXX1 = noisy-x-over-x+1 function, which is implemented using a
+      lookup table due to the convolving of the XX1 function with a
+      gaussian noise kernel
+    \item
+      \texttt{XX1(x)\ =\ gain\ *\ x\ /\ (gain\ *\ x\ +\ 1)}
+    \item
+      gain = 100 default
+    \end{itemize}
+  \item
+    \textbf{\texttt{act\_nd}}\texttt{\ +=\ dt.integ\ *\ dt.vm\_dt\ *\ (new\_act\ -\ act\_nd)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      non-depressed rate code activation is time-integrated using same
+      vm\_dt time constant as used in v\_m, from the new activation
+      value
+    \end{itemize}
+  \item
+    \textbf{\texttt{act}}\texttt{\ =\ act\_nd\ *\ syn\_tr\ (or\ just\ act\_nd)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      if short-term plasticity is in effect, then syn\_tr variable
+      reflects the synaptic transmission efficacy, and this product
+      provides the net signal sent to the receiving neurons. otherwise
+      syn\_tr = 1.
+    \end{itemize}
+  \item
+    \textbf{\texttt{adapt}}\texttt{\ +=\ dt.integ\ *\ (adapt.dt\ *\ (vm\_gain\ *\ (v\_m\ -\ e\_rev.l)\ -\ adapt)\ +\ spike\ *\ spike\_gain)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      adaptation current --- causes rate of activation / spiking to
+      decrease over time, adapt.dt = 1/144, vm\_gain = 0.04, spike\_gain
+      = .00805 defaults
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{Learning}\label{learning}
+
+Learning is based on running-averages of activation variables, described
+first:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Running averages} computed continuously every cycle, and note
+  the compounding form (see LeabraUnitSpec.cpp for code)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{\texttt{avg\_ss}}\texttt{\ +=\ dt.integ\ *\ ss\_dt\ *\ (act\_nd\ -\ avg\_ss)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      super-short time scale running average, ss\_dt = 1/2 default ---
+      this was introduced to smooth out discrete spiking signal, but is
+      also useful for rate code
+    \end{itemize}
+  \item
+    \textbf{\texttt{avg\_s}}\texttt{\ +=\ dt.integ\ *\ act\_avg.s\_dt\ *\ (avg\_ss\ -\ avg\_s)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      short time scale running average, s\_dt = 1/2 default --- this
+      represents the ``plus phase'' or actual outcome signal in
+      comparison to avg\_m
+    \end{itemize}
+  \item
+    \textbf{\texttt{avg\_m}}\texttt{\ +=\ dt.integ\ *\ act\_avg.m\_dt\ *\ (avg\_s\ -\ avg\_m)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      medium time-scale running average, m\_dt = 1/10 average --- this
+      represents the ``minus phase'' or expectation signal in comparison
+      to avg\_s
+    \end{itemize}
+  \item
+    \textbf{\texttt{avg\_l}}\texttt{\ +=\ avg\_l.dt\ *\ (avg\_l.gain\ *\ avg\_m\ -\ avg\_l);\ avg\_l\ =\ MAX(avg\_l,\ min)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      long-term running average --- this is computed just once per
+      learning trial, \emph{not every cycle} like the ones above ---
+      gain = 2.5 (or 1.5 in some cases works better), min = .2, dt = .1
+      by default
+    \item
+      same basic exponential running average as above equations
+    \end{itemize}
+  \item
+    \textbf{\texttt{avg\_s\_eff}}\texttt{\ =\ m\_in\_s\ *\ avg\_m\ +\ (1\ -\ m\_in\_s)\ *\ avg\_s}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      mix in some of the medium-term factor into the short-term factor
+      --- this is important for ensuring that when neuron turns off in
+      the plus phase (short term), that enough trace of earlier
+      minus-phase activation remains to drive it into the LTD weight
+      decrease region --- m\_in\_s = .1 default.
+    \item
+      this is now done at the unit level --- previously was done at the
+      connection level which is much less efficient!
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+  \tightlist
+  \item \emph{Optional, on by default:} dynamic modulation of amount of
+    Hebbian learning, based on avg\_l value and level of err in a given
+    layer --- these factors make a small (few percent) but reliable
+    difference in overall performance across various challenging tasks
+    --- they can readily be omitted in favor of a fixed avg\_l\_lrn
+    factor of around 0.0004 (with 0 for target layers --- it doesn't
+    make sense to have any Hebbian learning at output layers):
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \textbf{\texttt{avg\_l\_lrn}}\texttt{\ =\ avg\_l.lrn\_min\ +\ (avg\_l\ -\ avg\_l.min)\ *\ ((avg\_l.lrn\_max\ -\ avg\_l.lrn\_min)\ /\ avg\_l.gain\ -\ avg\_l.min))}
+
+      \begin{itemize}
+      \tightlist
+      \item
+        learning strength factor for how much to learn based on avg\_l
+        floating threshold --- this is dynamically modulated by
+        strength of avg\_l itself, and this turns out to be critical
+        --- the amount of this learning increases as units are more
+        consistently active all the time (i.e., ``hog'' units).
+        avg\_l.lrn\_min = 0.0001, avg\_l.lrn\_max = 0.5. Note that this
+        depends on having a clear max to avg\_l, which is an advantage
+        of the exponential running-average form above.
+      \end{itemize}
+    \item
+      \textbf{\texttt{avg\_l\_lrn}}\texttt{\ *=\ MAX(1\ -\ cos\_diff\_avg,\ 0.01)}
+
+      \begin{itemize}
+      \tightlist
+      \item
+        also modulate by time-averaged cosine (normalized dot product)
+        between minus and plus phase activation states in given
+        receiving layer (cos\_diff\_avg), (time constant 100) --- if
+        error signals are small in a given layer, then Hebbian learning
+        should also be relatively weak so that it doesn't overpower it
+        --- and conversely, layers with higher levels of error signals
+        can handle (and benefit from) more Hebbian learning. The
+        MAX(0.01) factor ensures that there is a minimum level of .01
+        Hebbian (multiplying the previously-computed factor above). The
+        .01 * .05 factors give an upper-level value of .0005 to use for
+        a fixed constant avg\_l\_lrn value --- just slightly less than
+        this (.0004) seems to work best if not using these adaptive
+        factors.
+      \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Learning equation} (see LeabraConSpec.h for code) --- most of
+  these are intermediate variables used in computing final dwt value
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{\texttt{srs}}\texttt{\ =\ ru-\textgreater{}avg\_s\_eff\ *\ su-\textgreater{}avg\_s\_eff}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      short-term sender-receiver co-product --- this is the
+      intracellular calcium from NMDA and other channels
+    \end{itemize}
+  \item
+    \textbf{\texttt{srm}}\texttt{\ =\ ru-\textgreater{}avg\_m\ *\ su-\textgreater{}avg\_m}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      medium-term sender-receiver co-product --- this drives dynamic
+      threshold for error-driven learning
+    \end{itemize}
+  \item
+    \textbf{\texttt{dwt}}\texttt{\ +=\ lrate\ *\ {[}\ m\_lrn\ *\ XCAL(srs,\ srm)\ +\ ru-\textgreater{}avg\_l\_lrn\ *\ XCAL(srs,\ ru-\textgreater{}avg\_l){]}}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      weight change is sum of two factors: error-driven based on
+      medium-term threshold (srm), and BCM Hebbian based on long-term
+      threshold of the recv unit (ru-\textgreater{}avg\_l)
+    \item
+      in earlier versions, the two factors were combined into a single
+      threshold value, using normalized weighting factors --- this was
+      more elegant, but by separating the two apart, we allow the
+      hebbian component to use the full range of the XCAL function (as
+      compared to the relatively small avg\_l\_lrn factor applied
+      \emph{inside} the threshold computation). By multiplying by
+      avg\_l\_lrn outside the XCAL equation, we get the desired contrast
+      enhancement property of the XCAL function, where values close to
+      the threshold are pushed either higher (above threshold) or lower
+      (below threshold) most strongly, and values further away are less
+      strongly impacted.
+    \item
+      m\_lrn is a constant and is typically 1.0 when error-driven
+      learning is employed (but can be set to 0 to have a completely
+      Hebbian model).
+    \item
+      XCAL is the ``check mark'' linearized BCM-style learning function
+      (see figure) that was derived from the Urakubo Et Al (2008) STDP
+      model, as described in more detail in the CCN textbook:
+      \url{http://ccnbook.colorado.edu}
+    \item
+      \texttt{XCAL(x,\ th)\ =\ (x\ \textless{}\ d\_thr)\ ?\ 0\ :\ (x\ \textgreater{}\ th\ *\ d\_rev)\ ?\ (x\ -\ th)\ :\ (-x\ *\ ((1-d\_rev)/d\_rev))}
+    \item
+      d\_thr = 0.0001, d\_rev = 0.1 defaults
+    \item
+      x ? y : z terminology is C syntax for: if x is true, then y, else
+      z
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Momentum} --- as of version 8.2.0, momentum is turned on by
+  default, and has significant benefits for preventing hog units by
+  driving more rapid specialization and convergence on promising error
+  gradients.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{\texttt{dwavg}}\texttt{\ =\ MAX(dwavg\_dt\_c\ *\ dwavg,\ ABS(dwt))}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      increment the running-average weight change magnitude (dwavg),
+      using abs (L1 norm) instead of squaring (L2 norm), and with a
+      small amount of decay: dwavg\_dt\_c = 1 - .001 --- software uses
+      dwavg\_tau = 1000 as a time-constant of this decay:
+      \texttt{dwavg\_dt\_c\ =\ 1\ -\ 1/dwavg\_tau}.
+    \end{itemize}
+  \item
+    \textbf{\texttt{moment}}\texttt{\ =\ m\_dt\_c\ *\ moment\ +\ dwt}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      increment momentum from new weight change ---
+      \texttt{m\_dt\_c\ =\ 1\ -\ 1/m\_tau} where m\_tau = 20 trial time
+      constant for momentum integration by default, which works best
+      (i.e., m\_dt\_c = .95 --- .9 (m\_tau = 10) is a
+      traditionally-used momentum value that also works fine but .95
+      (m\_tau = 20) works better for most cases.
+    \end{itemize}
+  \item
+    \texttt{if(dwavg\ !=\ 0)\ dwt\ =\ moment\ /\ MAX(dwavg,\ norm\_min);\ else\ dwt\ =\ moment}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      set the weight change used by following weight update equation to
+      use momentum, normalized by dwavg if available (nonzero) --- this
+      normalization is used in RMSProp, ADAM, and other related
+      algorithms.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Weight update equation} (see LeabraConSpec.h for code) (see
+  below for alternative version using differential fast vs. slow
+  weights, not used by default)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The \textbf{fwt} value here is the linear, non-contrast enhanced
+    version of the weight value, while \textbf{wt} is the sigmoidal
+    contrast-enhanced version, which is used for sending netinput to
+    other neurons. One can compute fwt from wt and vice-versa, but
+    numerical errors can accumulate in going back-and forth more than
+    necessary, and it is generally faster to just store these two weight
+    values (and they are needed for the slow vs. fast weights version
+    show below).
+  \item
+    \texttt{dwt\ *=\ (dwt\ \textgreater{}\ 0)\ ?\ (1-fwt)\ :\ fwt}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      soft weight bounding --- weight increases exponentially
+      decelerate toward upper bound of 1, and decreases toward lower
+      bound of 0. based on linear, non-contrast enhanced fwt weights.
+    \end{itemize}
+  \item
+    \textbf{\texttt{fwt}}\texttt{\ +=\ dwt}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      increment the linear weights with the bounded dwt term
+    \end{itemize}
+  \item
+    \textbf{\texttt{wt}}\texttt{\ =\ SIG(fwt)}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      new weight value is sigmoidal contrast enhanced version of fast
+      weight
+    \item
+      \texttt{SIG(w)\ =\ 1\ /\ (1\ +\ (off\ *\ (1-w)/w)\^{}gain)}
+    \end{itemize}
+  \item
+    \textbf{\texttt{dwt}}\texttt{\ =\ 0}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      reset weight changes now that they have been applied.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+   \emph{Optional, on by default:} \textbf{Weight Balance} --- this option attempts to
+  maintain more balanced weights across units, to prevent some units
+  from hogging the representational space, by changing the rates of
+  weight increase and decrease in the soft weight bounding function, as
+  a function of the average receiving weights:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{dwt\ *=\ (dwt\ \textgreater{}\ 0)\ ?\ wb\_inc\ *\ (1-fwt)\ :\ wb\_dec\ *\ fwt}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      wb\_inc = weight increase modulator, and wb\_dec = weight decrease
+      modulator (when these are both 1, this is same as standard, and
+      this is the default value of these factors)
+    \end{itemize}
+  \item
+    \texttt{wt\_avg\ =\ }
+
+    \begin{itemize}
+    \tightlist
+    \item
+      average of all the receiving weights --- computed \emph{per
+      projection} (corresponding to a dendritic branch perhaps)
+    \end{itemize}
+  \item
+    \texttt{if\ (wt\_avg\ \textgreater{}\ hi\_thr)\ then\ wbi\ =\ gain\ *\ (wt\_avg\ -\ hi\_thr);\ wb\_inc\ =\ 1\ -\ wbi;\ wb\_dec\ =\ 1\ +\ wbi}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      If the average weights are higher than a high threshold (hi\_thr =
+      .4 default) then the increase factor wb\_inc is reduced, and the
+      decrease factor wb\_dec is increased, by a factor wbi that is
+      determined by how far above the threshold the average is. Thus,
+      the higher the weights get, the less quickly they can increase,
+      and the more quickly they decrease, pushing them back into
+      balance.
+    \end{itemize}
+  \item
+    \texttt{if\ (wt\_avg\ \textless{}\ lo\_thr)\ then\ wbd\ =\ gain\ *\ (wt\_avg\ -\ lo\_thr);\ wb\_inc\ =\ 1\ -\ wbd;\ wb\_dec\ =\ 1\ +\ wbd}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      This is the symmetric version for case when weight averages are
+      below a low threshold (lo\_thr = .2), and the weight balance
+      factors go in the opposite direction (wbd is negative), causing
+      weight increases to be favored over decreases.
+    \end{itemize}
+  \item
+    The hi\_thr and lo\_thr parameters are specified in terms of a
+    target weight average value \texttt{trg\ =\ .3} with a threshold
+    \texttt{thr=.1} around that target value, with these defaults
+    producing the default .4 and .2 hi and lo thresholds respectively.
+  \item
+    A key feature of this mechanism is that it does not change the sign
+    of any weight changes, including not causing weights to change that
+    are otherwise not changing due to the learning rule. This is not
+    true of an alternative mechanism that has been used in various
+    models, which normalizes the total weight value by subtracting the
+    average. Overall this weight balance mechanism is important for
+    larger networks on harder tasks, where the hogging problem can be a
+    significant problem.
+  \end{itemize}
+\end{itemize}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "deep_leabra"
+%%% End: 

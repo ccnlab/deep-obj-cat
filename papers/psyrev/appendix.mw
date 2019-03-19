@@ -1,0 +1,185 @@
+== Leabra Algorithm Equations ==
+
+The pseudocode for Leabra is given here, showing exactly how the pieces of the algorithm fit together, using the equations and variables from the actual code.  The {{emergent}} implementation contains a number of optimizations (including vectorization and GPU code), but this provides the core math in simple form.
+
+See the <code>Matlab</code> directory in the emergent [[svn]] source directory for a complete implementation of these equations in Matlab, coded by Sergio Verduzco-Flores -- this can be a lot simpler to read than the highly optimized C++ source code.
+
+=== Timing ===
+
+Leabra is organized around the following timing, based on an internally-generated alpha-frequency (10 Hz, 100 msec periods) cycle of expectation followed by outcome, supported by neocortical circuitry in the deep layers and the thalamus, as hypothesized in the [[DeepLeabra]] extension to standard Leabra:
+* A '''Trial''' lasts 100 msec (10 Hz, alpha frequency), and comprises one sequence of expectation -- outcome learning, organized into 4 quarters.
+** Biologically, the deep neocortical layers (layers 5, 6) and the thalamus have a natural oscillatory rhythm at the alpha frequency.  Specific dynamics in these layers organize the cycle of expectation vs. outcome within the alpha cycle.
+* A '''Quarter''' lasts 25 msec (40 Hz, gamma frequency) -- the first 3 quarters (75 msec) form the expectation / minus phase, and the final quarter are the outcome / plus phase.
+** Biologically, the superficial neocortical layers (layers 2, 3) have a gamma frequency oscillation, supporting the quarter-level organization.
+* A '''Cycle''' represents 1 msec of processing, where each neuron updates its membrane potential etc according to the above equations.
+
+=== Variables ===
+
+LeabraUnits are organized into LeabraLayers, which sometimes have unit groups (which are now typically purely virtual, not actual Unit_Group objects).  The LeabraUnit has the following key parameters, along with a number of others that are used for other non-default algorithms and various optimizations, etc.
+* '''act''' = activation sent to other units
+* '''act_nd''' = non-depressed activation -- prior to application of any short-term plasticity
+* '''net_raw''' = raw netinput, prior to time-averaging
+* '''net''' = time-averaged excitatory conductance (net input)
+* '''gc_i''' = inhibitory conductance, computed from FFFB inhibition function typically
+* '''I_net''' = net current, combining excitatory, inhibitory, and leak channels
+* '''v_m''' = membrane potential
+* '''v_m_eq''' = equilibrium membrane potential -- not reset by spikes -- just keeps integrating
+* '''adapt''' = adaptation current
+* '''avg_ss''' = super-short term running average activation
+* '''avg_s''' = short-term running average activation, integrates over avg_ss, represents plus phase learning signal
+* '''avg_m''' = medium-term running average activation, integrates over avg_s, represents minus phase learning signal
+* '''avg_l''' = long-term running average activation, integrates over avg_m, drives long-term floating average for Hebbian learning
+* '''avg_l_lrn''' = how much to use the avg_l-based Hebbian learning for this receiving unit's learning -- in addition to the basic error-driven learning -- this can optionally be dynamically updated based on the avg_l factor and average level of error in the receiving layer, so that this Hebbian learning constraint can be stronger as a unit gets too active and needs to be regulated more strongly, and in proportion to average error levels in the layer.
+* '''avg_s_eff''' = effective avg_s value used in learning -- includes a small fraction (.1) of the avg_m value, for reasons explained below.
+
+Units are connected via synapses parameterized with the following variables.  These are actually stored in an optimized vector format, but the LeabraCon object contains the variables as a template.
+* '''wt''' = net effective synaptic weight between objects -- subject to contrast enhancement compared to fwt and swt
+* '''dwt''' = delta-wt -- change in synaptic weights due to learning
+* '''dwavg''' = time-averaged absolute value of weight change, for normalizing weight changes
+* '''moment''' = momentum integration of weight changes
+* '''fwt''' = fast weight -- used for advanced fast and slow weight learning dynamic -- otherwise equal to swt -- stored as non-contrast enhanced value
+* '''swt''' = slow weight -- standard learning rate weight -- stored as non-contrast enhanced value -- optional
+
+=== Activation Update Cycle (every 1 msec): Net input, Inhibition, Activation ===
+
+For every cycle of activation updating, compute the net input, inhibition, membrane potential, and activation:
+
+* '''Net input''' (see LeabraUnitSpec.cpp for code):
+** <code> '''net_raw''' +=  (sum over recv connections of:) scale_eff * act * wt</code>
+*** '''scale_eff''' = [https://grey.colorado.edu/emergent/index.php/Leabra_Netin_Scaling Netin Scaling] factor that includes 1/N to compute an average, plus wt_scale.rel and abs relative and absolute scaling terms.
+*** '''act''' = sending unit activation
+*** '''wt''' = receiving connection weight value between sender and receiver
+*** {{emergent}} does this very efficiently by using a sender-based computation, that only sends ''changes'' (deltas) in activation values -- typically only a few percent of neurons send on any given cycle.
+** <code>'''net''' += dt.integ * dt.net_dt * (net_raw - net)</code>
+*** time integration of net input, using net_dt (1/1.4 default), and global integration time constant, dt.integ (1 = 1 msec default)
+
+* '''Inhibition''' (see LeabraLayerSpec.cpp for code):
+** <code>'''ffi''' = ff * MAX(netin.avg - ff0, 0)</code>
+*** feedforward component of inhibition with ff multiplier (1 by default) -- has ff0 offset and can't be negative (that's what the MAX(.. ,0) part does).
+*** '''netin.avg''' is average of net variable across unit group or layer, depending on what level this is being computed at (both are supported)
+** <code>'''fbi''' += fb_dt * (fb * acts.avg - fbi)</code>
+*** feedback component of inhibition with fb multiplier (1 by default) -- requires time integration to dampen oscillations that otherwise occur -- fb_dt = 1/1.4 default
+** <code>'''gc_i''' = gi * (ffi + fbi)</code>
+*** total inhibitory conductance, with global gi multiplier -- default of gi=1.8 typically produces good sparse distributed representations in reasonably large layers (25 units or more)
+
+* '''Membrane potential''' (see LeabraUnitSpec.cpp for code)
+** <code>'''I_net''' = net * (e_rev.e - v_m) + gc_l * (e_rev.l - v_m) + gc_i * (e_rev.i - v_m) + noise</code>
+*** net current = sum of individual ionic channels: e = excitatory, l = leak (gc_l is a constant, 0.1 default), and i = inhibitory
+*** e_rev are reversal potentials: in normalized values derived from biophysical values, e_rev.e = 1, .l = 0.3, i = 0.25
+*** noise is typically gaussian if added
+** if ex: <code>'''I_net''' += g_bar.l * exp_slope * exp((v_m - thr) / exp_slope)</code>
+*** this is the exponential component of AdEx, if in use (typically only for discrete spiking), exp_slope = .02 default
+** <code>'''v_m''' += dt.integ * dt.vm_dt * (I_net - adapt)</code>
+*** in {{emergent}}, we use a simple midpoint method that evaluates v_m with a half-step time constant, and then uses this half-step v_m to compute full step in above I_net equation. vm_dt = 1/3.3 default.
+*** v_m is always computed as in discrete spiking, even when using rate code, with v_m reset to vm_r etc -- this provides a more natural way to integrate adaptation and short-term plasticity mechanisms, which drive off of the discrete spiking.
+** <code>'''I_net_r''' = net * (e_rev.e - v_m_eq) + gc_l * (e_rev.l - v_m_eq) + gc_i * (e_rev.i - v_m_eq) + noise</code>
+*** rate-coded version of I_net, to provide adequate coupling with v_m_eq. 
+** <code>'''v_m_eq''' +=  dt.integ * dt.vm_dt * (I_net_r - adapt)</code>
+*** the ''equilibrium'' version of the membrane potential does ''not'' reset with spikes, and is important for rate code per below
+
+* '''Activation''' (see LeabraUnitSpec.cpp for code)
+** <code>'''g_e_thr''' = (gc_i * (e_rev_i - thr) + gc_l * (e_rev_l - thr) - adapt) / (thr - e_rev.e)</code>
+*** the amount of excitatory conductance required to put the neuron exactly at the firing threshold, thr = .5 default.
+** <code>if(v_m > spk_thr) { spike = 1; v_m = vm_r; I_net = 0.0 } else { spike = 0 }</code>
+*** spk_thr is spiking threshold (1.2 default, different from rate code thr), vm_r = .3 is the reset value of the membrane potential after spiking -- we also have an optional refractory period after spiking, default = 3 cycles, where the vm equations are simply not computed, and vm remains at vm_r.
+*** if using spiking mode, then '''act''' = spike, otherwise, rate code function is below
+** <code>if(v_m_eq <= thr) { '''new_act''' = NXX1(v_m_eq - thr) } else { '''new_act''' = NXX1(net - g_e_thr) }</code>
+*** it is important that the time to first "spike" be governed by v_m integration dynamics, but after that point, it is essential that activation drive directly from the excitatory conductance (g_e or net) relative to the g_e_thr threshold -- activation rates are linear in this term, but not even a well-defined function of v_m_eq -- earlier versions of Leabra only used the v_m_eq-based term, and this led to some very strange behavior.
+*** NXX1 = noisy-x-over-x+1 function, which is implemented using a lookup table due to the convolving of the XX1 function with a gaussian noise kernel
+*** <code>XX1(x) = gain * x / (gain * x + 1)</code>
+*** gain = 100 default
+** <code>'''act_nd''' += dt.integ * dt.vm_dt * (new_act - act_nd)</code>
+*** non-depressed rate code activation is time-integrated using same vm_dt time constant as used in v_m, from the new activation value
+** <code>'''act''' = act_nd * syn_tr  (or just act_nd)</code>
+*** if short-term plasticity is in effect, then syn_tr variable reflects the synaptic transmission efficacy, and this product provides the net signal sent to the receiving neurons.  otherwise syn_tr = 1.
+** <code>'''adapt''' += dt.integ * (adapt.dt * (vm_gain * (v_m - e_rev.l) - adapt) + spike * spike_gain)</code>
+*** adaptation current -- causes rate of activation / spiking to decrease over time, adapt.dt = 1/144, vm_gain = 0.04, spike_gain = .00805 defaults
+
+=== Learning ===
+
+[[File:fig_xcal_dwt_fun.png|200px|thumb|right|The XCAL dWt function, showing direction and magnitude of synaptic weight changes (dWt) as a function of the short-term average activity of the sending neuron (''x'') times the receiving neuron (''y'').  This quantity is a simple mathematical approximation to the level of postsynaptic Ca++, reflecting the dependence of the NMDA channel on both sending and receiving neural activity.  This function was extracted directly from the detailed biophysical Urakubo et al. (2008) model, by fitting a piecewise linear function to the synaptic weight change behavior that emerges from it as a function of a wide range of sending and receiving spiking patterns.]]
+
+Learning is based on running-averages of activation variables, described first:
+
+* '''Running averages''' computed continuously every cycle, and note the compounding form (see LeabraUnitSpec.cpp for code)
+** <code>'''avg_ss''' += dt.integ * ss_dt * (act_nd - avg_ss)</code>
+*** super-short time scale running average, ss_dt = 1/2 default -- this was introduced to smooth out discrete spiking signal, but is also useful for rate code
+** <code>'''avg_s''' += dt.integ * act_avg.s_dt * (avg_ss - avg_s)</code>
+*** short time scale running average, s_dt = 1/2 default -- this represents the "plus phase" or actual outcome signal in comparison to avg_m
+** <code>'''avg_m''' += dt.integ * act_avg.m_dt * (avg_s - avg_m)</code>
+*** medium time-scale running average, m_dt = 1/10 average -- this represents the "minus phase" or expectation signal in comparison to avg_s
+** <code>'''avg_l''' += avg_l.dt * (avg_l.gain * avg_m - avg_l); avg_l = MAX(avg_l, min)</code>
+*** long-term running average -- this is computed just once per learning trial, ''not every cycle'' like the ones above -- gain = 2.5 (or 1.5 in some cases works better), min = .2, dt = .1 by default
+*** same basic exponential running average as above equations
+** <code> '''avg_s_eff''' = m_in_s * avg_m + (1 - m_in_s) * avg_s </code>
+*** mix in some of the medium-term factor into the short-term factor -- this is important for ensuring that when neuron turns off in the plus phase (short term), that enough trace of earlier minus-phase activation remains to drive it into the LTD weight decrease region -- m_in_s = .1 default.
+*** this is now done at the unit level -- previously was done at the connection level which is much less efficient!
+
+** <span style="background:LightGrey"> ''Optional, on by default:'' </span> dynamic modulation of amount of Hebbian learning, based on avg_l value and level of err in a given layer -- these factors make a small (few percent) but reliable difference in overall performance across various challenging tasks -- they can readily be omitted in favor of a fixed avg_l_lrn factor of around 0.0004 (with 0 for target layers -- it doesn't make sense to have any Hebbian learning at output layers):
+*** <code>'''avg_l_lrn''' = avg_l.lrn_min + (avg_l - avg_l.min) * ((avg_l.lrn_max - avg_l.lrn_min) / avg_l.gain - avg_l.min)) </code>
+**** learning strength factor for how much to learn based on avg_l floating threshold -- this is dynamically modulated by strength of avg_l itself, and this turns out to be critical -- the amount of this learning increases as units are more consistently active all the time (i.e., "hog" units).  avg_l.lrn_min = 0.0001, avg_l.lrn_max = 0.5. Note that this depends on having a clear max to avg_l, which is an advantage of the exponential running-average form above.
+*** <code>'''avg_l_lrn''' *= MAX(1 - cos_diff_avg, 0.01) </code>
+**** also modulate by time-averaged cosine (normalized dot product) between minus and plus phase activation states in given receiving layer (cos_diff_avg), (time constant 100) -- if error signals are small in a given layer, then Hebbian learning should also be relatively weak so that it doesn't overpower it -- and conversely, layers with higher levels of error signals can handle (and benefit from) more Hebbian learning.  The MAX(0.01) factor ensures that there is a minimum level of .01 Hebbian (multiplying the previously-computed factor above).  The .01 * .05 factors give an upper-level value of .0005 to use for a fixed constant avg_l_lrn value -- just slightly less than this (.0004) seems to work best if not using these adaptive factors.
+
+* '''Learning equation''' (see LeabraConSpec.h for code) -- most of these are intermediate variables used in computing final dwt value
+** <code>'''srs''' = ru->avg_s_eff * su->avg_s_eff</code>
+*** short-term sender-receiver co-product -- this is the intracellular calcium from NMDA and other channels
+** <code>'''srm''' = ru->avg_m * su->avg_m</code>
+*** medium-term sender-receiver co-product -- this drives dynamic threshold for error-driven learning
+** <code>'''dwt''' += lrate * [ m_lrn * XCAL(srs, srm)  + ru->avg_l_lrn * XCAL(srs, ru->avg_l)]</code>
+*** weight change is sum of two factors: error-driven based on medium-term threshold (srm), and BCM Hebbian based on long-term threshold of the recv unit (ru->avg_l)
+*** in earlier versions, the two factors were combined into a single threshold value, using normalized weighting factors -- this was more elegant, but by separating the two apart, we allow the hebbian component to use the full range of the XCAL function (as compared to the relatively small avg_l_lrn factor applied ''inside'' the threshold computation).  By multiplying by avg_l_lrn outside the XCAL equation, we get the desired contrast enhancement property of the XCAL function, where values close to the threshold are pushed either higher (above threshold) or lower (below threshold) most strongly, and values further away are less strongly impacted.
+*** m_lrn is a constant and is typically 1.0 when error-driven learning is employed (but can be set to 0 to have a completely Hebbian model).
+*** XCAL is the "check mark" linearized BCM-style learning function (see figure) that was derived from the Urakubo Et Al (2008) STDP model, as described in more detail in the CCN textbook: http://ccnbook.colorado.edu
+***<code> XCAL(x, th) = (x < d_thr) ? 0 : (x > th * d_rev) ? (x - th) : (-x * ((1-d_rev)/d_rev))</code>
+*** d_thr = 0.0001, d_rev = 0.1 defaults
+*** x ? y : z terminology is C syntax for: if x is true, then y, else z
+
+* '''Momentum''' -- as of version 8.2.0, momentum is turned on by default, and has significant benefits for preventing hog units by driving more rapid specialization and convergence on promising error gradients.
+** <code>'''dwavg''' = MAX(dwavg_dt_c * dwavg, ABS(dwt)) </code>
+*** increment the running-average weight change magnitude (dwavg), using abs (L1 norm) instead of squaring (L2 norm), and with a small amount of decay: dwavg_dt_c = 1 - .001 -- software uses dwavg_tau = 1000 as a time-constant of this decay: <code>dwavg_dt_c = 1 - 1/dwavg_tau</code>.
+** <code>'''moment''' = m_dt_c * moment + dwt </code>
+*** increment momentum from new weight change -- <code>m_dt_c = 1 - 1/m_tau</code> where m_tau = 20 trial time constant for momentum integration by default, which works best (i.e., m_dt_c = .95 -- .9 (m_tau = 10) is a traditionally-used momentum value that also works fine but .95 (m_tau = 20) works better for most cases.
+** <code>if(dwavg != 0) dwt = moment / MAX(dwavg, norm_min); else dwt = moment</code>
+*** set the weight change used by following weight update equation to use momentum, normalized by dwavg if available (nonzero) -- this normalization is used in RMSProp, ADAM, and other related algorithms.
+
+* '''Weight update equation''' (see LeabraConSpec.h for code) (see below for alternative version using differential fast vs. slow weights, not used by default)
+** The '''fwt''' value here is the linear, non-contrast enhanced version of the weight value, while '''wt''' is the sigmoidal contrast-enhanced version, which is used for sending netinput to other neurons.  One can compute fwt from wt and vice-versa, but numerical errors can accumulate in going back-and forth more than necessary, and it is generally faster to just store these two weight values (and they are needed for the slow vs. fast weights version show below).
+** <code> dwt *= (dwt > 0) ? (1-fwt) : fwt</code>
+*** soft weight bounding -- weight increases exponentially decelerate toward upper bound of 1, and decreases toward lower bound of 0.  based on linear, non-contrast enhanced fwt weights.
+** <code> '''fwt''' += dwt </code>
+*** increment the linear weights with the bounded dwt term
+** <code> '''wt''' = SIG(fwt) </code>
+*** new weight value is sigmoidal contrast enhanced version of fast weight 
+*** <code>SIG(w) = 1 / (1 + (off * (1-w)/w)^gain)</code>
+** <code> '''dwt''' = 0 </code>
+*** reset weight changes now that they have been applied.
+
+* <span style="background:LightGrey"> ''Optional:'' </span> '''Slow vs. Fast Weights version of the weight update equation''' -- this is not widely used (as of yet), but enables rapid but more transient learning to coexist with slower more enduring learning at each synapse, which can have important behavioral implications:
+** <code> dwt *= (dwt > 0) ? (1-fwt) : fwt</code>
+*** soft weight bounding -- weight increases exponentially decelerate toward upper bound of 1, and decreases toward lower bound of 0.  based on fast weights (in linear, non-contrast enhanced form), so that fast weights can drive learning saturation if in effect.
+** <code> '''fwt''' += dwt </code>
+*** fast weights learn according to standard learning mechanism -- to make them faster, turn up the std learning rate -- important to not change the basic learning rule here by doing something else with the fast weights
+** <code> '''eff_wt''' = swt_pct * swt + (1 - swt_pct) * fwt </code>
+*** effective weight value is blend of slow weights and fast weights -- swt_pct can be .5 or .8 typically (eff_wt is not stored -- just a tmp variable)
+** <code> '''nwt''' = SIG(eff_wt) </code>
+*** new weight value is sigmoidal contrast enhanced version of effective weight (nwt is not stored -- just a tmp variable)
+*** <code>SIG(w) = 1 / (1 + (off * (1-w)/w)^gain)</code>
+** <code> '''wt''' += wt_dt * (nwt - wt) </code>
+*** weight moves toward new weight value with a time constant -- reflects slowed rise time seen in early LTP dynamics
+** <code> '''swt''' += slow_dt * (fwt - swt) </code>
+*** slow weight moves slowly toward fast weights slow_dt = 1/100 typically but can be as long as 1/3000
+** <code> '''dwt''' = 0 </code>
+*** reset weight changes now that they have been applied.
+
+* <span style="background:LightGrey"> ''Optional:'' </span> '''Weight Balance''' -- this option attempts to maintain more balanced weights across units, to prevent some units from hogging the representational space, by changing the rates of weight increase and decrease in the soft weight bounding function, as a function of the average receiving weights:
+** <code> dwt *= (dwt > 0) ? wb_inc * (1-fwt) : wb_dec * fwt </code>
+*** wb_inc = weight increase modulator, and wb_dec = weight decrease modulator (when these are both 1, this is same as standard, and this is the default value of these factors)
+** <code> wt_avg = <wt> </code>
+*** average of all the receiving weights -- computed ''per projection'' (corresponding to a dendritic branch perhaps)
+** <code> if (wt_avg > hi_thr) then wbi = gain * (wt_avg - hi_thr); wb_inc = 1 - wbi; wb_dec = 1 + wbi </code>
+*** If the average weights are higher than a high threshold (hi_thr = .4 default) then the increase factor wb_inc is reduced, and the decrease factor wb_dec is increased, by a factor wbi that is determined by how far above the threshold the average is.  Thus, the higher the weights get, the less quickly they can increase, and the more quickly they decrease, pushing them back into balance.
+** <code> if (wt_avg < lo_thr) then wbd = gain * (wt_avg - lo_thr); wb_inc = 1 - wbd; wb_dec = 1 + wbd </code>
+*** This is the symmetric version for case when weight averages are below a low threshold (lo_thr = .2), and the weight balance factors go in the opposite direction (wbd is negative), causing weight increases to be favored over decreases.
+** The hi_thr and lo_thr parameters are specified in terms of a target weight average value <code>trg = .3</code> with a threshold <code>thr=.1</code> around that target value, with these defaults producing the default .4 and .2 hi and lo thresholds respectively.
+** A key feature of this mechanism is that it does not change the sign of any weight changes, including not causing weights to change that are otherwise not changing due to the learning rule.  This is not true of an alternative mechanism that has been used in various models, which normalizes the total weight value by subtracting the average.  Overall this weight balance mechanism is important for larger networks on harder tasks, where the hogging problem can be a significant problem.
