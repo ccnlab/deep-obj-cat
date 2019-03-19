@@ -161,9 +161,9 @@ func main() {
 	blurRad := 25.0
 	tst := false
 	if tst {
-		FilterDir("/Users/oreilly/wwi_filter_tst", "/Users/oreilly/wwi_filter_out", bg, tol, blurRad)
+		FilterDir("/Users/oreilly/deep-obj-cat-shape-imgs-test-in", "/Users/oreilly/deep-obj-cat-shape-imgs", bg, tol, blurRad)
 	} else {
-		FilterDir("/Users/oreilly/wwi_emer_imgs_20fg_8tick_rot1", "/Users/oreilly/wwi_filter_out", bg, tol, blurRad)
+		FilterDir("/Users/oreilly/wwi_emer_imgs_20fg_8tick_rot1", "/Users/oreilly/deep-obj-cat-shape-imgs", bg, tol, blurRad)
 	}
 
 }

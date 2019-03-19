@@ -79,6 +79,8 @@ func DoDir(inpath, outpath string, ntrl int) {
 	fnlist, _ := os.Create(filepath.Join(outpath, "file-list.csv"))
 	trllist, _ := os.Create(filepath.Join(outpath, "trial-list.csv"))
 
+	fmt.Fprintf(fnlist, "image_url\n", ofn)
+
 	nobj := len(Objs)
 
 	objfiles := make([][]os.FileInfo, nobj)
@@ -125,5 +127,5 @@ func DoDir(inpath, outpath string, ntrl int) {
 }
 
 func main() {
-	DoDir("/Users/oreilly/wwi_filter_out", "/Users/oreilly/wwi_cmps_out", 800)
+	DoDir("/Users/oreilly/deep-obj-cat-shape-imgs", "/Users/oreilly/deep-obj-cat-shape-cmp-trls", 800)
 }
