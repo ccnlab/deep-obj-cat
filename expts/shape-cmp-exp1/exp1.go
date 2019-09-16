@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/emer/etable/agg"
+	"github.com/emer/etable/clust"
+	"github.com/emer/etable/eplot"
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
 	_ "github.com/emer/etable/etview" // include to get gui views
@@ -75,6 +77,8 @@ var Cats = map[string]string{
 var JustCats []string
 var CatsBlanks []string // with blanks
 
+// Expt is the main data structure for all expt results and tables
+// is visualized in gui so you can click on stuff..
 type Expt struct {
 	RawFull    etable.Table  `desc:"full raw data -- not checked in and only used initially"`
 	Raw        etable.Table  `desc:"raw relevant data"`
@@ -83,6 +87,10 @@ type Expt struct {
 	RawPctsAll etable.Table  `desc:"Resp is now 0 = left, 1 = right, result is mean"`
 	RawPcts    *etable.Table `desc:"Resp is now 0 = left, 1 = right, result is mean"`
 	SimMat     simat.SimMat  `desc:"weights for each pair of objs (NxN) (average proportion choice)"`
+	SimMatN    simat.SimMat  `desc:"n's for each pair of objs (NxN) (average proportion choice)"`
+	SimMatCats simat.SimMat  `desc:"sim mat with category labels"`
+	ClustPlot  *eplot.Plot2D `desc:"cluster plot"`
+	SubjStats  *etable.Table `desc:"summary stats on subjects -- quality control"`
 }
 
 func (ex *Expt) Init() {
@@ -230,14 +238,20 @@ func (ex *Expt) DoSims() {
 	ex.SimMat.Init()
 	smat := ex.SimMat.Mat.(*etensor.Float64)
 	smat.SetShape([]int{no, no}, nil, nil)
-	// ex.SimMat.Rows = Objs
-	// ex.SimMat.Cols = Objs
-	ex.SimMat.Rows = CatsBlanks
-	ex.SimMat.Cols = CatsBlanks
+	ex.SimMat.Rows = Objs
+	ex.SimMat.Cols = Objs
 	smat.SetZeros()
 
-	var ntsr etensor.Float64
+	ex.SimMatCats.Mat = smat
+	ex.SimMatCats.Rows = CatsBlanks
+	ex.SimMatCats.Cols = CatsBlanks
+
+	ex.SimMatN.Init()
+	ntsr := ex.SimMatN.Mat.(*etensor.Float64)
 	ntsr.SetShape([]int{no, no}, nil, nil)
+	ex.SimMatN.Rows = CatsBlanks
+	ex.SimMatN.Cols = CatsBlanks
+	ntsr.SetZeros()
 
 	tlix := etable.NewIdxView(&ex.TrialList)
 	tlix.SortColName("Image", true) // true = ascending
@@ -250,7 +264,7 @@ func (ex *Expt) DoSims() {
 		}
 		pleft := 1 - resp
 		pright := resp
-		if pleft > 0 {
+		{
 			la := ex.TrialList.CellString("L_A", tli)
 			lb := ex.TrialList.CellString("L_B", tli)
 			lai := ObjIdxs[la]
@@ -264,7 +278,7 @@ func (ex *Expt) DoSims() {
 			ntsr.Set([]int{lai, lbi}, cn)
 			ntsr.Set([]int{lbi, lai}, cn)
 		}
-		if pright > 0 {
+		{
 			ra := ex.TrialList.CellString("R_A", tli)
 			rb := ex.TrialList.CellString("R_B", tli)
 			rai := ObjIdxs[ra]
@@ -287,9 +301,38 @@ func (ex *Expt) DoSims() {
 				cv := smat.Value([]int{y, x})
 				cv /= cn
 				smat.Set([]int{y, x}, 1-cv) // invert
+			} else {
+				if y != x {
+					smat.Set([]int{y, x}, 1) // doh, missing data!
+				}
 			}
 		}
 	}
+}
+
+func (ex *Expt) Clust() {
+	smat := &ex.SimMat
+	cl := clust.Glom(smat, clust.MaxDist) // can choose MaxDist or AvgDist or write your own
+	// then plot the results
+	pt := &etable.Table{}
+	clust.Plot(pt, cl, smat)
+	ex.ClustPlot = &eplot.Plot2D{}
+	plt := ex.ClustPlot
+	plt.InitName(plt, "ClustPlot")
+	plt.Params.Title = "Cluster Plot"
+	plt.Params.XAxisCol = "X"
+	plt.SetTable(pt)
+	// order of params: on, fixMin, min, fixMax, max
+	plt.SetColParams("X", false, true, 0, false, 0)
+	plt.SetColParams("Y", true, true, 0, false, 0)
+	plt.SetColParams("Label", true, false, 0, false, 0)
+}
+
+func (ex *Expt) Subjs() {
+	ix := etable.NewIdxView(&ex.Raw)
+	bySubjResp := split.GroupBy(ix, []string{"Subj", "Resp"})
+	split.Agg(bySubjResp, "Resp", agg.AggCount)
+	ex.SubjStats = bySubjResp.AggsToTable(false) // false = include aggs in col name
 }
 
 func (ex *Expt) Analyze() {
@@ -299,6 +342,8 @@ func (ex *Expt) Analyze() {
 	ex.OpenTrialList()
 	ex.SumStats()
 	ex.DoSims()
+	ex.Clust()
+	ex.Subjs()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -366,7 +411,7 @@ var TheExpt Expt
 
 func mainrun() {
 	TheExpt.Init()
-	TheExpt.Analyze()
 	win := TheExpt.ConfigGui()
+	TheExpt.Analyze()
 	win.StartEventLoop()
 }
