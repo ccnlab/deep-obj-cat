@@ -319,7 +319,7 @@ func (ex *Expt) DoSims() {
 
 func (ex *Expt) Clust() {
 	smat := &ex.SimMat
-	cl := clust.Glom(smat, clust.MaxDist) // MaxDist produces best fit
+	cl := clust.Glom(smat, clust.ContrastDist) // ContrastDist, MaxDist, Avg all produce similar good fits
 	// then plot the results
 	pt := &etable.Table{}
 	clust.Plot(pt, cl, smat)
