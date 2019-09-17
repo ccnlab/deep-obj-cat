@@ -1,18 +1,16 @@
-# shape similarity experiment
+# Shape similarity expt results analysis
 
-* Followed this tutorial: https://blog.mturk.com/tutorial-how-to-label-thousands-of-images-using-the-crowd-bea164ccbefc
+Overall strategy:
 
-* Overall strategy is just to pre-compile all the images, and then present users with a binary choice (Left or Right).
+* Download raw data from MTurk / batch / results -- as a huge .csv file: `raw_full_data.csv` (not checked in!)
 
-* Mturk sandbox: https://requestersandbox.mturk.com/create/projects
-* Mturk login: https://requester.mturk.com/create/projects
+* extract key data (Input, Response) and anonymous subject number to `raw_data.csv`
 
-* AWS S3 account used to host the images: https://console.aws.amazon.com/billing/home?#/account
+* summarize data as 0 = left, 1 = right, so Resp col is mean proportion right, 1- = mean left
 
-    + Instructions for making things public has changed since the tutorial -- I ended up just disabling all the various public ACL kinds of options under Permissions, and then it allowed me to make them public.
-    
-* `shape-cmp.go` generates the experimental trials, compositing images previously generated using the `imgproc.go` code, which processes image files captured from model, avail for download here: https://grey.colorado.edu/downloads/wwi_emer_imgs_20fg_8tick_rot1.tar.gz
-    + Current version: runs image through V1 filters and then inverts back out using random selection of max pool unit -- fairly unrecognizable but definitely gives an overall impression of shape..
-    + Previous: turns all the blue background color to white, and everything else to black, and then blurs the resulting image with a bild blur.Box convolution filter with a radius of 25.  Produces pretty blurry images.
+* add mean left for left pairs, mean right for right pairs in summary SimMat table
+
+* that's it!
+
 
 

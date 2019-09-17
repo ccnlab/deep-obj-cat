@@ -1,4 +1,4 @@
-// generate random comparison cases
+// analyze expt results
 
 package main
 
@@ -241,6 +241,11 @@ func (ex *Expt) DoSims() {
 	ex.SimMat.Rows = Objs
 	ex.SimMat.Cols = Objs
 	smat.SetZeros()
+	smat.SetMetaData("max", "1")
+	smat.SetMetaData("min", "0")
+	smat.SetMetaData("colormap", "Viridis")
+	smat.SetMetaData("grid-fill", "1")
+	smat.SetMetaData("dim-extra", "0.15")
 
 	ex.SimMatCats.Mat = smat
 	ex.SimMatCats.Rows = CatsBlanks
@@ -303,16 +308,18 @@ func (ex *Expt) DoSims() {
 				smat.Set([]int{y, x}, 1-cv) // invert
 			} else {
 				if y != x {
-					smat.Set([]int{y, x}, 1) // doh, missing data!
+					smat.Set([]int{y, x}, 0.5) // doh, missing data!
 				}
 			}
 		}
 	}
+	smat.SetMetaData("precision", "4")
+	etensor.SaveCSV(smat, "simat.csv", etable.Comma)
 }
 
 func (ex *Expt) Clust() {
 	smat := &ex.SimMat
-	cl := clust.Glom(smat, clust.MaxDist) // can choose MaxDist or AvgDist or write your own
+	cl := clust.Glom(smat, clust.MaxDist) // MaxDist produces best fit
 	// then plot the results
 	pt := &etable.Table{}
 	clust.Plot(pt, cl, smat)
