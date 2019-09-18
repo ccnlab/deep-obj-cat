@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/emer/etable/clust"
 	"github.com/emer/etable/eplot"
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
@@ -81,7 +82,8 @@ var CatsBlanks []string // with blanks
 // is visualized in gui so you can click on stuff..
 type Res struct {
 	LbaFullSimMat    simat.SimMat  `desc:"Leabra TEs full similarity matrix"`
-	LbaFullNames     []string      `view:"-" desc:"object names in order for FullSimMat"`
+	LbaFullNames     []string      `view:"+" desc:"object names in order for FullSimMat"`
+	LbaV4FullSimMat  simat.SimMat  `desc:"Leabra V4s full similarity matrix"`
 	V1FullSimMat     simat.SimMat  `desc:"V1 full similarity matrix"`
 	V1FullNames      []string      `view:"-" desc:"object names in order for FullSimMat"`
 	BpPredFullSimMat simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix"`
@@ -94,7 +96,9 @@ type Res struct {
 	BpPredObjSimMat  simat.SimMat  `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
 	BpEncObjSimMat   simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
 	ExptCorrel       etable.Table  `desc:"correlations with expt data for each sim data"`
-	ClustPlot        *eplot.Plot2D `desc:"cluster plot"`
+	Expt1ClustPlot   *eplot.Plot2D `desc:"cluster plot"`
+	LbaObjClustPlot  *eplot.Plot2D `desc:"cluster plot"`
+	LbaFullClustPlot *eplot.Plot2D `desc:"cluster plot"`
 }
 
 func (rs *Res) Init() {
@@ -168,6 +172,7 @@ func (rs *Res) OpenFullSimMat(sm *simat.SimMat, nms *[]string, fname string, lab
 
 func (rs *Res) OpenSimMats() {
 	rs.OpenFullSimMat(&rs.LbaFullSimMat, &rs.LbaFullNames, "sim_leabra_simat.tsv", "sim_leabra_simat_lbl.tsv", "1.5")
+	rs.OpenFullSimMat(&rs.LbaV4FullSimMat, &rs.LbaFullNames, "sim_leabra_simat_v4.tsv", "sim_leabra_simat_lbl.tsv", "1.0")
 	rs.OpenFullSimMat(&rs.V1FullSimMat, &rs.V1FullNames, "sim_v1_simat.tsv", "sim_v1_simat_lbl.tsv", "1.0")
 	rs.OpenFullSimMat(&rs.BpPredFullSimMat, &rs.BpPredFullNames, "sim_bp_pred_simat.tsv", "sim_bp_pred_simat_lbl.tsv", "0.3")
 	rs.OpenFullSimMat(&rs.BpEncFullSimMat, &rs.BpEncFullNames, "sim_bp_enc_simat.tsv", "sim_bp_enc_simat_lbl.tsv", "0.04")
@@ -263,11 +268,89 @@ func (rs *Res) Correls() {
 	rs.SetCorrel(dt, 3, "Bp Enc", &rs.BpEncObjSimMat)
 }
 
+func (rs *Res) ClustObj(smat *simat.SimMat, title string) *eplot.Plot2D {
+	prv := smat.Rows
+	// smat.Rows = JustCats
+	// smat.Cols = JustCats
+	smat.Rows = Objs
+	smat.Cols = Objs
+	cl := clust.Glom(smat, clust.MaxDist) // ContrastDist, MaxDist, Avg all produce similar good fits
+	// then plot the results
+	pt := &etable.Table{}
+	clust.Plot(pt, cl, smat)
+	plt := &eplot.Plot2D{}
+	plt.InitName(plt, "ClustPlot")
+	plt.Params.Title = title
+	plt.Params.XAxisCol = "X"
+	plt.Params.Scale = 3
+	plt.SetTable(pt)
+	// order of params: on, fixMin, min, fixMax, max
+	plt.SetColParams("X", false, true, 0, false, 0)
+	plt.SetColParams("Y", true, true, 0, false, 0)
+	plt.SetColParams("Label", true, false, 0, false, 0)
+	smat.Rows = prv
+	smat.Cols = prv
+	return plt
+}
+
+// GlomInit returns a standard root node initialized with all of the leaves
+func (rs *Res) ClustFull(smat *simat.SimMat, nms []string, title string) *eplot.Plot2D {
+	prv := smat.Rows
+	smat.Rows = nms
+	smat.Cols = nms
+
+	// pre-allocate all objects into clusters
+	no := len(Objs)
+	root := &clust.Node{}
+	root.Kids = make([]*clust.Node, no)
+	for i := 0; i < no; i++ {
+		ond := &clust.Node{Dist: 0.1}
+		kidx := []int{}
+		onm := Objs[i]
+		for ni, nm := range nms {
+			if nm == onm {
+				kidx = append(kidx, ni)
+			}
+		}
+		ond.Kids = make([]*clust.Node, len(kidx))
+		for ki, kix := range kidx {
+			ond.Kids[ki] = &clust.Node{Idx: kix}
+		}
+		root.Kids[i] = ond
+	}
+
+	cl := clust.GlomClust(root, smat, clust.ContrastDist) // ContrastDist, MaxDist, Avg all produce similar good fits
+	// then plot the results
+	pt := &etable.Table{}
+	clust.Plot(pt, cl, smat)
+	plt := &eplot.Plot2D{}
+	plt.InitName(plt, "ClustPlot")
+	plt.Params.Title = title
+	plt.Params.XAxisCol = "X"
+	plt.Params.Scale = 3
+	plt.SetTable(pt)
+	// order of params: on, fixMin, min, fixMax, max
+	plt.SetColParams("X", false, true, 0, false, 0)
+	plt.SetColParams("Y", true, true, 0, false, 0)
+	plt.SetColParams("Label", true, false, 0, false, 0)
+
+	smat.Rows = prv
+	smat.Cols = prv
+	return plt
+}
+
+func (rs *Res) ClustPlots() {
+	rs.Expt1ClustPlot = rs.ClustObj(&rs.Expt1SimMat, "Experiment")
+	rs.LbaObjClustPlot = rs.ClustObj(&rs.LbaObjSimMat, "Leabra Obj Sum")
+	rs.LbaFullClustPlot = rs.ClustFull(&rs.LbaFullSimMat, rs.LbaFullNames, "Leabra Full")
+}
+
 func (rs *Res) Analyze() {
 	rs.OpenSimMats()
 	rs.ObjSimMats()
 	rs.OpenExptMat()
 	rs.Correls()
+	rs.ClustPlots()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

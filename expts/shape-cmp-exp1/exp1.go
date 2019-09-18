@@ -328,6 +328,7 @@ func (ex *Expt) Clust() {
 	plt.InitName(plt, "ClustPlot")
 	plt.Params.Title = "Cluster Plot"
 	plt.Params.XAxisCol = "X"
+	plt.Params.Scale = 3
 	plt.SetTable(pt)
 	// order of params: on, fixMin, min, fixMax, max
 	plt.SetColParams("X", false, true, 0, false, 0)

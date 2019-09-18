@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="365.25pt" height="413.62pt" viewBox="0 0 365.25 413.62" xmlns="http://www.w3.org/2000/svg">
+  <g transform="scale(1, -1) translate(0, -413.62)">
+    <text x="152.28" y="-402.11" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 12px; white-space: pre;">Experiment Clusters<tspan x="152.27999877929688" dy="1em">​</tspan></text>
+    <text x="180.74" y="-3.8789" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 12px; white-space: pre;">X</text>
+    <text x="40.325" y="-15.599" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 10px; white-space: pre;">0</text>
+    <text x="115.29" y="-15.599" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 10px; white-space: pre;">1</text>
+    <text x="190.25" y="-15.599" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 10px; white-space: pre;">2</text>
+    <text x="265.21" y="-15.599" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 10px; white-space: pre;">3</text>
+    <path d="M43.105,25.198L43.105,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M118.07,25.198L118.07,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M193.03,25.198L193.03,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M267.99,25.198L267.99,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M58.098,29.198L58.098,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M73.09,29.198L73.09,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M88.083,29.198L88.083,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M103.08,29.198L103.08,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M133.06,29.198L133.06,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M148.05,29.198L148.05,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M163.05,29.198L163.05,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M178.04,29.198L178.04,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M208.02,29.198L208.02,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M223.01,29.198L223.01,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M238.01,29.198L238.01,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M253,29.198L253,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M282.98,29.198L282.98,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M297.98,29.198L297.98,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M312.97,29.198L312.97,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M43.105,33.198L326.39,33.198" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <g transform="rotate(90)">
+      <text x="209.43" y="11.52" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 12px; white-space: pre;">Y</text>
+    </g>
+    <text x="20.96" y="-33.749" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 10px; white-space: pre;">0</text>
+    <text x="20.96" y="-195.27" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 10px; white-space: pre;">9</text>
+    <text x="15.398" y="-356.79" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 10px; white-space: pre;">18</text>
+    <path d="M29.3,38.448L37.3,38.448" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M29.3,199.97L37.3,199.97" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M29.3,361.49L37.3,361.49" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M33.3,119.21L37.3,119.21" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M33.3,280.73L37.3,280.73" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M37.3,38.448L37.3,388.41" style="fill:none;stroke:#000000;stroke-width:0.5"/>
+    <path d="M43.105,257.74L43.105,257.74L43.105,167.44L118.07,167.44L118.07,91.167L189.53,91.167L189.53,56.395L246.17,56.395L246.17,47.422L284.11,47.422L284.11,47.422L246.17,47.422L246.17,65.369L284.11,65.369L284.11,65.369L246.17,65.369L246.17,56.395L189.53,56.395L189.53,125.94L246.17,125.94L246.17,105.75L280.65,105.75L280.65,92.289L300.65,92.289L300.65,83.315L308.14,83.315L308.14,83.315L300.65,83.315L300.65,101.26L308.14,101.26L308.14,101.26L300.65,101.26L300.65,92.289L280.65,92.289L280.65,119.21L300.65,119.21L300.65,119.21L280.65,119.21L280.65,105.75L246.17,105.75L246.17,146.13L280.65,146.13L280.65,137.16L283.15,137.16L283.15,137.16L280.65,137.16L280.65,155.1L283.15,155.1L283.15,155.1L280.65,155.1L280.65,146.13L246.17,146.13L246.17,125.94L189.53,125.94L189.53,91.167L118.07,91.167L118.07,243.72L189.53,243.72L189.53,215.67L241.17,215.67L241.17,195.48L279.15,195.48L279.15,182.02L306.19,182.02L306.19,173.05L326.39,173.05L326.39,173.05L306.19,173.05L306.19,191L326.39,191L326.39,191L306.19,191L306.19,182.02L279.15,182.02L279.15,208.94L306.19,208.94L306.19,208.94L279.15,208.94L279.15,195.48L241.17,195.48L241.17,235.86L279.15,235.86L279.15,226.89L297.47,226.89L297.47,226.89L279.15,226.89L279.15,244.84L297.47,244.84L297.47,244.84L279.15,244.84L279.15,235.86L241.17,235.86L241.17,215.67L189.53,215.67L189.53,271.76L241.17,271.76L241.17,262.78L257.29,262.78L257.29,262.78L241.17,262.78L241.17,280.73L257.29,280.73L257.29,280.73L241.17,280.73L241.17,271.76L189.53,271.76L189.53,243.72L118.07,243.72L118.07,167.44L43.105,167.44L43.105,348.03L118.07,348.03L118.07,321.11L183.87,321.11L183.87,307.65L226.6,307.65L226.6,298.68L241.87,298.68L241.87,298.68L226.6,298.68L226.6,316.62L241.87,316.62L241.87,316.62L226.6,316.62L226.6,307.65L183.87,307.65L183.87,334.57L226.6,334.57L226.6,334.57L183.87,334.57L183.87,321.11L118.07,321.11L118.07,374.95L183.87,374.95L183.87,361.49L209.96,361.49L209.96,352.52L221.82,352.52L221.82,352.52L209.96,352.52L209.96,370.47L221.82,370.47L221.82,370.47L209.96,370.47L209.96,361.49L183.87,361.49L183.87,388.41L209.96,388.41L209.96,388.41L183.87,388.41L183.87,374.95L118.07,374.95L118.07,348.03L43.105,348.03L43.105,257.74L43.105,257.74L43.105,257.74" style="fill:none;stroke:#000000"/>
+    <text transform="scale(1, -1)" style="fill: rgb(6, 179, 0); font-family: Times; font-size: 10px; white-space: pre;" x="284.11" y="-47.607">chair</text>
+    <text transform="scale(1, -1)" style="fill: rgb(6, 179, 0); font-family: Times; font-size: 10px; white-space: pre;" x="284.11" y="-65.554">handgun</text>
+    <text transform="scale(1, -1)" style="fill: rgb(255, 31, 248); font-family: Times; font-size: 10px; white-space: pre;" x="308.14" y="-83.501">stapler</text>
+    <text transform="scale(1, -1)" style="fill: rgb(250, 0, 0); font-family: Times; font-size: 10px; white-space: pre;" x="308.14" y="-101.45">trex</text>
+    <text transform="scale(1, -1)" style="fill: rgb(255, 31, 248); font-family: Times; font-size: 10px; white-space: pre;" x="300.65" y="-119.39">heavycannon</text>
+    <text transform="scale(1, -1)" style="fill: rgb(255, 31, 248); font-family: Times; font-size: 10px; white-space: pre;" x="283.15" y="-137.34">car</text>
+    <text transform="scale(1, -1)" style="fill: rgb(250, 0, 0); font-family: Times; font-size: 10px; white-space: pre;" x="283.15" y="-155.29">layercake</text>
+    <text transform="scale(1, -1)" style="fill: rgb(0, 0, 255); font-family: Times; font-size: 10px; white-space: pre;" x="326.39" y="-173.24">piano</text>
+    <text transform="scale(1, -1)" style="fill: rgb(0, 0, 255); font-family: Times; font-size: 10px; white-space: pre;" x="326.39" y="-191.18">slrcamera</text>
+    <text transform="scale(1, -1)" style="fill: rgb(0, 0, 255); font-family: Times; font-size: 10px; white-space: pre;" x="306.19" y="-209.13">fish</text>
+    <text transform="scale(1, -1)" style="fill: rgb(255, 31, 248); font-family: Times; font-size: 10px; white-space: pre;" x="297.47" y="-227.08">motorcycle</text>
+    <text transform="scale(1, -1)" style="fill: rgb(0, 0, 255); font-family: Times; font-size: 10px; white-space: pre;" x="297.47" y="-245.02">elephant</text>
+    <text transform="scale(1, -1)" style="fill: rgb(6, 179, 0); font-family: Times; font-size: 10px; white-space: pre;" x="257.29" y="-262.97">donut</text>
+    <text transform="scale(1, -1)" style="fill: rgb(6, 179, 0); font-family: Times; font-size: 10px; white-space: pre;" x="257.29" y="-280.92">doorknob</text>
+    <text transform="scale(1, -1)" style="fill: rgb(250, 0, 0); font-family: Times; font-size: 10px; white-space: pre;" x="241.87" y="-298.86">sailboat</text>
+    <text transform="scale(1, -1)" style="fill: rgb(250, 0, 0); font-family: Times; font-size: 10px; white-space: pre;" x="241.87" y="-316.81">trafficcone</text>
+    <text transform="scale(1, -1)" style="fill: rgb(250, 0, 0); font-family: Times; font-size: 10px; white-space: pre;" x="226.6" y="-334.76">banana</text>
+    <text transform="scale(1, -1)" style="fill: rgb(255, 169, 10); font-family: Times; font-size: 10px; white-space: pre;" x="221.82" y="-352.7">tablelamp</text>
+    <text transform="scale(1, -1)" style="fill: rgb(255, 169, 10); font-family: Times; font-size: 10px; white-space: pre;" x="221.82" y="-370.65">person</text>
+    <text transform="scale(1, -1)" style="fill: rgb(255, 169, 10); font-family: Times; font-size: 10px; white-space: pre;" x="209.96" y="-388.6">guitar</text>
+    <path d="M345.25,392.35L365.25,392.35" style="fill:none;stroke:#000000"/>
+    <text x="333.91" y="-386.71" transform="scale(1, -1)" style="font-family: Helvetica; font-weight: normal; font-style: normal; font-size: 12px; white-space: pre;">Y</text>
+  </g>
+</svg>
