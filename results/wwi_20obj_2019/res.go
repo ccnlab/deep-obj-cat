@@ -52,68 +52,119 @@ var Objs = []string{
 
 var ObjIdxs map[string]int
 
-var Cats = map[string]string{
-	"banana":      "pyramid",
-	"layercake":   "pyramid",
-	"trafficcone": "pyramid",
-	"sailboat":    "pyramid",
-	"trex":        "pyramid",
-	"person":      "vertical",
-	"guitar":      "vertical",
-	"tablelamp":   "vertical",
-	"doorknob":    "round",
-	"handgun":     "round",
-	"donut":       "round",
-	"chair":       "round",
-	"slrcamera":   "box",
-	"elephant":    "box",
-	"piano":       "box",
-	"fish":        "box",
-	"car":         "horiz",
-	"heavycannon": "horiz",
-	"stapler":     "horiz",
-	"motorcycle":  "horiz",
+var LbaCats = map[string]string{
+	"banana":      "1-pyramid",
+	"layercake":   "1-pyramid",
+	"trafficcone": "1-pyramid",
+	"sailboat":    "1-pyramid",
+	"trex":        "1-pyramid",
+	"person":      "2-vertical",
+	"guitar":      "2-vertical",
+	"tablelamp":   "2-vertical",
+	"doorknob":    "3-round",
+	"handgun":     "3-round",
+	"donut":       "3-round",
+	"chair":       "3-round",
+	"slrcamera":   "4-box",
+	"elephant":    "4-box",
+	"piano":       "4-box",
+	"fish":        "4-box",
+	"car":         "5-horiz",
+	"heavycannon": "5-horiz",
+	"stapler":     "5-horiz",
+	"motorcycle":  "5-horiz",
 }
 
-var JustCats []string
-var CatsBlanks []string // with blanks
+var JustLbaCats []string
+var LbaCatsBlanks []string // with blanks
+
+var BpCats = map[string]string{
+	"tablelamp":   "cat1",
+	"person":      "cat1",
+	"guitar":      "cat1",
+	"trafficcone": "cat1",
+	"chair":       "cat1",
+	"sailboat":    "cat1",
+	"layercake":   "cat1",
+	"elephant":    "cat1",
+	"piano":       "cat1",
+	"donut":       "cat1",
+	"doorknob":    "cat1",
+	"banana":      "cat1",
+	"handgun":     "cat1",
+	"slrcamera":   "cat1",
+	"trex":        "cat1",
+	"car":         "cat2",
+	"heavycannon": "cat2",
+	"motorcycle":  "cat2",
+	"stapler":     "cat2",
+	"fish":        "cat2",
+}
+
+var PNCats = map[string]string{
+	"tablelamp":   "cat1",
+	"trafficcone": "cat1",
+	"guitar":      "cat1",
+	"chair":       "cat1",
+	"doorknob":    "cat1",
+	"person":      "cat1",
+	"sailboat":    "cat1",
+	"piano":       "cat2",
+	"layercake":   "cat2",
+	"elephant":    "cat2",
+	"donut":       "cat2",
+	"banana":      "cat2",
+	"handgun":     "cat2",
+	"slrcamera":   "cat2",
+	"trex":        "cat2",
+	"car":         "cat2",
+	"heavycannon": "cat2",
+	"motorcycle":  "cat2",
+	"stapler":     "cat2",
+	"fish":        "cat2",
+}
 
 // Res is the main data structure for all expt results and tables
 // is visualized in gui so you can click on stuff..
 type Res struct {
-	LbaFullSimMat    simat.SimMat  `desc:"Leabra TEs full similarity matrix"`
-	LbaFullNames     []string      `view:"+" desc:"object names in order for FullSimMat"`
-	LbaV4FullSimMat  simat.SimMat  `desc:"Leabra V4s full similarity matrix"`
-	V1FullSimMat     simat.SimMat  `desc:"V1 full similarity matrix"`
-	V1FullNames      []string      `view:"-" desc:"object names in order for FullSimMat"`
-	BpPredFullSimMat simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix"`
-	BpPredFullNames  []string      `view:"-" desc:"object names in order for FullSimMat"`
-	BpEncFullSimMat  simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix"`
-	BpEncFullNames   []string      `view:"-" desc:"object names in order for FullSimMat"`
-	Expt1SimMat      simat.SimMat  `desc:"Expt1 similarity matrix"`
-	LbaObjSimMat     simat.SimMat  `desc:"Leabra TEs obj-cat reduced similarity matrix"`
-	V1ObjSimMat      simat.SimMat  `desc:"V1 obj-cat reduced similarity matrix"`
-	BpPredObjSimMat  simat.SimMat  `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
-	BpEncObjSimMat   simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
-	ExptCorrel       etable.Table  `desc:"correlations with expt data for each sim data"`
-	Expt1ClustPlot   *eplot.Plot2D `desc:"cluster plot"`
-	LbaObjClustPlot  *eplot.Plot2D `desc:"cluster plot"`
-	LbaFullClustPlot *eplot.Plot2D `desc:"cluster plot"`
+	LbaFullSimMat      simat.SimMat  `desc:"Leabra TEs full similarity matrix"`
+	LbaFullNames       []string      `view:"-" desc:"object names in order for FullSimMat"`
+	LbaLbaCatSimMat    simat.SimMat  `desc:"Leabra TEs full similarity matrix sorted fresh in Lba cat order"`
+	LbaV4FullSimMat    simat.SimMat  `desc:"Leabra V4s full similarity matrix"`
+	V1FullSimMat       simat.SimMat  `desc:"V1 full similarity matrix"`
+	V1FullNames        []string      `view:"-" desc:"object names in order for FullSimMat"`
+	BpPredFullSimMat   simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix"`
+	BpPredFullNames    []string      `view:"-" desc:"object names in order for FullSimMat"`
+	BpPredBpCatSimMat  simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in Bp Cat order"`
+	BpEncFullSimMat    simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix"`
+	BpEncFullNames     []string      `view:"-" desc:"object names in order for FullSimMat"`
+	PredNetFullSimMat  simat.SimMat  `desc:"PredNet predictor full similarity matrix"`
+	PredNetFullNames   []string      `view:"+" desc:"object names in order for FullSimMat"`
+	PredNetPNCatSimMat simat.SimMat  `desc:"PredNet predictor in PN Cat order"`
+	Expt1SimMat        simat.SimMat  `desc:"Expt1 similarity matrix"`
+	LbaObjSimMat       simat.SimMat  `desc:"Leabra TEs obj-cat reduced similarity matrix"`
+	V1ObjSimMat        simat.SimMat  `desc:"V1 obj-cat reduced similarity matrix"`
+	BpPredObjSimMat    simat.SimMat  `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
+	BpEncObjSimMat     simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
+	ExptCorrel         etable.Table  `desc:"correlations with expt data for each sim data"`
+	Expt1ClustPlot     *eplot.Plot2D `desc:"cluster plot"`
+	LbaObjClustPlot    *eplot.Plot2D `desc:"cluster plot"`
+	LbaFullClustPlot   *eplot.Plot2D `desc:"cluster plot"`
 }
 
 func (rs *Res) Init() {
 	if ObjIdxs == nil {
 		no := len(Objs)
 		ObjIdxs = make(map[string]int, no)
-		JustCats = make([]string, no)
-		CatsBlanks = make([]string, no)
+		JustLbaCats = make([]string, no)
+		LbaCatsBlanks = make([]string, no)
 		lstcat := ""
 		for i, o := range Objs {
 			ObjIdxs[o] = i
-			cat := Cats[o]
-			JustCats[i] = cat
+			cat := LbaCats[o]
+			JustLbaCats[i] = cat
 			if cat != lstcat {
-				CatsBlanks[i] = cat
+				LbaCatsBlanks[i] = cat
 				lstcat = cat
 			}
 		}
@@ -128,6 +179,7 @@ func (rs *Res) OpenFullSimMat(sm *simat.SimMat, nms *[]string, fname string, lab
 		return
 	}
 	no := ltab.Rows
+	// fmt.Printf("rows: %v\n", no)
 	*nms = make([]string, no)
 	sm.Init()
 	smat := sm.Mat.(*etensor.Float64)
@@ -170,12 +222,134 @@ func (rs *Res) OpenFullSimMat(sm *simat.SimMat, nms *[]string, fname string, lab
 	}
 }
 
+func (rs *Res) OpenFullSimMatPredNet(sm *simat.SimMat, nms *[]string, fname string, lab string, maxv string) {
+	no := 156 // known
+	ltab := &etensor.String{}
+	ltab.SetShape([]int{no}, nil, nil)
+	err := etensor.OpenCSV(ltab, gi.FileName(lab), etable.Comma)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	*nms = make([]string, no)
+	sm.Init()
+	smat := sm.Mat.(*etensor.Float64)
+	smat.SetShape([]int{no, no}, nil, nil)
+	smat.SetMetaData("max", maxv)
+	smat.SetMetaData("min", "0")
+	smat.SetMetaData("colormap", "Viridis")
+	smat.SetMetaData("grid-fill", "1")
+	smat.SetMetaData("dim-extra", "0.5")
+	err = etensor.OpenCSV(smat, gi.FileName(fname), etable.Tab)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	for i, v := range smat.Values { // getting correlations here, not 1-correls
+		smat.Values[i] = 1 - v
+	}
+	svals := ltab.Values
+	sm.Rows = simat.BlankRepeat(svals)
+	sm.Cols = sm.Rows
+
+	for ri, nm := range svals {
+		ui := strings.Index(nm, "_")
+		if ui > 0 {
+			nm = nm[0:ui]
+		}
+		_, ok := ObjIdxs[nm]
+		if !ok {
+			fmt.Printf("%v not found\n", nm)
+		}
+		(*nms)[ri] = nm
+	}
+}
+
+// CatSortSimMat takes an input sim matrix and categorizes the items according to given cats
+// and then sorts items within that according to their average within - between cat similarity
+func (rs *Res) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string, catmap map[string]string) {
+	no := len(insm.Rows)
+	sch := etable.Schema{
+		{"Cat", etensor.STRING, nil, nil},
+		{"Dist", etensor.FLOAT64, nil, nil},
+	}
+	dt := &etable.Table{}
+	dt.SetFromSchema(sch, no)
+	cats := dt.Cols[0].(*etensor.String).Values
+	dists := dt.Cols[1].(*etensor.Float64).Values
+	for i, nm := range nms {
+		cats[i] = catmap[nm]
+	}
+	smatv := insm.Mat.(*etensor.Float64).Values
+	for ri := 0; ri < no; ri++ {
+		roff := ri * no
+		aid := 0.0
+		ain := 0
+		abd := 0.0
+		abn := 0
+		rc := cats[ri]
+		for ci := 0; ci < no; ci++ {
+			if ri == ci {
+				continue
+			}
+			cc := cats[ci]
+			d := smatv[roff+ci]
+			if cc == rc {
+				aid += d
+				ain++
+			} else {
+				abd += d
+				abn++
+			}
+		}
+		if ain > 0 {
+			aid /= float64(ain)
+		}
+		if abn > 0 {
+			abd /= float64(abn)
+		}
+		dists[ri] = aid - abd // within - between
+	}
+	ix := etable.NewIdxView(dt)
+	ix.SortColNames([]string{"Cat", "Dist"}, true) // ascending
+	osm.Init()
+	osm.Mat.CopyShapeFrom(insm.Mat)
+	osm.Mat.CopyMetaData(insm.Mat)
+	omatv := osm.Mat.(*etensor.Float64).Values
+	bcols := make([]string, no)
+	last := ""
+	for sri := 0; sri < no; sri++ {
+		sroff := sri * no
+		ri := ix.Idxs[sri]
+		roff := ri * no
+		cat := cats[ri]
+		if cat != last {
+			bcols[sri] = cat
+			last = cat
+		}
+		// bcols[sri] = nms[ri] // uncomment this to see all the names
+		for sci := 0; sci < no; sci++ {
+			ci := ix.Idxs[sci]
+			d := smatv[roff+ci]
+			omatv[sroff+sci] = d
+		}
+	}
+	osm.Rows = bcols
+	osm.Cols = bcols
+}
+
 func (rs *Res) OpenSimMats() {
 	rs.OpenFullSimMat(&rs.LbaFullSimMat, &rs.LbaFullNames, "sim_leabra_simat.tsv", "sim_leabra_simat_lbl.tsv", "1.5")
 	rs.OpenFullSimMat(&rs.LbaV4FullSimMat, &rs.LbaFullNames, "sim_leabra_simat_v4.tsv", "sim_leabra_simat_lbl.tsv", "1.0")
 	rs.OpenFullSimMat(&rs.V1FullSimMat, &rs.V1FullNames, "sim_v1_simat.tsv", "sim_v1_simat_lbl.tsv", "1.0")
 	rs.OpenFullSimMat(&rs.BpPredFullSimMat, &rs.BpPredFullNames, "sim_bp_pred_simat.tsv", "sim_bp_pred_simat_lbl.tsv", "0.3")
 	rs.OpenFullSimMat(&rs.BpEncFullSimMat, &rs.BpEncFullNames, "sim_bp_enc_simat.tsv", "sim_bp_enc_simat_lbl.tsv", "0.04")
+
+	rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, "prednet_layer3.csv", "prednet_labels.csv", "0.15")
+
+	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaLbaCatSimMat, rs.LbaFullNames, LbaCats)
+	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredBpCatSimMat, rs.BpPredFullNames, BpCats)
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetPNCatSimMat, rs.PredNetFullNames, PNCats)
 }
 
 // ObjSimMat compresses full simat into a much smaller per-object sim mat
@@ -186,8 +360,8 @@ func (rs *Res) ObjSimMat(fsm *simat.SimMat, nms []string, osm *simat.SimMat, max
 	osm.Init()
 	osmat := osm.Mat.(*etensor.Float64)
 	osmat.SetShape([]int{ono, ono}, nil, nil)
-	osm.Rows = CatsBlanks
-	osm.Cols = CatsBlanks
+	osm.Rows = LbaCatsBlanks
+	osm.Cols = LbaCatsBlanks
 	osmat.SetMetaData("max", maxv)
 	osmat.SetMetaData("min", "0")
 	osmat.SetMetaData("colormap", "Viridis")
@@ -235,8 +409,8 @@ func (rs *Res) OpenExptMat() {
 		log.Println(err)
 		return
 	}
-	sm.Rows = CatsBlanks
-	sm.Cols = CatsBlanks
+	sm.Rows = LbaCatsBlanks
+	sm.Cols = LbaCatsBlanks
 	smat.SetMetaData("max", "1")
 	smat.SetMetaData("min", "0")
 	smat.SetMetaData("colormap", "Viridis")
@@ -270,8 +444,8 @@ func (rs *Res) Correls() {
 
 func (rs *Res) ClustObj(smat *simat.SimMat, title string) *eplot.Plot2D {
 	prv := smat.Rows
-	// smat.Rows = JustCats
-	// smat.Cols = JustCats
+	// smat.Rows = JustLbaCats
+	// smat.Cols = JustLbaCats
 	smat.Rows = Objs
 	smat.Cols = Objs
 	cl := clust.Glom(smat, clust.MaxDist) // ContrastDist, MaxDist, Avg all produce similar good fits

@@ -29,8 +29,8 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.90509668"
-     inkscape:cx="324.85179"
+     inkscape:zoom="3.6203867"
+     inkscape:cx="614.87355"
      inkscape:cy="167.43514"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -52,12 +52,12 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#ffffff;stroke-width:0.52916664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#ffffff;stroke-width:0.54387903;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect2316"
-       width="216.74454"
-       height="74.857651"
-       x="0.45682684"
-       y="218.35976" />
+       width="224.62263"
+       height="76.304565"
+       x="0.46418303"
+       y="218.36711" />
     <image
        y="219.02914"
        x="76.422729"
@@ -107,211 +107,208 @@
          x="163.22363"
          id="tspan2171"
          sodipodi:role="line">c)</tspan></text>
-    <g
-       id="g2314"
-       transform="matrix(0.09098376,0,0,0.09098376,146.40278,212.01205)">
-      <path
-         id="path1359"
-         d="M 251.7,771.9 V 187.8 H 835.9 V 771.9 H 251.7"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:2" />
-      <text
-         x="543.79999"
-         y="850.79999"
-         font-size="29.2"
-         id="text1361"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">Layer</text>
-      <text
-         x="288.29999"
-         y="821.59998"
-         font-size="29.2"
-         id="text1363"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">V1</text>
-      <text
-         x="361.29999"
-         y="821.59998"
-         font-size="29.2"
-         id="text1365"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">V1h</text>
-      <text
-         x="434.29999"
-         y="821.59998"
-         font-size="29.2"
-         id="text1367"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">V2</text>
-      <text
-         x="507.29999"
-         y="821.59998"
-         font-size="29.2"
-         id="text1369"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">V3</text>
-      <text
-         x="580.29999"
-         y="821.59998"
-         font-size="29.2"
-         id="text1371"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">DP</text>
-      <text
-         x="653.29999"
-         y="821.59998"
-         font-size="29.2"
-         id="text1373"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">V4</text>
-      <text
-         x="726.29999"
-         y="821.59998"
-         font-size="29.2"
-         id="text1375"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">TEO</text>
-      <text
-         x="799.40002"
-         y="821.59998"
-         font-size="29.2"
-         id="text1377"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:middle;fill:#000000">TE</text>
-      <path
-         d="m 251.7,771.9 h 584.2 m -547.6,14.6 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73.1,29.2 v -29.2"
-         id="path1379"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:2" />
-      <path
-         d="m 251.7,187.8 h 584.2 m -547.6,14.6 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73,29.2 v -29.2 m 73.1,29.2 v -29.2"
-         id="path1381"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:2" />
-      <text
-         x="-162.55881"
-         y="-493.83783"
-         font-size="29.2"
-         id="text1383"
-         style="font-size:29.20000076px;font-family:Arial;writing-mode:tb-rl;text-anchor:middle;fill:#000000"
-         transform="scale(-1)">Correlation</text>
-      <text
-         x="231.3"
-         y="783.59998"
-         font-size="29.2"
-         id="text1385"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:end;fill:#000000">0</text>
-      <text
-         x="231.3"
-         y="672.29999"
-         font-size="29.2"
-         id="text1387"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:end;fill:#000000">0.2</text>
-      <text
-         x="231.3"
-         y="561.09998"
-         font-size="29.2"
-         id="text1389"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:end;fill:#000000">0.4</text>
-      <text
-         x="231.3"
-         y="449.79999"
-         font-size="29.2"
-         id="text1391"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:end;fill:#000000">0.6</text>
-      <text
-         x="231.3"
-         y="338.5"
-         font-size="29.2"
-         id="text1393"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:end;fill:#000000">0.8</text>
-      <text
-         x="231.3"
-         y="227.3"
-         font-size="29.2"
-         id="text1395"
-         style="font-size:29.20000076px;font-family:Arial;text-anchor:end;fill:#000000">1</text>
-      <path
-         d="M 251.7,771.9 V 187.8 m -14.6,584.1 h 29.3 M 237.1,660.6 h 29.3 M 237.1,549.4 h 29.3 M 237.1,438.1 h 29.3 M 237.1,326.9 h 29.3 M 237.1,215.6 h 29.3"
-         id="path1397"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:2" />
-      <path
-         d="M 835.9,771.9 V 187.8 m -14.6,584.1 h 29.2 M 821.3,660.6 h 29.2 M 821.3,549.4 h 29.2 M 821.3,438.1 h 29.2 M 821.3,326.9 h 29.2 M 821.3,215.6 h 29.2"
-         id="path1399"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:2" />
-      <path
-         style="fill:none;stroke:#000000;stroke-width:2.5;stroke-miterlimit:4;stroke-dasharray:none"
-         inkscape:connector-curvature="0"
-         id="path1403"
-         d="m 296.75076,294.30914 h 35.1" />
-      <text
-         style="font-size:23.39999962px;font-family:Arial;text-anchor:start;fill:#000000"
-         id="text1405"
-         font-size="23.4"
-         y="303.47104"
-         x="337.65076">V1 correl</text>
-      <path
-         style="fill:none;stroke:#ff0000;stroke-width:2.5;stroke-miterlimit:4;stroke-dasharray:none"
-         inkscape:connector-curvature="0"
-         id="path1409"
-         d="m 296.75076,327.93858 h 35.1" />
-      <text
-         style="font-size:23.39999962px;font-family:Arial;text-anchor:start;fill:#ff0000"
-         id="text1411"
-         font-size="23.4"
-         y="337.10046"
-         x="337.65076">TEs correl</text>
-      <path
-         d=""
-         id="path1417"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:1" />
-      <path
-         d="m 288.3,215.6 73,3.2 73,8.8 73,-5.8 73,15.8 73,-17.7 73,72.3 73.1,190.6"
-         id="path1419"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:2.5;stroke-miterlimit:4;stroke-dasharray:none" />
-      <path
-         d=""
-         id="path1421"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:1" />
-      <path
-         d="m 294.1,215.6 -0.4,-2.2 -1.3,-1.9 -1.9,-1.3 -2.2,-0.4 -2.3,0.4 -1.9,1.3 -1.2,1.9 -0.5,2.2 0.5,2.2 1.2,1.9 1.9,1.3 2.3,0.4 2.2,-0.4 1.9,-1.3 1.3,-1.9 0.4,-2.2 m 73,3.2 -0.4,-2.2 -1.3,-1.9 -1.9,-1.3 -2.2,-0.4 -2.3,0.4 -1.9,1.3 -1.2,1.9 -0.5,2.2 0.5,2.3 1.2,1.9 1.9,1.2 2.3,0.5 2.2,-0.5 1.9,-1.2 1.3,-1.9 0.4,-2.3 m 73,8.8 -0.4,-2.2 -1.3,-1.9 -1.9,-1.3 -2.2,-0.4 -2.2,0.4 -1.9,1.3 -1.3,1.9 -0.5,2.2 0.5,2.3 1.3,1.9 1.9,1.2 2.2,0.5 2.2,-0.5 1.9,-1.2 1.3,-1.9 0.4,-2.3 m 73,-5.8 -0.4,-2.3 -1.3,-1.9 -1.9,-1.2 -2.2,-0.5 -2.2,0.5 -1.9,1.2 -1.3,1.9 -0.4,2.3 0.4,2.2 1.3,1.9 1.9,1.3 2.2,0.4 2.2,-0.4 1.9,-1.3 1.3,-1.9 0.4,-2.2 m 73.1,15.8 -0.5,-2.2 -1.3,-1.9 -1.8,-1.3 -2.3,-0.4 -2.2,0.4 -1.9,1.3 -1.3,1.9 -0.4,2.2 0.4,2.3 1.3,1.9 1.9,1.2 2.2,0.5 2.3,-0.5 1.8,-1.2 1.3,-1.9 0.5,-2.3 m 73,-17.7 -0.5,-2.2 -1.2,-1.9 -1.9,-1.3 -2.3,-0.4 -2.2,0.4 -1.9,1.3 -1.3,1.9 -0.4,2.2 0.4,2.3 1.3,1.9 1.9,1.2 2.2,0.5 2.3,-0.5 1.9,-1.2 1.2,-1.9 0.5,-2.3 m 73,72.3 -0.5,-2.3 -1.2,-1.9 -1.9,-1.2 -2.3,-0.5 -2.2,0.5 -1.9,1.2 -1.2,1.9 -0.5,2.3 0.5,2.2 1.2,1.9 1.9,1.3 2.2,0.4 2.3,-0.4 1.9,-1.3 1.2,-1.9 0.5,-2.2 m 73,190.6 -0.4,-2.2 -1.3,-1.9 -1.9,-1.3 -2.2,-0.4 -2.3,0.4 -1.9,1.3 -1.2,1.9 -0.5,2.2 0.5,2.3 1.2,1.9 1.9,1.2 2.3,0.5 2.2,-0.5 1.9,-1.2 1.3,-1.9 0.4,-2.3"
-         id="path1423"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:1" />
-      <path
-         d=""
-         id="path1425"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#000000;stroke-width:1" />
-      <path
-         d=""
-         id="path1427"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#ff0000;stroke-width:1" />
-      <path
-         d="m 288.3,482.8 73,7.9 73,31.3 73,-50.3 73,-24.4 73,31.6 73,-174.4 73.1,-88.9"
-         id="path1429"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#ff0000;stroke-width:2.5;stroke-miterlimit:4;stroke-dasharray:none" />
-      <path
-         d=""
-         id="path1431"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#ff0000;stroke-width:1" />
-      <path
-         d="m 282.4,477 5.9,11.7 5.8,-11.7 h -11.7 m 73,7.9 5.9,11.7 5.8,-11.7 h -11.7 m 73,31.3 5.9,11.6 5.8,-11.6 h -11.7 m 73.1,-50.4 5.8,11.7 5.8,-11.7 h -11.6 m 73,-24.3 5.8,11.7 5.9,-11.7 h -11.7 m 73,31.6 5.8,11.7 5.9,-11.7 h -11.7 m 73,-174.4 5.8,11.6 5.9,-11.6 h -11.7 m 73,-88.9 5.9,11.6 5.8,-11.6 h -11.7"
-         id="path1433"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#ff0000;stroke-width:1" />
-      <path
-         d=""
-         id="path1435"
-         inkscape:connector-curvature="0"
-         style="fill:none;stroke:#ff0000;stroke-width:1" />
-      <rect
-         y="272.84265"
-         x="281.72589"
-         height="79.31472"
-         width="176.39594"
-         id="rect2026"
-         style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:2.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.18196753"
+       inkscape:connector-curvature="0"
+       d="M 169.30339,282.24241 V 229.0988 h 53.15271 v 53.14361 h -53.15271"
+       id="path1359" />
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1361"
+       font-size="29.2"
+       y="290.44415"
+       x="195.87975">Layer</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1363"
+       font-size="29.2"
+       y="286.76431"
+       x="172.63339">V1</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1365"
+       font-size="29.2"
+       y="286.76431"
+       x="179.27521">V1h</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1367"
+       font-size="29.2"
+       y="286.76431"
+       x="185.91702">V2</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1369"
+       font-size="29.2"
+       y="286.76431"
+       x="192.55884">V3</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1371"
+       font-size="29.2"
+       y="286.76431"
+       x="199.20065">DP</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1373"
+       font-size="29.2"
+       y="286.76431"
+       x="205.84247">V4</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1375"
+       font-size="29.2"
+       y="286.76431"
+       x="212.48428">TEO</text>
+    <text
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:middle;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:center;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;"
+       id="text1377"
+       font-size="29.2"
+       y="286.76431"
+       x="219.13519">TE</text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.18196753"
+       inkscape:connector-curvature="0"
+       id="path1379"
+       d="m 169.30339,282.24241 h 53.15271 m -49.8227,1.32837 v -2.65673 m 6.64181,2.65673 v -2.65673 m 6.64182,2.65673 v -2.65673 m 6.64181,2.65673 v -2.65673 m 6.64182,2.65673 v -2.65673 m 6.64181,2.65673 v -2.65673 m 6.64181,2.65673 v -2.65673 m 6.65092,2.65673 v -2.65673" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.18196753"
+       inkscape:connector-curvature="0"
+       id="path1381"
+       d="m 169.30339,229.0988 h 53.15271 m -49.8227,1.32836 v -2.65672 m 6.64181,2.65672 v -2.65672 m 6.64182,2.65672 v -2.65672 m 6.64181,2.65672 v -2.65672 m 6.64182,2.65672 v -2.65672 m 6.64181,2.65672 v -2.65672 m 6.64181,2.65672 v -2.65672 m 6.65092,2.65672 v -2.65672" />
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1383"
+       font-size="29.2"
+       y="162.05159"
+       x="-256.56366"
+       transform="rotate(-90)">Correlation</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1385"
+       font-size="29.2"
+       y="283.30692"
+       x="166.15506">0</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1387"
+       font-size="29.2"
+       y="273.18042"
+       x="164.70123">0.2</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1389"
+       font-size="29.2"
+       y="263.06305"
+       x="164.68573">0.4</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1391"
+       font-size="29.2"
+       y="252.93654"
+       x="164.67712">0.6</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1393"
+       font-size="29.2"
+       y="242.81006"
+       x="164.67023">0.8</text>
+    <text
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#000000;stroke-width:0.09098376"
+       id="text1395"
+       font-size="29.2"
+       y="232.69266"
+       x="166.63393">1</text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.18196753"
+       inkscape:connector-curvature="0"
+       id="path1397"
+       d="M 169.30339,282.24241 V 229.0988 m -1.32836,53.14361 h 2.66582 m -2.66582,-10.12649 h 2.66582 m -2.66582,-10.11739 h 2.66582 m -2.66582,-10.12649 h 2.66582 m -2.66582,-10.1174 h 2.66582 m -2.66582,-10.12649 h 2.66582" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.18196753"
+       inkscape:connector-curvature="0"
+       id="path1399"
+       d="M 222.4561,282.24241 V 229.0988 m -1.32836,53.14361 h 2.65673 m -2.65673,-10.12649 h 2.65673 m -2.65673,-10.11739 h 2.65673 m -2.65673,-10.12649 h 2.65673 m -2.65673,-10.1174 h 2.65673 m -2.65673,-10.12649 h 2.65673" />
+    <path
+       d="m 173.40228,238.7894 h 3.19353"
+       id="path1403"
+       inkscape:connector-curvature="0"
+       style="fill:none;stroke:#000000;stroke-width:0.2274594;stroke-miterlimit:4;stroke-dasharray:none" />
+    <text
+       x="177.12352"
+       y="239.62299"
+       font-size="23.4"
+       id="text1405"
+       style="font-size:3.52777778px;font-family:Arial;text-anchor:start;fill:#000000;stroke-width:0.09098376;-inkscape-font-specification:'Arial, Normal';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;text-align:start;writing-mode:lr;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;">V1 correl</text>
+    <path
+       d="m 173.40228,242.65304 h 3.19353"
+       id="path1409"
+       inkscape:connector-curvature="0"
+       style="fill:none;stroke:#ff0000;stroke-width:0.2274594;stroke-miterlimit:4;stroke-dasharray:none" />
+    <text
+       x="177.12352"
+       y="243.48662"
+       font-size="23.4"
+       id="text1411"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;stroke-width:0.09098376">TEs correl</text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1417"
+       d="" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.2274594;stroke-miterlimit:4;stroke-dasharray:none"
+       inkscape:connector-curvature="0"
+       id="path1419"
+       d="m 172.6334,231.62815 6.64181,0.29115 6.64182,0.80065 6.64181,-0.5277 6.64182,1.43754 6.64181,-1.61041 6.64181,6.57812 6.65092,17.34151" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1421"
+       d="" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1423"
+       d="m 173.1611,231.62815 -0.0364,-0.20017 -0.11828,-0.17286 -0.17287,-0.11828 -0.20016,-0.0364 -0.20926,0.0364 -0.17287,0.11828 -0.10918,0.17286 -0.0455,0.20017 0.0455,0.20016 0.10918,0.17287 0.17287,0.11828 0.20926,0.0364 0.20016,-0.0364 0.17287,-0.11828 0.11828,-0.17287 0.0364,-0.20016 m 6.64182,0.29115 -0.0364,-0.20017 -0.11827,-0.17287 -0.17287,-0.11828 -0.20017,-0.0364 -0.20926,0.0364 -0.17287,0.11828 -0.10918,0.17287 -0.0455,0.20017 0.0455,0.20926 0.10918,0.17287 0.17287,0.10918 0.20926,0.0455 0.20017,-0.0455 0.17287,-0.10918 0.11827,-0.17287 0.0364,-0.20926 m 6.64181,0.80065 -0.0364,-0.20016 -0.11828,-0.17287 -0.17287,-0.11828 -0.20016,-0.0364 -0.20017,0.0364 -0.17287,0.11828 -0.11828,0.17287 -0.0455,0.20016 0.0455,0.20927 0.11828,0.17287 0.17287,0.10918 0.20017,0.0455 0.20016,-0.0455 0.17287,-0.10918 0.11828,-0.17287 0.0364,-0.20927 m 6.64182,-0.5277 -0.0364,-0.20926 -0.11828,-0.17287 -0.17286,-0.10918 -0.20017,-0.0455 -0.20016,0.0455 -0.17287,0.10918 -0.11828,0.17287 -0.0364,0.20926 0.0364,0.20016 0.11828,0.17287 0.17287,0.11828 0.20016,0.0364 0.20017,-0.0364 0.17286,-0.11828 0.11828,-0.17287 0.0364,-0.20016 m 6.65091,1.43754 -0.0455,-0.20016 -0.11828,-0.17287 -0.16377,-0.11828 -0.20926,-0.0364 -0.20017,0.0364 -0.17287,0.11828 -0.11828,0.17287 -0.0364,0.20016 0.0364,0.20926 0.11828,0.17287 0.17287,0.10918 0.20017,0.0455 0.20926,-0.0455 0.16377,-0.10918 0.11828,-0.17287 0.0455,-0.20926 m 6.64181,-1.61041 -0.0455,-0.20017 -0.10918,-0.17286 -0.17287,-0.11828 -0.20926,-0.0364 -0.20016,0.0364 -0.17287,0.11828 -0.11828,0.17286 -0.0364,0.20017 0.0364,0.20926 0.11828,0.17287 0.17287,0.10918 0.20016,0.0455 0.20926,-0.0455 0.17287,-0.10918 0.10918,-0.17287 0.0455,-0.20926 m 6.64182,6.57812 -0.0455,-0.20926 -0.10918,-0.17287 -0.17287,-0.10918 -0.20927,-0.0455 -0.20016,0.0455 -0.17287,0.10918 -0.10918,0.17287 -0.0455,0.20926 0.0455,0.20017 0.10918,0.17287 0.17287,0.11828 0.20016,0.0364 0.20927,-0.0364 0.17287,-0.11828 0.10918,-0.17287 0.0455,-0.20017 m 6.64181,17.34151 -0.0364,-0.20016 -0.11828,-0.17287 -0.17287,-0.11828 -0.20016,-0.0364 -0.20926,0.0364 -0.17287,0.11828 -0.10918,0.17287 -0.0455,0.20016 0.0455,0.20926 0.10918,0.17287 0.17287,0.10918 0.20926,0.0455 0.20016,-0.0455 0.17287,-0.10918 0.11828,-0.17287 0.0364,-0.20926" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1425"
+       d="" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1427"
+       d="" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:0.2274594;stroke-miterlimit:4;stroke-dasharray:none"
+       inkscape:connector-curvature="0"
+       id="path1429"
+       d="m 172.6334,255.93901 6.64181,0.71877 6.64182,2.84779 6.64181,-4.57648 6.64182,-2.22 6.64181,2.87508 6.64181,-15.86757 6.65092,-8.08845" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1431"
+       d="" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1433"
+       d="m 172.09659,255.4113 0.53681,1.06451 0.5277,-1.06451 h -1.06451 m 6.64182,0.71878 0.5368,1.06451 0.52771,-1.06451 h -1.06451 m 6.64181,2.84779 0.53681,1.05541 0.5277,-1.05541 h -1.06451 m 6.65092,-4.58558 0.5277,1.06451 0.52771,-1.06451 h -1.05541 m 6.64181,-2.21091 0.52771,1.06451 0.5368,-1.06451 h -1.06451 m 6.64181,2.87509 0.52771,1.06451 0.5368,-1.06451 h -1.06451 m 6.64182,-15.86757 0.5277,1.05541 0.53681,-1.05541 h -1.06451 m 6.64181,-8.08846 0.53681,1.05541 0.5277,-1.05541 h -1.06451" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:0.09098376"
+       inkscape:connector-curvature="0"
+       id="path1435"
+       d="" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.2274594;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect2026"
+       width="22.480347"
+       height="9.4088078"
+       x="172.03526"
+       y="235.66699"
+       ry="0.14615877" />
     <image
        y="-158.28914"
        x="-287.76938"
