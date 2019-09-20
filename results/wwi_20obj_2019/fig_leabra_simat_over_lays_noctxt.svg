@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg" version="1.1"
+  width="400px"
+  height="400px"
+  viewBox="0 0 1000.0 1000.0">
+<path stroke="#000000" stroke-width="2" fill="none"
+  d="M 251.7,771.9 L 251.7,187.8 L 835.9,187.8 L 835.9,771.9 L 251.7,771.9 "
+ />
+
+<g>
+
+<text x="543.8" y="850.8" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+Layer
+</text>
+
+<text x="288.3" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+V1s
+</text>
+
+<text x="361.3" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+V1hs
+</text>
+
+<text x="434.3" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+V2s
+</text>
+
+<text x="507.3" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+V3s
+</text>
+
+<text x="580.3" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+DPs
+</text>
+
+<text x="653.3" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+V4s
+</text>
+
+<text x="726.3" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+TEOs
+</text>
+
+<text x="799.4" y="821.6" font-family="Arial" font-size="29.2" fill="#000000" text-anchor="middle">
+TEs
+</text>
+<path stroke="#000000" stroke-width="2" fill="none"
+  d="M 251.7,771.9 L 835.9,771.9 M 288.3,786.5 L 288.3,757.3 M 361.3,786.5 L 361.3,757.3 M 434.3,786.5 L 434.3,757.3 M 507.3,786.5 L 507.3,757.3 M 580.3,786.5 L 580.3,757.3 M 653.3,786.5 L 653.3,757.3 M 726.3,786.5 L 726.3,757.3 M 799.4,786.5 L 799.4,757.3 "
+ />
+<path stroke="#000000" stroke-width="2" fill="none"
+  d="M 251.7,187.8 L 835.9,187.8 M 288.3,202.4 L 288.3,173.2 M 361.3,202.4 L 361.3,173.2 M 434.3,202.4 L 434.3,173.2 M 507.3,202.4 L 507.3,173.2 M 580.3,202.4 L 580.3,173.2 M 653.3,202.4 L 653.3,173.2 M 726.3,202.4 L 726.3,173.2 M 799.4,202.4 L 799.4,173.2 "
+ />
+
+<text x="178.7" y="479.8" font-family="Arial" font-size="29.2" fill="#0000ff" writing-mode="tb" text-anchor="middle">
+TEStd Vs Std Lays
+</text>
+
+<text x="231.3" y="783.6" font-family="Arial" font-size="29.2" fill="#0000ff" text-anchor="end">
+0
+</text>
+
+<text x="231.3" y="672.3" font-family="Arial" font-size="29.2" fill="#0000ff" text-anchor="end">
+0.2
+</text>
+
+<text x="231.3" y="561.1" font-family="Arial" font-size="29.2" fill="#0000ff" text-anchor="end">
+0.4
+</text>
+
+<text x="231.3" y="449.8" font-family="Arial" font-size="29.2" fill="#0000ff" text-anchor="end">
+0.6
+</text>
+
+<text x="231.3" y="338.5" font-family="Arial" font-size="29.2" fill="#0000ff" text-anchor="end">
+0.8
+</text>
+
+<text x="231.3" y="227.3" font-family="Arial" font-size="29.2" fill="#0000ff" text-anchor="end">
+1
+</text>
+<path stroke="#0000ff" stroke-width="2" fill="none"
+  d="M 251.7,771.9 L 251.7,187.8 M 237.1,771.9 L 266.4,771.9 M 237.1,660.6 L 266.4,660.6 M 237.1,549.4 L 266.4,549.4 M 237.1,438.1 L 266.4,438.1 M 237.1,326.9 L 266.4,326.9 M 237.1,215.6 L 266.4,215.6 "
+ />
+<path stroke="#0000ff" stroke-width="2" fill="none"
+  d="M 835.9,771.9 L 835.9,187.8 M 821.3,771.9 L 850.5,771.9 M 821.3,660.6 L 850.5,660.6 M 821.3,549.4 L 850.5,549.4 M 821.3,438.1 L 850.5,438.1 M 821.3,326.9 L 850.5,326.9 M 821.3,215.6 L 850.5,215.6 "
+ />
+
+</g>
+
+<g transform="translate(0.0,-643.2)">
+
+<g transform="translate(0.0,-0.0)">
+<path stroke="#0000ff" stroke-width="1" fill="none"
+  d="M 251.7,771.9 L 286.8,771.9 "
+ />
+
+<text x="292.6" y="783.6" font-family="Arial" font-size="23.4" fill="#0000ff" text-anchor="start">
+TEStd Vs Std Lays
+</text>
+
+</g>
+
+<g transform="translate(263.1,-0.0)">
+<path stroke="#218b21" stroke-width="1" fill="none"
+  d="M 251.7,771.9 L 286.8,771.9 "
+ />
+
+<text x="292.6" y="783.6" font-family="Arial" font-size="23.4" fill="#218b21" text-anchor="start">
+TECmp Vs Cmp Lays
+</text>
+
+</g>
+
+</g>
+
+<g>
+<path stroke="#0000ff" stroke-width="1" fill="none"
+  d=""
+ />
+<path stroke="#000000" stroke-width="1" fill="none"
+  d="M 288.3,482.8 
+L 361.3,490.7 L 434.3,522.0 L 507.3,471.7 L 580.3,447.3 L 653.3,478.9 L 726.3,304.5 L 799.4,215.6 "
+ />
+<path stroke="#0000ff" stroke-width="1" fill="none"
+  d="
+"
+ />
+<path stroke="#0000ff" stroke-width="1" fill="none"
+  d="M 282.4,477.0 L 288.3,488.7 L 294.1,477.0 L 282.4,477.0 M 355.4,484.9 L 361.3,496.6 L 367.1,484.9 L 355.4,484.9 M 428.4,516.2 L 434.3,527.8 L 440.1,516.2 L 428.4,516.2 M 501.5,465.8 L 507.3,477.5 L 513.1,465.8 L 501.5,465.8 M 574.5,441.5 L 580.3,453.2 L 586.2,441.5 L 574.5,441.5 M 647.5,473.1 L 653.3,484.8 L 659.2,473.1 L 647.5,473.1 M 720.5,298.7 L 726.3,310.3 L 732.2,298.7 L 720.5,298.7 M 793.5,209.8 L 799.4,221.4 L 805.2,209.8 L 793.5,209.8 "
+ />
+<path stroke="#0000ff" stroke-width="1" fill="none"
+  d="
+"
+ />
+<path stroke="#218b21" stroke-width="1" fill="none"
+  d=""
+ />
+<path stroke="#000000" stroke-width="1" fill="none"
+  d="M 288.3,368.0 
+L 361.3,370.9 L 434.3,374.2 L 507.3,305.3 L 580.3,285.5 L 653.3,327.7 L 726.3,238.7 L 799.4,215.6 "
+ />
+<path stroke="#218b21" stroke-width="1" fill="none"
+  d="
+"
+ />
+<path stroke="#218b21" stroke-width="1" fill="none"
+  d="M 282.4,368.0 L 294.1,368.0 L 288.3,368.0 L 288.3,373.9 L 288.3,362.2 M 355.4,370.9 L 367.1,370.9 L 361.3,370.9 L 361.3,376.8 L 361.3,365.1 M 428.4,374.2 L 440.1,374.2 L 434.3,374.2 L 434.3,380.1 L 434.3,368.4 M 501.5,305.3 L 513.1,305.3 L 507.3,305.3 L 507.3,311.1 L 507.3,299.4 M 574.5,285.5 L 586.2,285.5 L 580.3,285.5 L 580.3,291.3 L 580.3,279.6 M 647.5,327.7 L 659.2,327.7 L 653.3,327.7 L 653.3,333.5 L 653.3,321.8 M 720.5,238.7 L 732.2,238.7 L 726.3,238.7 L 726.3,244.5 L 726.3,232.8 M 793.5,215.6 L 805.2,215.6 L 799.4,215.6 L 799.4,221.4 L 799.4,209.8 "
+ />
+<path stroke="#218b21" stroke-width="1" fill="none"
+  d="
+"
+ />
+
+</g>
+</svg>
