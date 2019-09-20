@@ -27,6 +27,26 @@ func main() {
 	})
 }
 
+/* output:
+V1_V1Cat  avg contrast dist: 0.2243
+V1_BpCat  avg contrast dist: 0.1078
+V1_LbaCat  avg contrast dist: 0.1796
+Lba_LbaCat  avg contrast dist: 0.5071
+Lba_V1Cat  avg contrast dist: 0.3185
+Lba_BpCat  avg contrast dist: 0.2645
+BpPred_BpCat  avg contrast dist: 0.0838
+BpPred_V1Cat  avg contrast dist: 0.0689
+BpPred_LbaCat  avg contrast dist: 0.0585
+BpEnc_BpCat  avg contrast dist: 0.0050
+BpEnc_V1Cat  avg contrast dist: 0.0076
+PredNet_BpCat  avg contrast dist: 0.0095
+PredNet_V1Cat  avg contrast dist: 0.0223
+PredNet_LbaCat  avg contrast dist: 0.0196
+Expt1_LbaCat  avg contrast dist: 0.3083
+Expt1_BpCat  avg contrast dist: 0.0643
+Expt1_V1Cat  avg contrast dist: 0.2244
+*/
+
 var Objs = []string{
 	"banana",
 	"layercake",
@@ -52,7 +72,36 @@ var Objs = []string{
 
 var ObjIdxs map[string]int
 
-var LbaCats = map[string]string{
+// LbaCats3 is best-fitting 3-category leabra: -0.5399
+var LbaCats3 = map[string]string{
+	"banana":      "1-pyramid",
+	"layercake":   "1-pyramid",
+	"trafficcone": "1-pyramid",
+	"sailboat":    "1-pyramid",
+	"trex":        "1-pyramid",
+	"guitar":      "1-pyramid",
+	"person":      "1-pyramid",
+	"tablelamp":   "1-pyramid",
+	"chair":       "2-box",
+	"slrcamera":   "2-box",
+	"elephant":    "2-box",
+	"piano":       "2-box",
+	"fish":        "2-box",
+	"donut":       "2-box",
+	"handgun":     "2-box",
+	"doorknob":    "2-box",
+	"car":         "3-horiz",
+	"heavycannon": "3-horiz",
+	"stapler":     "3-horiz",
+	"motorcycle":  "3-horiz",
+}
+
+var LbaCats = LbaCats5
+
+// LbaCats5 is best-fitting 5-category leabra = -0.5071 -- can get to -0.5526 by
+// 2-vertical = tablelamp only, 3-round = chair only
+// this is best compromize with good dist score and shape similarity (via Expt)
+var LbaCats5 = map[string]string{
 	"banana":      "1-pyramid",
 	"layercake":   "1-pyramid",
 	"trafficcone": "1-pyramid",
@@ -73,6 +122,54 @@ var LbaCats = map[string]string{
 	"heavycannon": "5-horiz",
 	"stapler":     "5-horiz",
 	"motorcycle":  "5-horiz",
+}
+
+// Expt1Cats5 is best-fitting 5-category expt1 = -0.3225
+var Expt1Cats5 = map[string]string{
+	"banana":      "1-pyramid",
+	"layercake":   "1-pyramid",
+	"trafficcone": "1-pyramid",
+	"sailboat":    "1-pyramid",
+	"chair":       "1-pyramid",
+	"person":      "2-vertical",
+	"guitar":      "2-vertical",
+	"tablelamp":   "2-vertical",
+	"doorknob":    "3-round",
+	"donut":       "3-round",
+	"slrcamera":   "4-box",
+	"elephant":    "4-box",
+	"piano":       "4-box",
+	"fish":        "4-box",
+	"car":         "5-horiz",
+	"heavycannon": "5-horiz",
+	"stapler":     "5-horiz",
+	"motorcycle":  "5-horiz",
+	"trex":        "5-horiz",
+	"handgun":     "5-horiz",
+}
+
+// Expt1Cats3 is best-fitting 3-categ expt1, worse than 5: -0.2739
+var Expt1Cats3 = map[string]string{
+	"trafficcone": "1-pyramid",
+	"sailboat":    "1-pyramid",
+	"guitar":      "1-pyramid",
+	"person":      "1-pyramid",
+	"tablelamp":   "1-pyramid",
+	"chair":       "2-box",
+	"slrcamera":   "2-box",
+	"elephant":    "2-box",
+	"piano":       "2-box",
+	"fish":        "2-box",
+	"donut":       "2-box",
+	"handgun":     "2-box",
+	"doorknob":    "2-box",
+	"motorcycle":  "2-box",
+	"car":         "3-horiz",
+	"heavycannon": "3-horiz",
+	"stapler":     "3-horiz",
+	"trex":        "3-horiz",
+	"layercake":   "3-horiz",
+	"banana":      "3-horiz",
 }
 
 var JustLbaCats []string
@@ -101,18 +198,42 @@ var BpCats = map[string]string{
 	"fish":        "cat2",
 }
 
-var PNCats = map[string]string{
+var V1Cats = map[string]string{
 	"tablelamp":   "cat1",
-	"trafficcone": "cat1",
-	"guitar":      "cat1",
-	"chair":       "cat1",
-	"doorknob":    "cat1",
 	"person":      "cat1",
+	"guitar":      "cat1",
+	"trafficcone": "cat1",
+	"chair":       "cat1",
 	"sailboat":    "cat1",
+	"layercake":   "cat2",
+	"donut":       "cat2",
+	"doorknob":    "cat2",
+	"elephant":    "cat2",
 	"piano":       "cat2",
+	"handgun":     "cat2",
+	"slrcamera":   "cat2",
+	"trex":        "cat2",
+	"car":         "cat2",
+	"heavycannon": "cat2",
+	"motorcycle":  "cat2",
+	"stapler":     "cat2",
+	"fish":        "cat2",
+	"banana":      "cat3",
+}
+
+// -0.0253 = best 2 categ
+var PredNetCats = map[string]string{
+	"tablelamp":   "cat1",
+	"person":      "cat1",
+	"guitar":      "cat1",
+	"trafficcone": "cat1",
+	"chair":       "cat1",
+	"sailboat":    "cat2",
 	"layercake":   "cat2",
 	"elephant":    "cat2",
+	"piano":       "cat2",
 	"donut":       "cat2",
+	"doorknob":    "cat2",
 	"banana":      "cat2",
 	"handgun":     "cat2",
 	"slrcamera":   "cat2",
@@ -127,29 +248,45 @@ var PNCats = map[string]string{
 // Res is the main data structure for all expt results and tables
 // is visualized in gui so you can click on stuff..
 type Res struct {
-	LbaFullSimMat      simat.SimMat  `desc:"Leabra TEs full similarity matrix"`
-	LbaFullNames       []string      `view:"-" desc:"object names in order for FullSimMat"`
-	LbaLbaCatSimMat    simat.SimMat  `desc:"Leabra TEs full similarity matrix sorted fresh in Lba cat order"`
-	LbaV4FullSimMat    simat.SimMat  `desc:"Leabra V4s full similarity matrix"`
-	V1FullSimMat       simat.SimMat  `desc:"V1 full similarity matrix"`
-	V1FullNames        []string      `view:"-" desc:"object names in order for FullSimMat"`
-	BpPredFullSimMat   simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix"`
-	BpPredFullNames    []string      `view:"-" desc:"object names in order for FullSimMat"`
-	BpPredBpCatSimMat  simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in Bp Cat order"`
-	BpEncFullSimMat    simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix"`
-	BpEncFullNames     []string      `view:"-" desc:"object names in order for FullSimMat"`
-	PredNetFullSimMat  simat.SimMat  `desc:"PredNet predictor full similarity matrix"`
-	PredNetFullNames   []string      `view:"+" desc:"object names in order for FullSimMat"`
-	PredNetPNCatSimMat simat.SimMat  `desc:"PredNet predictor in PN Cat order"`
-	Expt1SimMat        simat.SimMat  `desc:"Expt1 similarity matrix"`
-	LbaObjSimMat       simat.SimMat  `desc:"Leabra TEs obj-cat reduced similarity matrix"`
-	V1ObjSimMat        simat.SimMat  `desc:"V1 obj-cat reduced similarity matrix"`
-	BpPredObjSimMat    simat.SimMat  `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
-	BpEncObjSimMat     simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
-	ExptCorrel         etable.Table  `desc:"correlations with expt data for each sim data"`
-	Expt1ClustPlot     *eplot.Plot2D `desc:"cluster plot"`
-	LbaObjClustPlot    *eplot.Plot2D `desc:"cluster plot"`
-	LbaFullClustPlot   *eplot.Plot2D `desc:"cluster plot"`
+	LbaFullSimMat       simat.SimMat  `desc:"Leabra TEs full similarity matrix"`
+	LbaFullNames        []string      `view:"-" desc:"object names in order for FullSimMat"`
+	LbaLbaCatSimMat     simat.SimMat  `desc:"Leabra TEs full similarity matrix sorted fresh in Lba cat order"`
+	LbaV1CatSimMat      simat.SimMat  `desc:"Leabra TEs full similarity matrix, in V1 cat order"`
+	LbaBpCatSimMat      simat.SimMat  `desc:"Leabra TEs full similarity matrix, in Bp cat order"`
+	LbaV4FullSimMat     simat.SimMat  `desc:"Leabra V4s full similarity matrix"`
+	V1FullSimMat        simat.SimMat  `desc:"V1 full similarity matrix"`
+	V1FullNames         []string      `view:"-" desc:"object names in order for FullSimMat"`
+	V1V1CatSimMat       simat.SimMat  `desc:"V1 in V1 Cat order"`
+	V1BpCatSimMat       simat.SimMat  `desc:"V1 in Bp Cat order"`
+	V1LbaCatSimMat      simat.SimMat  `desc:"V1 in Lba Cat order"`
+	BpPredFullSimMat    simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix"`
+	BpPredFullNames     []string      `view:"-" desc:"object names in order for FullSimMat"`
+	BpPredBpCatSimMat   simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in Bp Cat order"`
+	BpPredV1CatSimMat   simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in V1 Cat order"`
+	BpPredLbaCatSimMat  simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in Lba Cat order"`
+	BpEncFullSimMat     simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix"`
+	BpEncFullNames      []string      `view:"-" desc:"object names in order for FullSimMat"`
+	BpEncBpCatSimMat    simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix, in Bp Cat order"`
+	BpEncV1CatSimMat    simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix, in Bp Cat order"`
+	PredNetFullSimMat   simat.SimMat  `desc:"PredNet predictor full similarity matrix"`
+	PredNetFullNames    []string      `view:"-" desc:"object names in order for FullSimMat"`
+	PredNetBpCatSimMat  simat.SimMat  `desc:"PredNet predictor in Bp Cat order"`
+	PredNetV1CatSimMat  simat.SimMat  `desc:"PredNet predictor in V1 Cat order"`
+	PredNetLbaCatSimMat simat.SimMat  `desc:"PredNet predictor in Lba Cat order"`
+	PredNetPNCatSimMat  simat.SimMat  `desc:"PredNet predictor in PN Cat order"`
+	Expt1SimMat         simat.SimMat  `desc:"Expt1 similarity matrix"`
+	Expt1LbaSimMat      simat.SimMat  `desc:"Expt1 similarity matrix, leabra sorted"`
+	Expt1Ex5SimMat      simat.SimMat  `desc:"Expt1 similarity matrix, v1 sorted"`
+	Expt1BpSimMat       simat.SimMat  `desc:"Expt1 similarity matrix, bp sorted"`
+	Expt1V1SimMat       simat.SimMat  `desc:"Expt1 similarity matrix, v1 sorted"`
+	LbaObjSimMat        simat.SimMat  `desc:"Leabra TEs obj-cat reduced similarity matrix"`
+	V1ObjSimMat         simat.SimMat  `desc:"V1 obj-cat reduced similarity matrix"`
+	BpPredObjSimMat     simat.SimMat  `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
+	BpEncObjSimMat      simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
+	ExptCorrel          etable.Table  `desc:"correlations with expt data for each sim data"`
+	Expt1ClustPlot      *eplot.Plot2D `desc:"cluster plot"`
+	LbaObjClustPlot     *eplot.Plot2D `desc:"cluster plot"`
+	LbaFullClustPlot    *eplot.Plot2D `desc:"cluster plot"`
 }
 
 func (rs *Res) Init() {
@@ -267,7 +404,7 @@ func (rs *Res) OpenFullSimMatPredNet(sm *simat.SimMat, nms *[]string, fname stri
 
 // CatSortSimMat takes an input sim matrix and categorizes the items according to given cats
 // and then sorts items within that according to their average within - between cat similarity
-func (rs *Res) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string, catmap map[string]string) {
+func (rs *Res) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string, catmap map[string]string, contrast bool, name string) {
 	no := len(insm.Rows)
 	sch := etable.Schema{
 		{"Cat", etensor.STRING, nil, nil},
@@ -281,6 +418,7 @@ func (rs *Res) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string
 		cats[i] = catmap[nm]
 	}
 	smatv := insm.Mat.(*etensor.Float64).Values
+	avgCtrstDist := 0.0
 	for ri := 0; ri < no; ri++ {
 		roff := ri * no
 		aid := 0.0
@@ -308,8 +446,14 @@ func (rs *Res) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string
 		if abn > 0 {
 			abd /= float64(abn)
 		}
-		dists[ri] = aid - abd // within - between
+		dval := aid
+		if contrast {
+			dval -= abd
+		}
+		dists[ri] = dval
+		avgCtrstDist += (1 - aid) - (1 - abd)
 	}
+	avgCtrstDist /= float64(no)
 	ix := etable.NewIdxView(dt)
 	ix.SortColNames([]string{"Cat", "Dist"}, true) // ascending
 	osm.Init()
@@ -336,6 +480,7 @@ func (rs *Res) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string
 	}
 	osm.Rows = bcols
 	osm.Cols = bcols
+	fmt.Printf("%v  avg contrast dist: %.4f\n", name, avgCtrstDist)
 }
 
 func (rs *Res) OpenSimMats() {
@@ -347,9 +492,22 @@ func (rs *Res) OpenSimMats() {
 
 	rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, "prednet_layer3.csv", "prednet_labels.csv", "0.15")
 
-	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaLbaCatSimMat, rs.LbaFullNames, LbaCats)
-	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredBpCatSimMat, rs.BpPredFullNames, BpCats)
-	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetPNCatSimMat, rs.PredNetFullNames, PNCats)
+	// bool arg = use within - between (else just within)
+	rs.CatSortSimMat(&rs.V1FullSimMat, &rs.V1V1CatSimMat, rs.V1FullNames, V1Cats, true, "V1_V1Cat")
+	rs.CatSortSimMat(&rs.V1FullSimMat, &rs.V1BpCatSimMat, rs.V1FullNames, BpCats, true, "V1_BpCat")
+	rs.CatSortSimMat(&rs.V1FullSimMat, &rs.V1LbaCatSimMat, rs.V1FullNames, LbaCats, true, "V1_LbaCat")
+	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaLbaCatSimMat, rs.LbaFullNames, LbaCats, true, "Lba_LbaCat")
+	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaV1CatSimMat, rs.LbaFullNames, V1Cats, true, "Lba_V1Cat")
+	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaBpCatSimMat, rs.LbaFullNames, BpCats, true, "Lba_BpCat")
+	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredBpCatSimMat, rs.BpPredFullNames, BpCats, true, "BpPred_BpCat")
+	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredV1CatSimMat, rs.BpPredFullNames, V1Cats, true, "BpPred_V1Cat")
+	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredLbaCatSimMat, rs.BpPredFullNames, LbaCats, true, "BpPred_LbaCat")
+	rs.CatSortSimMat(&rs.BpEncFullSimMat, &rs.BpEncBpCatSimMat, rs.BpEncFullNames, BpCats, true, "BpEnc_BpCat")
+	rs.CatSortSimMat(&rs.BpEncFullSimMat, &rs.BpEncV1CatSimMat, rs.BpEncFullNames, V1Cats, true, "BpEnc_V1Cat")
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetBpCatSimMat, rs.PredNetFullNames, BpCats, false, "PredNet_BpCat")      // doesn't work with contrast as is too noisy
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetV1CatSimMat, rs.PredNetFullNames, V1Cats, false, "PredNet_V1Cat")      // doesn't work with contrast as is too noisy
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetLbaCatSimMat, rs.PredNetFullNames, LbaCats, false, "PredNet_LbaCat")   // doesn't work with contrast as is too noisy
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetPNCatSimMat, rs.PredNetFullNames, PredNetCats, false, "PredNet_PNCat") // doesn't work with contrast as is too noisy
 }
 
 // ObjSimMat compresses full simat into a much smaller per-object sim mat
@@ -416,6 +574,13 @@ func (rs *Res) OpenExptMat() {
 	smat.SetMetaData("colormap", "Viridis")
 	smat.SetMetaData("grid-fill", "1")
 	smat.SetMetaData("dim-extra", "0.15")
+}
+
+func (rs *Res) TestExptMats() {
+	rs.CatSortSimMat(&rs.Expt1SimMat, &rs.Expt1LbaSimMat, Objs, LbaCats, true, "Expt1_LbaCat")
+	rs.CatSortSimMat(&rs.Expt1SimMat, &rs.Expt1BpSimMat, Objs, BpCats, true, "Expt1_BpCat")
+	rs.CatSortSimMat(&rs.Expt1SimMat, &rs.Expt1V1SimMat, Objs, V1Cats, true, "Expt1_V1Cat")
+	rs.CatSortSimMat(&rs.Expt1SimMat, &rs.Expt1Ex5SimMat, Objs, Expt1Cats5, true, "Expt1_Ex5Cat")
 }
 
 func (rs *Res) SetCorrel(dt *etable.Table, row int, nm string, smat *simat.SimMat) {
@@ -519,12 +684,173 @@ func (rs *Res) ClustPlots() {
 	rs.LbaFullClustPlot = rs.ClustFull(&rs.LbaFullSimMat, rs.LbaFullNames, "Leabra Full")
 }
 
+// AvgContrastDist computes average contrast dist over given cat map
+func (rs *Res) AvgContrastDist(insm *simat.SimMat, nms []string, catmap map[string]string) float64 {
+	no := len(insm.Rows)
+	smatv := insm.Mat.(*etensor.Float64).Values
+	avgd := 0.0
+	for ri := 0; ri < no; ri++ {
+		roff := ri * no
+		aid := 0.0
+		ain := 0
+		abd := 0.0
+		abn := 0
+		rnm := nms[ri]
+		rc := catmap[rnm]
+		for ci := 0; ci < no; ci++ {
+			if ri == ci {
+				continue
+			}
+			cnm := nms[ci]
+			cc := catmap[cnm]
+			d := smatv[roff+ci]
+			if cc == rc {
+				aid += d
+				ain++
+			} else {
+				abd += d
+				abn++
+			}
+		}
+		if ain > 0 {
+			aid /= float64(ain)
+		}
+		if abn > 0 {
+			abd /= float64(abn)
+		}
+		avgd += aid - abd
+	}
+	avgd /= float64(no)
+	return avgd
+}
+
+// PermuteCatTest takes an input sim matrix and tries all one-off permutations relative to given
+// initial set of categories, and computes overall average constrast distance for each
+// selects categs with lowest dist and iterates until no better permutation can be found
+func (rs *Res) PermuteCatTest(insm *simat.SimMat, nms []string, catmap map[string]string, desc string) {
+	fmt.Printf("\n#########\n%v\n", desc)
+	catm := map[string]int{} // list of categories and index into catnms
+	catnms := []string{}
+	for _, nm := range nms {
+		cat := catmap[nm]
+		if _, has := catm[cat]; !has {
+			catm[cat] = len(catnms)
+			catnms = append(catnms, cat)
+		}
+	}
+	ncats := len(catnms)
+
+	itrmap := make(map[string]string)
+	for k, v := range catmap {
+		itrmap[k] = v
+	}
+
+	std := rs.AvgContrastDist(insm, nms, catmap)
+	fmt.Printf("std: %.4f  starting\n", std)
+
+	for itr := 0; itr < 100; itr++ {
+		std = rs.AvgContrastDist(insm, nms, itrmap)
+
+		effmap := make(map[string]string)
+		mind := 100.0
+		mindnm := ""
+		mindcat := ""
+		for _, nm := range nms { // go over each item
+			cat := itrmap[nm]
+			for oc := 0; oc < ncats; oc++ { // go over alternative categories
+				ocat := catnms[oc]
+				if ocat == cat {
+					continue
+				}
+				for k, v := range itrmap {
+					if k == nm {
+						effmap[k] = ocat // switch
+					} else {
+						effmap[k] = v
+					}
+				}
+				avgd := rs.AvgContrastDist(insm, nms, effmap)
+				if avgd < mind {
+					mind = avgd
+					mindnm = nm
+					mindcat = ocat
+				}
+				// if avgd < std {
+				// 	fmt.Printf("Permute test better than std dist: %v  min dist: %v  for name: %v  in cat: %v\n", std, avgd, nm, ocat)
+				// }
+			}
+		}
+		if mind >= std {
+			break
+		}
+		fmt.Printf("itr %v std: %.4f  min: %.4f  name: %v  cat: %v\n", itr, std, mind, mindnm, mindcat)
+		itrmap[mindnm] = mindcat // make the switch
+	}
+	fmt.Printf("std: %.4f  final\n", std)
+
+	for oc := 0; oc < ncats; oc++ {
+		cat := catnms[oc]
+		fmt.Printf("%v\n", cat)
+		for _, nm := range Objs {
+			ct := itrmap[nm]
+			if ct == cat {
+				fmt.Printf("\t%v\n", nm)
+			}
+		}
+	}
+}
+
+func (rs *Res) PermuteFitCats() {
+	old := false
+	nw := false
+	if old {
+		rs.PermuteCatTest(&rs.Expt1SimMat, Objs, LbaCats5, "Expt1 LbaCats5")
+		rs.PermuteCatTest(&rs.Expt1SimMat, Objs, Expt1Cats5, "Expt1 Expt1Cats5")
+		rs.PermuteCatTest(&rs.Expt1SimMat, Objs, LbaCats3, "Expt1 LbaCats3")
+		rs.PermuteCatTest(&rs.Expt1SimMat, Objs, Expt1Cats3, "Expt1 Expt1Cats3")
+		rs.PermuteCatTest(&rs.Expt1SimMat, Objs, V1Cats, "Expt1 V1Cats") // = -.2928 final
+		// cat1 = pyramid, cat2 = everything else, cat3 = banana
+	}
+
+	if old {
+		rs.PermuteCatTest(&rs.LbaFullSimMat, rs.LbaFullNames, LbaCats5, "Lba LbaCats5")
+		// starts -.5071, gets to -.5526
+		rs.PermuteCatTest(&rs.LbaFullSimMat, rs.LbaFullNames, LbaCats3, "Lba LbaCats3")
+		// is -0.5399 -- looks decent
+		rs.PermuteCatTest(&rs.LbaFullSimMat, rs.LbaFullNames, Expt1Cats5, "Lba Expt1Cats5")
+		// gets to same -.5526 as LbaCats5
+		rs.PermuteCatTest(&rs.LbaFullSimMat, rs.LbaFullNames, Expt1Cats3, "Lba Expt1Cats3")
+		rs.PermuteCatTest(&rs.LbaFullSimMat, rs.LbaFullNames, V1Cats, "Lba V1Cats")
+		// both of these get to a -.5455 with 1 cat = tablelamp, other 2 = horiz, box
+	}
+
+	if old {
+		rs.PermuteCatTest(&rs.BpPredFullSimMat, rs.BpPredFullNames, LbaCats5, "BpPred LbaCats5")
+		// wow, gets all the way to -0.0838 BpCat!
+		rs.PermuteCatTest(&rs.BpPredFullSimMat, rs.BpPredFullNames, BpCats, "BpPred BpCats")
+		rs.PermuteCatTest(&rs.BpPredFullSimMat, rs.BpPredFullNames, V1Cats, "BpPred V1Cats")
+		// all get to BpCats, nmw
+	}
+	if old {
+		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, BpCats, "PredNet BpCats")
+		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, V1Cats, "PredNet V1Cats")
+		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, LbaCats5, "PredNet LbaCats5")
+	}
+	if nw {
+		rs.PermuteCatTest(&rs.V1FullSimMat, rs.V1FullNames, V1Cats, "V1 V1Cats")
+		rs.PermuteCatTest(&rs.V1FullSimMat, rs.V1FullNames, BpCats, "V1 BpCats")
+		rs.PermuteCatTest(&rs.V1FullSimMat, rs.V1FullNames, LbaCats5, "V1 LbaCats5")
+	}
+}
+
 func (rs *Res) Analyze() {
 	rs.OpenSimMats()
 	rs.ObjSimMats()
 	rs.OpenExptMat()
+	rs.TestExptMats()
 	rs.Correls()
 	rs.ClustPlots()
+	rs.PermuteFitCats()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

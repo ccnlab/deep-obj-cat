@@ -8,14 +8,12 @@ import (
 	"path/filepath"
 
 	"github.com/anthonynsimon/bild/imgio"
-	"github.com/anthonynsimon/bild/transform"
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
 	_ "github.com/emer/etable/etview" // include to get gui views
+	"github.com/emer/etable/metric"
 	"github.com/emer/etable/norm"
-	"github.com/emer/leabra/fffb"
 	"github.com/emer/vision/gabor"
-	"github.com/emer/vision/kwta"
 	"github.com/emer/vision/vfilter"
 	"github.com/goki/gi/gi"
 	"github.com/goki/gi/gimain"
@@ -35,21 +33,16 @@ func main() {
 // use in a given case -- can add / modify this as needed
 type Vis struct {
 	V1sGabor      gabor.Filter    `desc:"V1 simple gabor filter parameters"`
-	V1sGeom       vfilter.Geom    `inactive:"+" view:"inline" desc:"geometry of input, output for V1 simple-cell processing"`
-	V1sNeighInhib kwta.NeighInhib `desc:"neighborhood inhibition for V1s -- each unit gets inhibition from same feature in nearest orthogonal neighbors -- reduces redundancy of feature code"`
-	V1sKWTA       kwta.KWTA       `desc:"kwta parameters for V1s"`
+	V1sGeom       vfilter.Geom    `inactive:"+" desc:"geometry of input, output for V1 simple-cell processing"`
 	ImgSize       image.Point     `desc:"target image size to use -- images will be rescaled to this size"`
 	V1sGaborTsr   etensor.Float32 `view:"no-inline" desc:"V1 simple gabor filter tensor"`
 	Img           image.Image     `view:"-" desc:"current input image"`
-	ImgTsr        etensor.Float32 `view:"no-inline" desc:"input image as tensor"`
 	ImgFmV1sTsr   etensor.Float32 `view:"no-inline" desc:"input image reconstructed from V1s tensor"`
 	V1sTsr        etensor.Float32 `view:"no-inline" desc:"V1 simple gabor filter output tensor"`
-	V1sExtGiTsr   etensor.Float32 `view:"no-inline" desc:"V1 simple extra Gi from neighbor inhibition tensor"`
-	V1sKwtaTsr    etensor.Float32 `view:"no-inline" desc:"V1 simple gabor filter output, kwta output tensor"`
-	V1sPoolTsr    etensor.Float32 `view:"no-inline" desc:"V1 simple gabor filter output, max-pooled 2x2 of V1sKwta tensor"`
-	V1sUnPoolTsr  etensor.Float32 `view:"no-inline" desc:"V1 simple gabor filter output, un-max-pooled 2x2 of V1sPool tensor"`
 	V1cTsr        etensor.Float32 `view:"no-inline" desc:"V1 complex all tensor"`
-	V1sInhibs     []fffb.Inhib    `view:"no-inline" desc:"inhibition values for V1s KWTA"`
+	ActMV1cTsr    etensor.Float32 `view:"no-inline" desc:"minus phase V1c tensor"`
+	PrvActPV1cTsr etensor.Float32 `view:"no-inline" desc:"previous V1c actp tensor"`
+	PrvActMV1cTsr etensor.Float32 `view:"no-inline" desc:"previous V1c actp tensor"`
 }
 
 var KiT_Vis = kit.Types.AddType(&Vis{}, nil)
@@ -63,46 +56,9 @@ func (vi *Vis) Defaults() {
 	// to set border to .5 * filter size
 	// any further border sizes on same image need to add Geom.FiltRt!
 	vi.V1sGeom.Set(image.Point{0, 0}, image.Point{spc, spc}, image.Point{sz, sz})
-	vi.V1sNeighInhib.Defaults()
-	vi.V1sKWTA.Defaults()
-	// vi.V1sNeighInhib.On = false
-	// vi.V1sKWTA.On = false
-	vi.ImgSize = image.Point{128, 128}
-	// vi.ImgSize = image.Point{64, 64}
+	// vi.ImgSize = image.Point{128, 128}
+	vi.ImgSize = image.Point{64, 64}
 	vi.V1sGabor.ToTensor(&vi.V1sGaborTsr)
-}
-
-// PrepImage prepares image for v1 processing:
-// converts to a float32 tensor for processing
-func (vi *Vis) PrepImage(img image.Image) error {
-	isz := img.Bounds().Size()
-	if isz != vi.ImgSize {
-		vi.Img = transform.Resize(img, vi.ImgSize.X, vi.ImgSize.Y, transform.Linear)
-	} else {
-		vi.Img = img
-	}
-	vfilter.RGBToGrey(vi.Img, &vi.ImgTsr, vi.V1sGeom.FiltRt.X, false) // pad for filt, bot zero
-	vfilter.WrapPad(&vi.ImgTsr, vi.V1sGeom.FiltRt.X)
-	vi.ImgTsr.SetMetaData("image", "+")
-	return nil
-}
-
-// V1Simple runs V1Simple Gabor filtering on input image
-// must have valid Img in place to start.
-// Runs kwta and pool steps after gabor filter.
-func (vi *Vis) V1Simple() {
-	vfilter.Conv(&vi.V1sGeom, &vi.V1sGaborTsr, &vi.ImgTsr, &vi.V1sTsr, vi.V1sGabor.Gain)
-	if vi.V1sNeighInhib.On {
-		vi.V1sNeighInhib.Inhib4(&vi.V1sTsr, &vi.V1sExtGiTsr)
-	} else {
-		vi.V1sExtGiTsr.SetZeros()
-	}
-	if vi.V1sKWTA.On {
-		vi.V1sKWTA.KWTAPool(&vi.V1sTsr, &vi.V1sKwtaTsr, &vi.V1sInhibs, &vi.V1sExtGiTsr)
-	} else {
-		vi.V1sKwtaTsr.CopyFrom(&vi.V1sTsr)
-	}
-	vfilter.MaxPool(image.Point{2, 2}, image.Point{2, 2}, &vi.V1sKwtaTsr, &vi.V1sPoolTsr)
 }
 
 // ImgFmV1Simple reverses V1Simple Gabor filtering from V1s back to input image
@@ -144,11 +100,30 @@ func (vi *Vis) ImgFmV1Simple(v1data string) {
 
 // RecSeq reconstructs sequence starting with given object name
 func (vi *Vis) RecSeq(objnm string) {
+	avgpprv := float32(0)
+	avgmprv := float32(0)
 	for tick := 0; tick < 8; tick++ {
 		fn := fmt.Sprintf("%s_tick_%d_sac_%d", objnm, tick, tick%2)
 		vi.ImgFmV1Simple(fn + "_actm.tsv")
+		vi.ActMV1cTsr.CopyShapeFrom(&vi.V1cTsr)
+		vi.ActMV1cTsr.CopyFrom(&vi.V1cTsr)
 		vi.ImgFmV1Simple(fn + "_actp.tsv")
+		errcor := metric.Correlation32(vi.ActMV1cTsr.Values, vi.V1cTsr.Values)
+		prvpcor := float32(0.0)
+		prvmcor := float32(0.0)
+		if tick > 0 {
+			prvpcor = metric.Correlation32(vi.PrvActPV1cTsr.Values, vi.V1cTsr.Values)
+			prvmcor = metric.Correlation32(vi.PrvActMV1cTsr.Values, vi.ActMV1cTsr.Values)
+		}
+		vi.PrvActPV1cTsr.CopyShapeFrom(&vi.V1cTsr)
+		vi.PrvActPV1cTsr.CopyFrom(&vi.V1cTsr)
+		vi.PrvActMV1cTsr.CopyShapeFrom(&vi.ActMV1cTsr)
+		vi.PrvActMV1cTsr.CopyFrom(&vi.ActMV1cTsr)
+		fmt.Printf("Tick: %d  errcor:  %.2f   prvpcor:  %.2f  prvmcor:  %.2f\n", tick, errcor, prvpcor, prvmcor)
+		avgpprv += prvpcor
+		avgmprv += prvmcor
 	}
+	fmt.Printf("Avg prvpcor: %.2f   prvmcor: %.2f\n", avgpprv/float32(7), avgmprv/float32(7))
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,8 +191,8 @@ var TheVis Vis
 
 func mainrun() {
 	TheVis.Defaults()
-	// TheVis.RecSeq("car_sedan_002")
-	TheVis.RecSeq("slrcamera_004")
+	TheVis.RecSeq("car_sedan_002")
+	// TheVis.RecSeq("slrcamera_004")
 	win := TheVis.ConfigGui()
 	win.StartEventLoop()
 }
