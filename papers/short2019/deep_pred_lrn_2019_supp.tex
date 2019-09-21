@@ -349,6 +349,13 @@ Training typically consisted of 512 alpha trials per epoch (51.2 seconds of real
 
 % The plots of learning trajectories have been smoothed with a gaussian kernel with a half-width of 8 epochs, sigma = 4 epochs, to make the different lines more easily discriminable --- there is a reasonably high level of random noise in performance due to random variation in the environment parameters etc, so this smooths that out and allows the mean level to be visible.
 
+
+\subsection{Testing Parameters and Results}
+
+{\bf TODO:} how reps are sampled for RSA
+
+* also results for stability of reps over time -- invariance issue.
+
 \subsection{Model Algorithms}
 
 The model was implemented using the Leabra framework, which is described in detail in previous publications \cite{OReillyMunakataFrankEtAl12,OReillyMunakata00,OReilly98,OReilly96}, and summarized here.  There are two main implementations of Leabra, one in the {\em C++ emergent} software, and a new one using  Go and Python language at: \url{https://github.com/emer/leabra}.  There are also other simpler implementations in Python and MATLAB, see \url{https://grey.colorado.edu/emergent/index.php/Leabra}.   Both of the preceeding links contain a full detailed description of the algorithm.  These same equations and standard parameters have been used to simulate over 40 different models in \incite{OReillyMunakataFrankEtAl12} and \incite{OReillyMunakata00}, and a number of other research models.  Thus, the model can be viewed as an instantiation of a systematic modeling framework using standardized mechanisms, instead of constructing new mechanisms for each model.  Here, we only detail properties of the predictive learning algorithm that go beyond the basic Leabra model.
