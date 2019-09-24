@@ -264,6 +264,10 @@ type Res struct {
 	V1V1CatSimMat          simat.SimMat  `desc:"V1 in V1 Cat order"`
 	V1BpCatSimMat          simat.SimMat  `desc:"V1 in Bp Cat order"`
 	V1LbaCatSimMat         simat.SimMat  `desc:"V1 in Lba Cat order"`
+	Lba200SimMat           simat.SimMat  `desc:"Leabra TEs full similarity matrix, 200 epcs"`
+	Lba200Names            []string      `view:"-" desc:"object names in order"`
+	Lba600SimMat           simat.SimMat  `desc:"Leabra TEs full similarity matrix, 600 epcs"`
+	Lba600Names            []string      `view:"-" desc:"object names in order"`
 	BpPredFullSimMat       simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix"`
 	BpPredFullNames        []string      `view:"-" desc:"object names in order for FullSimMat"`
 	BpPredBpCatSimMat      simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in Bp Cat order"`
@@ -292,6 +296,8 @@ type Res struct {
 	V1ObjSimMat            simat.SimMat  `desc:"V1 obj-cat reduced similarity matrix"`
 	BpPredObjSimMat        simat.SimMat  `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
 	BpEncObjSimMat         simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
+	LbaTickSimMat          simat.SimMat  `desc:"Leabra TEs full similarity matrix, by tick"`
+	LbaTickNames           []string      `view:"-" desc:"object names in order"`
 	ExptCorrel             etable.Table  `desc:"correlations with expt data for each sim data"`
 	Expt1ClustPlot         *eplot.Plot2D `desc:"cluster plot"`
 	LbaObjClustPlot        *eplot.Plot2D `desc:"cluster plot"`
@@ -499,6 +505,9 @@ func (rs *Res) OpenSimMats() {
 	rs.OpenFullSimMat(&rs.BpPredFullSimMat, &rs.BpPredFullNames, "sim_bp_pred_simat.tsv", "sim_bp_pred_simat_lbl.tsv", "0.3")
 	rs.OpenFullSimMat(&rs.BpEncFullSimMat, &rs.BpEncFullNames, "sim_bp_enc_simat.tsv", "sim_bp_enc_simat_lbl.tsv", "0.04")
 
+	rs.OpenFullSimMat(&rs.Lba200SimMat, &rs.Lba200Names, "sim_leabra_simat_200epc.tsv", "sim_leabra_simat_200epc_lbl.tsv", "1.5")
+	rs.OpenFullSimMat(&rs.Lba600SimMat, &rs.Lba600Names, "sim_leabra_simat_600epc.tsv", "sim_leabra_simat_600epc_lbl.tsv", "1.5")
+
 	rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, "prednet_layer3.csv", "prednet_labels.csv", "0.15")
 	rs.OpenFullSimMatPredNet(&rs.PredNetPixelSimMat, &rs.PredNetFullNames, "prednet_pixels.csv", "prednet_labels.csv", "0.06")
 	rs.OpenFullSimMatPredNet(&rs.PredNetLay0SimMat, &rs.PredNetFullNames, "prednet_layer0.csv", "prednet_labels.csv", "0.04")
@@ -510,6 +519,14 @@ func (rs *Res) OpenSimMats() {
 	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaLbaCatSimMat, rs.LbaFullNames, LbaCats, true, "Lba_LbaCat")
 	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaV1CatSimMat, rs.LbaFullNames, V1Cats, true, "Lba_V1Cat")
 	rs.CatSortSimMat(&rs.LbaFullSimMat, &rs.LbaBpCatSimMat, rs.LbaFullNames, BpCats, true, "Lba_BpCat")
+
+	sm200 := &simat.SimMat{}
+	rs.CatSortSimMat(&rs.Lba200SimMat, sm200, rs.Lba200Names, LbaCats, true, "Lba200_LbaCat")
+	rs.Lba200SimMat = *sm200
+	sm600 := &simat.SimMat{}
+	rs.CatSortSimMat(&rs.Lba600SimMat, sm600, rs.Lba600Names, LbaCats, true, "Lba600_LbaCat")
+	rs.Lba600SimMat = *sm600
+
 	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredBpCatSimMat, rs.BpPredFullNames, BpCats, true, "BpPred_BpCat")
 	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredV1CatSimMat, rs.BpPredFullNames, V1Cats, true, "BpPred_V1Cat")
 	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredLbaCatSimMat, rs.BpPredFullNames, LbaCats, true, "BpPred_LbaCat")
@@ -522,6 +539,9 @@ func (rs *Res) OpenSimMats() {
 
 	rs.CatSortSimMat(&rs.PredNetPixelSimMat, &rs.PredNetPixV1CatSimMat, rs.PredNetFullNames, V1Cats, false, "PredNetPixels_V1Cat")
 	rs.CatSortSimMat(&rs.PredNetLay0SimMat, &rs.PredNetLay0V1CatSimMat, rs.PredNetFullNames, V1Cats, false, "PredNetLayer0_V1Cat")
+
+	// rs.OpenFullSimMat(&rs.LbaTickSimMat, &rs.LbaTickNames, "sim_leabra_simat_bytick.tsv", "sim_leabra_simat_bytick_lbl.tsv", "1.5")
+
 }
 
 // ObjSimMat compresses full simat into a much smaller per-object sim mat
@@ -862,6 +882,32 @@ func (rs *Res) PermuteFitCats() {
 	}
 }
 
+// AvgTickDist computes average within-tick distance (7 ticks in a row)
+func (rs *Res) AvgTickDist(insm *simat.SimMat) float64 {
+	no := len(insm.Rows)
+	smatv := insm.Mat.(*etensor.Float64).Values
+	ntick := 7
+	avgd := 0.0
+	navg := 0
+	nobj := no / ntick
+	for ri := 0; ri < nobj; ri++ {
+		for tri := 0; tri < ntick; tri++ {
+			roff := (ri*ntick + tri) * no
+			for tci := 0; tci < ntick; tci++ {
+				if tri == tci {
+					continue
+				}
+				ci := ri*ntick + tci
+				d := smatv[roff+ci]
+				avgd += d
+				navg++
+			}
+		}
+	}
+	avgd /= float64(navg)
+	return avgd
+}
+
 func (rs *Res) Analyze() {
 	rs.OpenSimMats()
 	rs.ObjSimMats()
@@ -870,6 +916,8 @@ func (rs *Res) Analyze() {
 	rs.Correls()
 	rs.ClustPlots()
 	rs.PermuteFitCats()
+	// atd := rs.AvgTickDist(&rs.LbaTickSimMat)
+	// fmt.Printf("avg within-tick distance: %v\n", atd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
