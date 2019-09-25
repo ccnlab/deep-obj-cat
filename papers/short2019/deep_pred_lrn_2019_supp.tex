@@ -227,6 +227,9 @@ The different representations being compared here are:
 	\label{fig.cats}
 \end{figure}
 
+% (JAR) I see why I missed the centroid definition on first pass - it is defined in a caption. Suggest defining in the body as readers may look at the table but not read the full caption.
+% (JAR) What we are calling "centroid" shape categories are the set that are near-best when considering both the Leabra model and the results from the human behavioral experiment (Expt).
+% (JAR) What about "Base" instead of "Centroid" - I feel like centroid carries to much meaning that isn't quite right and the hill climbing algorithm should work regardless if the problem is convex. Of course if it isn't then perhaps we should be starting with more clusters and a random set.
 An optimal category cluster can be defined as one that has high within-cluster similarity and low between-cluster similarity.  This can be operationalized by the {\em contrast} distance metric, based on a 1-correlation ({\em correlation distance}) measure, as the difference between the average within-cluster similarity and the average between-cluster similarity:
 \begin{equation}
  cd = \langle 1-r_{in} \rangle - \langle 1-r_{out} \rangle 
