@@ -65,6 +65,8 @@
 
 \title{ {\bf Title:} Deep Predictive Learning as a Model of Human Learning } 
 
+% (JLR) Sounds a little odd with "learning" in there twice. I guess you don't want to use "predictive coding" to differentiate yourself from Friston/others? How about something like "Deep predictive learning as a model of human vision"? 
+
 \author{{\bf Authors:} Randall C. O'Reilly,$^\ast$ Jacob L. Russin, and John Rohrlich\\
 \vspace{.15in}\\
   {\bf Affiliations:} Departments of Psychology and Computer Science\\
@@ -88,6 +90,12 @@
 \begin{sciabstract}
 {\bf Abstract:} Understanding the seemingly-magic power of human learning is a widely-held goal of current machine-learning approaches, yet these models unrealistically rely on massive human-labeled datasets.  We present a biologically-based model of predictive learning, which generates predictions at the alpha frequency (100 msec), and learns from prediction errors, requiring no labeled inputs.  Distinctive patterns of connectivity between the neocortex and thalamus drive alternating top-down prediction and bottom-up outcome representations over the pulvinar nucleus, with the temporal difference driving error-driven learning throughout neocortex.  However, can it learn abstractions that go beyond the surface input level?  Our model does, in ways that match both human category representations and monkey electrophysiology, while comparison models lacking biological features do not.
 
+% (JLR) I don't think "seemingly-magic" should be hyphenated
+% (JLR) "widely-held" shouldn't be hyphenated
+% (JLR) How about: "Understanding the principles underlying the power of human learning is a widely held goal of research in machine learning, ..."
+% (JLR) Are the big human-labeled datasets the issue we're addressing? Predictive learning doesn't require labels even if it's backprop right?
+% (JLR) Maybe this was on purpose, but should there be no mention of vision or the visual system in the entire abstract/title?
+
 {\bf One Sentence Summary:} The human brain learns from prediction errors generated on the pulvinar nucleus, and a model thereof develops abstract knowledge.
 
 \end{sciabstract}
@@ -98,11 +106,26 @@
 
 \pagestyle{myheadings}
 
+% (JLR) "deep convolutional neural networks" = "DCNN", not "DCCN"?
+% (JLR) Also, I've seen them abbreviated "CNN" more often than "DCNN".
+
 The success of deep convolutional neural networks (DCCN's) \cite{KrizhevskySutskeverHinton12,LeCunBengioHinton15,Schmidhuber15a} in object recognition and many other domains raises the question of how well they model human learning, at both neural and cognitive levels.  Although the engine of these models, error backpropagation \cite{RumelhartHintonWilliams86}, has long been questioned on biological grounds \cite{Crick89}, various related biologically-plausible mechanisms have been proposed \cite{OReilly96,XieSeung03,BengioMesnardFischerEtAl17}.  However, the need for massive amounts of labeled data still makes these models cognitively implausible: non-human primates and infants learn to recognize and categorize objects without 
 % (TEH) BW?: the benefit of labeled...
 massive amounts of labeled data \cite{LakeUllmanTenenbaumEtAl17}.  An alternative, biologically-plausible approach is to use {\em predictive error-driven learning}, where error signals arise from differences between a prediction of what will happen next, and what actually does happen \cite{Elman90,ElmanBatesKarmiloff-SmithEtAl96}.  All that this requires, in principle, is for events to unfold over time, a learning system that is somehow organized to generate predictions of these events, and a biological mechanism that learns from prediction errors. Furthermore, a system that learned to accurately predict complex real-world events would require considerable knowledge to have been acquired in the process of so doing, and thus there is reason to believe that predictive learning could power sophisticated, important forms of developmental learning.
 
+% (JLR) May want more citations after "questioned on biological grounds"? Aren't there are a ton of papers on that topic?
+% (JLR) I don't think "biologically-plausible" should be hyphenated. just read that in general adverbs ending in "ly" are not used in hyphenations: https://www.grammarbook.com/punctuation/hyphens.asp
+% (JLR) Might get some pushback on the point that CNNs all use labeled data - lot's don't, e.g. GANs, autoencoders, these video prediction networks, etc.
+% (JLR) Should include citations for Rao/Ballard and Friston for predictive learning idea?
+% (JLR) Wording: "In principle, all that this requires is for events to unfold over time, ..."
+
 Here we show that circuits between the neocortex and thalamus, replicated across the extent of these structures, have several distinctive properties that directly support predictive error-driven learning. Furthermore, when implemented in a computational model employing a biologically-plausible form of error backpropagation \cite{OReilly96,OReillyMunakata00,OReillyMunakataFrankEtAl12}, along with several other important properties of the mammalian visual system, the model learns to systematically categorize 3D objects according to invariant shape properties, in a way that matches human judgments of these same objects, and is consistent with neural representations in inferotemporal (IT) cortex in primates.  Comparison models with the same structure but using standard non-biological error-backpropagation learning, and models using the state-of-the-art {\em PredNet} predictive learning architecture \cite{LotterKreimanCox16}, support the importance of predictive learning for more strongly shaping internal representations, but these models do not learn much beyond the similarities present at the lowest visual levels.  Thus, we argue that incorporating biological properties of the brain can potentially provide a better understanding of human learning at multiple levels relative to existing DCCN models.
+
+% (JLR) "canonical circuits" rather than "replicated across the extent of these structures"?
+% (JLR) Second sentence in paragraph above is a little long/hard to follow. Can 1) get rid of "furthermore", 2) End sentence after "invariant shape properties"?
+% (JLR) I don't think PredNet should be considered state-of-the-art. It's strengths are that it tries to directly implement the predictive coding hypothesis in a deep learning setting, it replicates some biological data (they have an additional paper about that) and also there's another paper that uses it to model fMRI data. I think it generally performs pretty well, but is probably not the best overall in terms of the quality of its predictions.
+% (JLR) Reword: "... support the idea that predictive learning is useful for shaping internal representations"?
+% (JLR) "more strongly shaping internal representations" is a little vague. Maybe something like: "Comparison models ... demonstrate that predictive learning can support the development of abstract, categorical representations. However, these models do not learn much ..."
 
 \begin{figure}
   \centering\includegraphics[width=6in]{figs/fig_deepleabra_wwi_abc_pred_model_frames}
@@ -110,9 +133,25 @@ Here we show that circuits between the neocortex and thalamus, replicated across
   \label{fig.model}
 \end{figure}
 
+% (JLR) Didn't really introduce terms "superficial" and "deep". May be especially confusing given the different meaning of "deep" used to refer to the depth of the network as a whole (in the title, etc.)?
+% (JLR) Maybe you should include a figure that incorporates some images of the laminar structure of cortex? Might be a good way to really emphasize the biological plausibility. Also seems important given that that is one of the key original proposals of the theory right?
+% (JLR) Someone who's not reading closely might mistake (a) for actual inputs the model was trained/tested on. Having the real images right below is helpful, but I wonder if it would be better to just combine (a) and (c) somehow? I still think the poor quality of the predictions/reconstructions is too easy for the reader to misinterpret/overemphasize. Might be hard for someone to see how a network producing those blurry blobs could be representing abstract object-category information.
+% (JLR) "superficial and deep networks" -> "superficial and deep layers"?
+% (JLR) Usage of "DeepLeabra" and "WWI" is a little confusing - they're talking about the same model right? Or "DeepLeabra" refers more to the algorithm and "WWI" refers to the architecture? Also, is this the only mention of "DeepLeabra" in the whole paper?
+
 Motivated by biological evidence, we hypothesize that sensory predictions in posterior neocortex are generated roughly every 100 msec (i.e., the {\em alpha} rhythm, 10 Hz), by neurons in the deep layers of the neocortex that project to the pulvinar nucleus of the thalamus (Figure~\ref{fig.model}a).  The pulvinar represents this top-down prediction for roughly 75 msec of the alpha cycle as it develops, after which point the layer 5IB intrinsic-bursting neurons send strong, bottom-up driving input to the pulvinar, representing the actual sensory stimulus \cite{ShermanGuillery06}.  These 5IB neurons burst at the alpha frequency, determining the overall timing of the predictive learning cycle, along with other dynamic parameters of the thalamocortical circuit \cite{LorinczKekesiJuhaszEtAl09,FranceschettiGuatteoPanzicaEtAl95,SaalmannPinskWangEtAl12}.  Consistent with the temporal-difference nature of biologically-plausible error signals in this framework, the prediction error is implicit in the temporal difference between these two periods of activity within the alpha cycle over the pulvinar.  The pulvinar sends broad projections back up to all of the areas that drive top-down predictions into it \cite{Shipp03,Mumford91}, thus broadcasting this error signal to drive local synaptic plasticity in the neocortex. This is mathematically equivalent to performing gradient descent to minimize overall prediction errors.  This computational framework makes sense of otherwise puzzling anatomical and physiological properties of the cortical and thalamic networks \cite{ShermanGuillery06}, and is consistent with a wide range of detailed neural and behavioral data regarding the effects of the alpha rhythm on learning and perception \cite{BuffaloFriesLandmanEtAl11,VanRullenKoch03,JensenBonnefondVanRullen12,FiebelkornKastner19}.  It has many testable differences from other existing forms of predictive learning that have been proposed over the years, at varying levels of biological detail \cite{Mumford92,RaoBallard99,KawatoHayakawaInui93,Friston05}.
 
+% (JLR) Should cite your 2014 paper in this paragraph?
+% (JLR) The sentence that starts with "Consistent with the temporal-difference nature of biologically plausible error signals in this framework..." is a little unclear - is the main point here that the temporal organization of this alpha cycle allows predictive learning to *emerge*, i.e. as a natural consequence of a biologically plausible synaptic plasticity rule? Or is the point just to contrast with the explicit temporal difference representations in the Friston approach?
+% (JLR) In general, in this paragraph it's a little hard to tease apart what is being cited as evidence and what is just a description of how the model works. Maybe you could just breifly talk about the actual findings first, and then proceed to describe your interpretation and how the model incorporates those findings?
+% (JLR) Isn't it not exactly "mathematically equivalent" - and even if it's close enough, aren't the small discrepancies the key  to the better performance of Leabra over the backprop version of the model?
+% (JLR) "forms of predictive learning" -> "theories of predictive learning"?
+% (JLR) I know there's not a lot of space for this, but if I was just reading this paper for computational insights into why the model performs better than the backprop version, there's not much to go on in this paragraph. Do you think more space should be devoted earlier on to explaining the aspects of the model that are important for the comparison results?
+
 A critical question for predictive learning is whether it can develop higher-level, more abstract ways of representing sensory inputs, that go beyond the raw low-level structure of these inputs, while learning from nothing other than predicting these raw visual inputs.  For example, can predictive learning really eliminate the need for human-labeled image datasets where abstract category information is explicitly used to train object recognition models via error-backpropagation?  From a cognitive perspective, there is considerable evidence that non-verbal primates, and pre-verbal human infants, naturally develop abstract categorical encodings of visual objects in IT cortex \cite{CadieuHongYaminsEtAl14}, without relying on any explicit external categorical labels.  Existing predictive-learning models based on error backpropagation \cite{LotterKreimanCox16} have not demonstrated this result; instead, these models are typically tested on their ability to subsequently train using the human-generated labels, but there are many ways in which prior training could facilitate such training without fully forming systematic categories de-novo.
+
+% (JLR) "higher-level, more abstract" -> "high-level, abstract"
+% (JLR) First sentence is repetitive. Can replace first two with: "A critical question for predictive learning is whether it can be used to develop high-level, abstract representations that go beyond low-level visual structure, without using any additional inputs such as hand-labeled object categories."?
 
 To determine if our biologically-based predictive learning model can naturally form such categorical encodings in the complete absence of externally-provided category labels, we showed the model brief movies of 156 3D object exemplars drawn from 20 different basic-level categories (e.g., car, stapler, table lamp, traffic cone, etc) selected from the CU3D-100 dataset \cite{OReillyWyatteHerdEtAl13}.  The objects moved and rotated in 3D space over 8 movie frames, where each frame was sampled at the alpha frequency.  There were also saccadic eye movements every other frame, with an efferent copy signal to enable full prediction of the effects of the eye movement, which allows the model to capture predictive remapping (a widely-studied signature of predictive learning in the brain) \cite{DuhamelColbyGoldberg92,CavanaghHuntAfrazEtAl10}, and introduces further predictive-learning challenge.  The only learning signal available to the model was the temporal difference prediction error between what it predicted to see in the next frame, compared to what was actually seen.  
 
