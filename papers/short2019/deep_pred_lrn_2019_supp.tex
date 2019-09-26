@@ -21,6 +21,7 @@
 %\usepackage{psydraft}
 \usepackage{one-in-margins}  % use instead of psydraft for one-in-margs
 \usepackage{scicite}
+\usepackage{amsmath} % (JLR) Neede for "cases" in PredNet section
 %\usepackage{apa}       % apa must come last
 % using latex2e as standard, use the following for latex209
 % \documentstyle [times,11pt,twoside,subeqnarray,psydraft,apa,epsf]{article}
@@ -89,6 +90,10 @@ The different representations being compared here are:
 \item[Bp:] The TEs layer representations from the backpropagation version of biological model, including {\em What, Where} and {\em What * Where} integration layers, trained with the V1p and V1hp (low and high resolution pulvinar) layers as final output layers, using the time $t$ target pattern from the $t-1$ input (i.e., as a predictive network).
 \item[V1:] The gabor-filtered representation of the visual input to both of the above models, which was identical across them.
 \item[PredNet:] Layer 3 of the standard PredNet architecture.
+
+% (JLR) I was using "layer 3" because I started counting from 0 (not including the pixels). So there are actually 4 layers. I would just say "highest layer".
+% (JLR) "standard" may not be appropriate. The number of layers we used was the same as in the original paper, but we could have very easily used a different number.
+
 \item[Expt:] Similarity matrix constructed from human pairwise similarity judgments (see {\em Behavioral Experiment Methods}).
 \end{description}
 
@@ -402,7 +407,46 @@ The backpropagation version of the WWI model has exactly the same layer sizes an
 
 \section{PredNet Model Methods}
 
-TODO: Jake can you write this!?
+The PredNet architecture was designed to incorporate principles from predictive coding theory into a neural network model for predicting the next frame in a video sequence \cite{LotterKreimanCox16}. Details of the model can be found in the original paper \cite{LotterKreimanCox16}, but here we provide a brief overview of architecture. 
+
+\subsection{Architecture}
+
+PredNet is a deep convolutional neural network that is composed of layers containing discrete modules. The lowest layer generates a prediction of incoming inputs (i.e. the pixels in the next frame), while each of the higher layers attempts to predict the errors made by the previous layer. Each layer contains an input convolutional module ($A_l$), a recurrent representational module ($R_l$), a prediction module ($\hat{A}_l$), and a representation of its own errors ($E_l$). The input convolutional module ($A_l$) transforms its input with a set of standard convolutional filters, a rectified linear activation function, and a max-pooling operation. The recurrent representation module ($R_l$) is a convolutional LSTM, which is a recurrent convolutional network that replaces the matrix multiplications in the standard LSTM equations with convolutions, allowing it to maintain a spatially organized representation of its inputs over time. The prediction module ($\hat{A_l}$) consists of another standard convolutional layer that is used to generate predictions from the output of ($R_l$). These predictions are then compared against the output of the input convolutional module ($A_l$). The errors generated in this comparison are represented explicitly in $E_l$, which applies a rectified linear activation to a concatenation of the positive ($A_l - \hat{A}_l$) and negative ($\hat{A}_l - A_l$) prediction errors. These errors then become the inputs to the next layer. 
+
+\begin{equation}
+A_l^t = 
+\begin{cases}
+    x_t, & \text{if } l = 0\\
+    MaxPool(ReLU(Conv(E_{l-1}^t))), & \text{if } l > 0
+\end{cases}
+\end{equation}
+\begin{equation}
+\hat{A}_l^t = ReLU(Conv(R_l^t))
+\end{equation}
+\begin{equation}
+E_l^t = [ReLU(A_l^t - \hat{A}_l^t); ReLU(\hat{A}_l^t - A_l^t)]
+\end{equation}
+\begin{equation}
+R_l^t = ConvLSTM(E_l^{t-1},R_l^{t-1},UpSample(R_{l+1}^t))
+\end{equation}
+
+At each time step in the video sequence, PredNet generates a prediction of the next frame. This is done as follows: first, the $R_l$ is computed for each layer starting from the top of the hierarchy (because each $R_l^t$ depends on input from $R_{l+1}^t$), and then the $A_l^t$, $\hat{A}_l^t$ and $E_l^t$ are computed in a feed-forward fashion (becauase each $A_l^t$ depends on input from the layer below ($E_{l-1}^t$). 
+
+All analyses in the RSA were conducted using the representations from the $R_l$. 
+
+\subsection{Implementation details}
+
+All experiments with the PredNet architecture were performed using PyTorch. An informal hyperparameter search was conducted, starting from the hyperparameters reported in the original paper. Most hyperparameters reported in the original paper worked best. Our final architecture had 4 layers with 3, 48, 96, and 192 filters in the $A_l$ and $R_l$ modules, and 3x3 kernels throughout the whole network. However, we found that using sigmoid and tanh activation functions in fully-connected convolutional LSTMs slightly improved performance, so these were used for all experiments.
+
+The weights in the PredNet model are trained using error backpropagation. Predictions are generated and errors are computed at all levels of the hierarchy, but the model performs better when only the lowest layer's errors are backpropagated \cite{LotterKreimanCox16}. We confirmed these results with experiments that backpropagated the errors in higher layers, in which performance (in terms of mean squared error) was marginally reduced but the RSA results were similar. For this reason, all reported experiments used a PredNet that was trained by only backpropagating the lowest level error.
+
+The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 iterations.
+
+% (JLR) Should reproduce figures from Lotter et al. describing architecture?
+% (JLR) Should emphasize backpropagation rather than "neural network model"?
+% (JLR) Should also include a fuller description of the algorithm?
+% (JLR) Should link directly to PredNet Pytorch code? And should also link to original (outdated) Tensorflow code?
+% (JLR) Everyone usually cites Adam (Kingma and Ba)?
 
 \bibliography{ccnlab}
 
