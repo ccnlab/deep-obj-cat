@@ -89,10 +89,7 @@ The different representations being compared here are:
 \item[Leabra:] The DeepLeabra (biological model) TE layer representations (specifically TEs = superficial -- results are very similar for deep as well).
 \item[Bp:] The TEs layer representations from the backpropagation version of biological model, including {\em What, Where} and {\em What * Where} integration layers, trained with the V1p and V1hp (low and high resolution pulvinar) layers as final output layers, using the time $t$ target pattern from the $t-1$ input (i.e., as a predictive network).
 \item[V1:] The gabor-filtered representation of the visual input to both of the above models, which was identical across them.
-\item[PredNet:] Layer 3 of the standard PredNet architecture.
-
-% (JLR) I was using "layer 3" because I started counting from 0 (not including the pixels). So there are actually 4 layers. I would just say "highest layer".
-% (JLR) "standard" may not be appropriate. The number of layers we used was the same as in the original paper, but we could have very easily used a different number.
+\item[PredNet:] Highest layer (4th Layer) of the PredNet architecture.
 
 \item[Expt:] Similarity matrix constructed from human pairwise similarity judgments (see {\em Behavioral Experiment Methods}).
 \end{description}
@@ -232,9 +229,6 @@ The different representations being compared here are:
 	\label{fig.cats}
 \end{figure}
 
-% (JAR) I see why I missed the centroid definition on first pass - it is defined in a caption. Suggest defining in the body as readers may look at the table but not read the full caption.
-% (JAR) What we are calling "centroid" shape categories are the set that are near-best when considering both the Leabra model and the results from the human behavioral experiment (Expt).
-% (JAR) What about "Base" instead of "Centroid" - I feel like centroid carries to much meaning that isn't quite right and the hill climbing algorithm should work regardless if the problem is convex. Of course if it isn't then perhaps we should be starting with more clusters and a random set.
 An optimal category cluster can be defined as one that has high within-cluster similarity and low between-cluster similarity.  This can be operationalized by the {\em contrast} distance metric, based on a 1-correlation ({\em correlation distance}) measure, as the difference between the average within-cluster similarity and the average between-cluster similarity:
 \begin{equation}
  cd = \langle 1-r_{in} \rangle - \langle 1-r_{out} \rangle 
@@ -243,13 +237,13 @@ With distance-like 1-correlation values, this contrast distance should be minimi
 
 Starting with an initial set of clusters, a permutation-based hill-climbing strategy was used to determine a local minimum in this measure: each item was tested in each of the other possible categories, and if that configuration reduced the overall average contrast distance metric across all items, then it was adopted and the process iterated until no such permutation improved the metric.  This algorithm can only decrease the number of clusters (by moving all items out of a given cluster), so different numbers of initial clusters can be used to search the overall space.
 
-Figure~\ref{fig.cats} shows the resulting categories.  The Bp model converged on the same cluster state from all starting configurations tested, varying from 5 to 2 initial categories.  This is the cluster set shown in Figure 4a of the main paper, and has an average contrast distance ({\em acd}) of 0.0838 (this is relatively low because the patterns were overall quite similar).  Likewise, the V1 patterns (which were the same across Leabra and Bp models) reliably converged on the same pattern (shown in Figure 4d), with {\em acd} = 0.2448.
+Figure~\ref{fig.cats} shows the resulting categories. The Bp model converged on the same cluster state from all starting configurations tested, varying from 5 to 2 initial categories.  This is the cluster set shown in Figure 4a of the main paper, and has an average contrast distance ({\em acd}) of 0.0838 (this is relatively low because the patterns were overall quite similar).  Likewise, the V1 patterns (which were the same across Leabra and Bp models) reliably converged on the same pattern (shown in Figure 4d), with {\em acd} = 0.2448.
 
 For the PredNet layer3 representations, starting from the V1 categories was already optimal ({\em acd} = 0.0250 -- very low contrast overall), strongly indicating that it did not go beyond the structure present in the input, even though it did not use the V1 gabor filtering used in the Leabra and Bp models (i.e., this V1-level encoding well-captures the structure of the visual inputs in general).  The PredNet pixel and layer 0 representations both converged on essentially a single monolitic category with very low acd (0.0160).
 
-For the Leabra TE representations, starting from the {\em centroid} selection of categories, the permutation analysis converged on reducing the size of the vertical and round categories to one item each, over a sequence of 5 steps.  This is consistent with the observation from Figure 2a that there are three broader categories within which the 5 finer-grained categories are embedded (i.e., vertical and pyramid are overall similar to each other, as are round and box).  Nevertheless, our initial visual intuition about the broad shape categories, along with a bias against having single-item categories, reinforced the use of the finer-grained centroid selection.  The average contrast difference of our centroid selection is 0.5071, while the maximal result from the permutation was 0.5526, which is a relatively small proportional difference.
+For the Leabra TE representations, we found a set of {\em centroid} shape categories that are near-best when considering both the Leabra model and the results from the human behavioral experiment (Expt).  Starting from these  categories, the permutation analysis converged on reducing the size of the vertical and round categories to one item each, over a sequence of 5 steps.  This is consistent with the observation from Figure 2a that there are three broader categories within which the 5 finer-grained categories are embedded (i.e., vertical and pyramid are overall similar to each other, as are round and box).  Nevertheless, our initial visual intuition about the broad shape categories, along with a bias against having single-item categories, reinforced the use of the finer-grained centroid selection.  The average contrast difference of our centroid selection is 0.5071, while the maximal result from the permutation was 0.5526, which is a relatively small proportional difference.
 
-Furthermore, once we had collected the human experimental data ({\em Expt}), it was clear that it strongly coincided with our original shape intuitions, and with the finer-grained 5 category structure.  Starting from our centroid categories, the maximal permutation made only 3 changes, moving trex (T-rex) and handgun into the horizontal category, and chair into the pyramid, going from a distance score of 0.3083 to 0.3225, which is a relatively small improvement.  However, using the maximal {\em Expt} clusters directly on the Leabra model gives a lower {\em acd} measure of 0.3745, so the centroid categories represent a good middle-ground between experiment and the model, and this strong shared similarity structure with near-optimal cluster structures confirms that the model and people are encoding largely the same information.
+Furthermore, once we had collected the human experimental data ({\em Expt}), it was clear that it strongly coincided with our original shape intuitions, and with the finer-grained 5 category centroid structure.  Starting from the centroid categories, the maximal permutation made only 3 changes, moving trex (T-rex) and handgun into the horizontal category, and chair into the pyramid, going from a distance score of 0.3083 to 0.3225, which is a relatively small improvement.  However, using the maximal {\em Expt} clusters directly on the Leabra model gives a lower {\em acd} measure of 0.3745 (compared to 0.5071 for centroid), so the centroid categories represent a good middle-ground between experiment and the model, and this strong shared similarity structure with near-optimal cluster structures confirms that the model and people are encoding largely the same information.
 
 In contrast, if we organize the experiment similarity matrix using the Bp categories, it produces a very poor average contrast distance measure of 0.0643 (compared to 0.3083 for the centroid categories), strongly suggesting that people's shape representations are not compatible with that simple structure.
 
@@ -265,11 +259,11 @@ Another approach to determining clusters from similarity matrices, {\em agglomer
 
 \begin{figure}
   \centering\includegraphics[width=4in]{figs/fig_deepleabra_wwi_expt1_trial_ex}
-  \caption{Example stimulus from the behavioral experiment.  Subjects were requested to choose which of the two pairs, Left or Right, was most similar in terms of {\em overall shape}.}
+  \caption{Example stimulus from the behavioral experiment, using the V1 reconstruction of the actual input images presented to the model, to better capture the coarse-grained perception of the model.  Subjects were requested to choose which of the two pairs, Left or Right, was most similar in terms of {\em overall shape}.}
   \label{fig.expt}
 \end{figure}
 
-The behavioral experiment was conducted on Amazon.com's MTurk web platform under University of Colorado IRB approval (19-0176), using 30 participants each categorizing up to 800 image pairs as shown in Figure~\ref{fig.expt}, using the simple image categorization framework with a lightly customized script.  Objects were drawn from the 156 3D object set, but data was aggregated in terms of the 20 basic-level categories (car, stapler, etc) because we could not sample all 156 x 156 object pairs.  Thus, the resulting data was aggregated for each category pair in terms of the proportion of times when that pair was selected when presented.
+The behavioral experiment was conducted on Amazon.com's MTurk web platform under University of Colorado IRB approval (19-0176), using 30 participants each categorizing up to 800 image pairs as shown in Figure~\ref{fig.expt}, using the standard {\em simple image categorization} framework with a lightly customized script.  Objects were drawn from the 156 3D object set, but data was aggregated in terms of the 20 basic-level categories (car, stapler, etc) because we could not sample all 156 x 156 object pairs.  Thus, the resulting data was aggregated for each category pair in terms of the proportion of times when that pair was selected when presented.
 
 The individual images were produced by reconstructing from the V1 transform that the computational model used in its high resolution V1 input layer, to give human participants as similar of an experience as possible to how the model ``saw'' the objects, and to reduce the influence of existing semantic knowledge which was entirely missing in our model (Figure~\ref{fig.expt}).
 
@@ -363,7 +357,7 @@ To be able to monitor similarity metrics as the model trained, we used a running
 
 \subsection{Model Algorithms}
 
-The biologically-based model was implemented using the Leabra framework, which is described in detail in previous publications \cite{OReillyMunakataFrankEtAl12,OReillyMunakata00,OReilly98,OReilly96}, and summarized here.  There are two main implementations of Leabra, one in the {\em C++ emergent} software, and a new one using  Go and Python language at: \url{https://github.com/emer/leabra}.  There are also other simpler implementations in Python and MATLAB, see \url{https://grey.colorado.edu/emergent/index.php/Leabra}.   Both of the preceeding links contain a full detailed description of the algorithm.  These same equations and standard parameters have been used to simulate over 40 different models in \incite{OReillyMunakataFrankEtAl12} and \incite{OReillyMunakata00}, and a number of other research models.  Thus, the model can be viewed as an instantiation of a systematic modeling framework using standardized mechanisms, instead of constructing new mechanisms for each model.  Here, we only detail properties of the predictive learning algorithm that go beyond the basic Leabra model.
+The biologically-based model was implemented using the Leabra framework, which is described in detail in previous publications \cite{OReillyMunakataFrankEtAl12,OReillyMunakata00,OReilly98,OReilly96}, and summarized here.  There are two main implementations of Leabra, one in the {\em C++ emergent} software, and a new one using  Go and Python language at: \url{https://github.com/emer/leabra}.  There are also other simpler implementations in Python and MATLAB, see \url{https://grey.colorado.edu/emergent/index.php/Leabra}.   Both of the preceeding links contain a full detailed description of the algorithm.  These same equations and standard parameters have been used to simulate over 40 different models in \cite{OReillyMunakataFrankEtAl12} and \cite{OReillyMunakata00}, and a number of other research models.  Thus, the model can be viewed as an instantiation of a systematic modeling framework using standardized mechanisms, instead of constructing new mechanisms for each model.  Here, we only detail properties of the predictive learning algorithm that go beyond the basic Leabra model.
 
 \subsubsection{Deep Context}
 
@@ -394,8 +388,8 @@ The direct copy operation of the SRN is however seemingly problematic from a bio
 
 There are a couple of remaining challenges for this transformation of the SRN.  First, the pre-computed net input from the context must somehow persist over the subsequent 100 msec period of the alpha cycle.  We hypothesize that this can occur via NMDA and mGluR channels that can easily produce sustained excitatory currents over this time frame.  Furthermore, the reciprocal excitatory connectivity from 6CT to TRC and back to 6CT could help to sustain the initial temporal context signal.  Second, these contextual integration synapses require a different form of learning algorithm that uses the sending activation from the prior 100 msec, which is well within the time constants in the relevant calcium and second messenger pathways involved in synaptic plasticity.
 
-\section{Backpropagation Model Methods}
 
+\section{Backpropagation Model Methods}
 
 \begin{figure}
   \centering\includegraphics[width=2.5in]{figs/fig_deepleabra_wwi_emer_lrn_bp}
@@ -411,7 +405,7 @@ The PredNet architecture was designed to incorporate principles from predictive 
 
 \subsection{Architecture}
 
-PredNet is a deep convolutional neural network that is composed of layers containing discrete modules. The lowest layer generates a prediction of incoming inputs (i.e. the pixels in the next frame), while each of the higher layers attempts to predict the errors made by the previous layer. Each layer contains an input convolutional module ($A_l$), a recurrent representational module ($R_l$), a prediction module ($\hat{A}_l$), and a representation of its own errors ($E_l$). The input convolutional module ($A_l$) transforms its input with a set of standard convolutional filters, a rectified linear activation function, and a max-pooling operation. The recurrent representation module ($R_l$) is a convolutional LSTM, which is a recurrent convolutional network that replaces the matrix multiplications in the standard LSTM equations with convolutions, allowing it to maintain a spatially organized representation of its inputs over time. The prediction module ($\hat{A_l}$) consists of another standard convolutional layer and rectified linear activation that is used to generate predictions from the output of $R_l$. These predictions are then compared against the output of the input convolutional module ($A_l$). The errors generated in this comparison are represented explicitly in $E_l$, which applies a rectified linear activation to a concatenation of the positive ($A_l - \hat{A}_l$) and negative ($\hat{A}_l - A_l$) prediction errors. These errors then become the inputs to the next layer. 
+PredNet is a deep convolutional neural network that is composed of layers containing discrete modules. The lowest layer generates a prediction of incoming inputs (i.e. the pixels in the next frame), while each of the higher layers attempts to predict the {\em errors} made by the previous layer. Each layer contains an input convolutional module ($A_l$), a recurrent representational module ($R_l$), a prediction module ($\hat{A}_l$), and a representation of its own errors ($E_l$). The input convolutional module ($A_l$) transforms its input with a set of standard convolutional filters, a rectified linear activation function, and a max-pooling operation. The recurrent representation module ($R_l$) is a convolutional LSTM, which is a recurrent convolutional network that replaces the matrix multiplications in the standard LSTM equations with convolutions, allowing it to maintain a spatially organized representation of its inputs over time. The prediction module ($\hat{A_l}$) consists of another standard convolutional layer and rectified linear activation that is used to generate predictions from the output of $R_l$. These predictions are then compared against the output of the input convolutional module ($A_l$). The errors generated in this comparison are represented explicitly in $E_l$, which applies a rectified linear activation to a concatenation of the positive ($A_l - \hat{A}_l$) and negative ($\hat{A}_l - A_l$) prediction errors. These errors then become the inputs to the next layer. 
 
 \begin{equation}
 A_l^t = 
@@ -432,7 +426,7 @@ R_l^t = ConvLSTM(E_l^{t-1},R_l^{t-1},UpSample(R_{l+1}^t))
 
 At each time step in the video sequence, PredNet generates a prediction of the next frame. This is done as follows: first, the $R_l$ is computed for each layer starting from the top of the hierarchy (because each $R_l^t$ depends on input from $R_{l+1}^t$), and then the $A_l^t$, $\hat{A}_l^{t+1}$ and $E_l^t$ are computed in a feed-forward fashion (becauase each $A_l^t$ depends on input from the layer below, $E_{l-1}^t$). 
 
-All analyses in the RSA were conducted using the representations from the $R_l$. 
+All analyses in the RSA were conducted using the representations from the $R_l$ layers. 
 
 \subsection{Implementation details}
 
@@ -442,11 +436,6 @@ The weights in the PredNet model are trained using error backpropagation. Predic
 
 The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 iterations.
 
-% (JLR) Should reproduce figures from Lotter et al. describing architecture?
-% (JLR) Should emphasize backpropagation rather than "neural network model"?
-% (JLR) Should also include a fuller description of the algorithm?
-% (JLR) Should link directly to PredNet Pytorch code? And should also link to original (outdated) Tensorflow code?
-% (JLR) Everyone usually cites Adam (Kingma and Ba)?
 
 \bibliography{ccnlab}
 
