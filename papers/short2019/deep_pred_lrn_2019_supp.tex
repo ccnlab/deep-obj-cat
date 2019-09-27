@@ -443,13 +443,19 @@ At each time step in the video sequence, PredNet generates a prediction of the n
 
 All analyses in the RSA were conducted using the representations from the $R_l$ layers. 
 
+\begin{figure}
+  \centering\includegraphics[width=2.5in]{figs/fig_deepleabra_wwi_emer_lrn_prednet}
+  \caption{Learning curves for the PredNet model.  This model achieves the best overall prediction performance but also has the least well differentiated, categorical representations.}
+  \label{fig.prednet_lrn}
+\end{figure}
+
 \subsection{Implementation details}
 
 All experiments with the PredNet architecture were performed using PyTorch. An informal hyperparameter search was conducted, starting from the hyperparameters reported in the original paper. Most hyperparameters reported in the original paper worked best. Our final architecture had 4 layers with 3, 48, 96, and 192 filters in the $A_l$ and $R_l$ modules, and 3x3 kernels throughout the whole network. However, we found that using sigmoid and tanh activation functions in fully-connected convolutional LSTMs slightly improved performance, so these were used for all experiments.
 
 The weights in the PredNet model are trained using error backpropagation. Predictions are generated and errors are computed at all levels of the hierarchy, but the model performs better when only the lowest layer's errors are backpropagated \cite{LotterKreimanCox16}. We confirmed these results with experiments that backpropagated the errors in higher layers, in which performance (in terms of mean squared error) was marginally reduced but the RSA results were similar. For this reason, all reported experiments used a PredNet that was trained by only backpropagating the lowest level error.
 
-The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 iterations.
+The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 iterations.  Training curve shown in Figure~\ref{fig.prednet_lrn}, showing that it achieves the best overall prediction accuracy, and yet has the least well differentiated, categorical representations.
 
 
 \bibliography{ccnlab}
