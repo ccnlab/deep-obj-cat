@@ -229,17 +229,21 @@ The different representations being compared here are:
 	\label{fig.cats}
 \end{figure}
 
+% (JLR) Should be layer *4* in PredNet, as you said earlier
+
 An optimal category cluster can be defined as one that has high within-cluster similarity and low between-cluster similarity.  This can be operationalized by the {\em contrast} distance metric, based on a 1-correlation ({\em correlation distance}) measure, as the difference between the average within-cluster similarity and the average between-cluster similarity:
 \begin{equation}
  cd = \langle 1-r_{in} \rangle - \langle 1-r_{out} \rangle 
 \end{equation}
-With distance-like 1-correlation values, this contrast distance should be minimized (it is typically negative), or equivalently the contrast on raw correlation values can be maximized (it is typically a positive number -- just the sign flip of distance value).  We refer to the positive numbers and maximization here as that is more natural.  All similarity plots are sorted by this cd order so that there is a clearer gradient from strongest to weakest within a category.
+With distance-like 1-correlation values, this contrast distance should be minimized (it is typically negative), or equivalently the contrast on raw correlation values can be maximized (it is typically a positive number -- just the sign flip of distance value).  We refer to the positive numbers and maximization here as that is more natural.
 
 Starting with an initial set of clusters, a permutation-based hill-climbing strategy was used to determine a local minimum in this measure: each item was tested in each of the other possible categories, and if that configuration reduced the overall average contrast distance metric across all items, then it was adopted and the process iterated until no such permutation improved the metric.  This algorithm can only decrease the number of clusters (by moving all items out of a given cluster), so different numbers of initial clusters can be used to search the overall space.
 
 Figure~\ref{fig.cats} shows the resulting categories. The Bp model converged on the same cluster state from all starting configurations tested, varying from 5 to 2 initial categories.  This is the cluster set shown in Figure 4a of the main paper, and has an average contrast distance ({\em acd}) of 0.0838 (this is relatively low because the patterns were overall quite similar).  Likewise, the V1 patterns (which were the same across Leabra and Bp models) reliably converged on the same pattern (shown in Figure 4d), with {\em acd} = 0.2448.
 
 For the PredNet layer3 representations, starting from the V1 categories was already optimal ({\em acd} = 0.0250 -- very low contrast overall), strongly indicating that it did not go beyond the structure present in the input, even though it did not use the V1 gabor filtering used in the Leabra and Bp models (i.e., this V1-level encoding well-captures the structure of the visual inputs in general).  The PredNet pixel and layer 0 representations both converged on essentially a single monolitic category with very low acd (0.0160).
+
+% (JLR) Again - layer4, not 3
 
 For the Leabra TE representations, we found a set of {\em centroid} shape categories that are near-best when considering both the Leabra model and the results from the human behavioral experiment (Expt).  Starting from these  categories, the permutation analysis converged on reducing the size of the vertical and round categories to one item each, over a sequence of 5 steps.  This is consistent with the observation from Figure 2a that there are three broader categories within which the 5 finer-grained categories are embedded (i.e., vertical and pyramid are overall similar to each other, as are round and box).  Nevertheless, our initial visual intuition about the broad shape categories, along with a bias against having single-item categories, reinforced the use of the finer-grained centroid selection.  The average contrast difference of our centroid selection is 0.5071, while the maximal result from the permutation was 0.5526, which is a relatively small proportional difference.
 
@@ -254,6 +258,8 @@ In contrast, if we organize the experiment similarity matrix using the Bp catego
 \end{figure}
 
 Another approach to determining clusters from similarity matrices, {\em agglomerative clustering}, starts with all items as singletons, and iteratively combines the closest two into a new cluster.  The results for the Leabra and Expt similarity matrices are shown in Figure~\ref{fig.clust}, which has also color-coded the items in terms of their category status according to the centroid structure.  Due to a strong history dependency in the clustering process, and the indeterminacy of reducing a high-dimensional similarity structure down to two dimensions, structure beyond the leaf level is not very reliable (ties are also broken by a random number generator), but nevertheless you can clearly see that in both cases items from the same cluster are almost always together as leaves in the plots.  This then provides additional converging support for the idea that the model is learning the same kind of shape categories as people have.
+
+% (JLR) Should add more detail about how RSA matrices are computed (e.g. averaging over samples, flattening all tensors into vectors, only using the representations from one of the frames of the video sequence)?
 
 \section{Behavioral Experiment Methods}
 
@@ -351,8 +357,6 @@ Training typically consisted of 512 alpha trials per epoch (51.2 seconds of real
 
 Figure~\ref{fig.lrn}a shows the learning trajectory of the model, indicating that it learns quite rapidly.  This rapid initial learning is likely facilitated by the extensive use of shortcut connections convering from all over the simulated visual system onto the V1 pulvinar layers, and direct projections back from these pulvinar layers.  Thus, error signals are directly communicated and can drive learning quickly and efficiently.  However, there are also extensive indirect, bidirectional connections among the superficial layers, which can drive indirect error backpropagation learning as well.
 
-Three different networks were run with different random initial weights and stimulus orderings, and the results were very consistent across runs.  Furthermore, extensive parameter testing during model development generally produced graded effects of parameter manipulations (e.g., Figure~5c in main paper), so we are confident that the results are highly replicable and robust.
-
 \subsection{Testing Parameters}
 
 To be able to monitor similarity metrics as the model trained, we used a running-average integration of neural activity across trials to accumulate the patterns used for the RSA analysis described above.  Specifically, for each object, and each frame, the current activation pattern across each layer was recorded and averaged unit-by-unit with a time constant of $\tau = 10$. Critically, by integrating separately for each frame, this running-average computation did not introduce any bias for temporally-adjacent frames to be more similar.  Nevertheless, when we computed the frame-to-frame similarities for TE, they were quite high (.901 correlation on average across all objects).
@@ -370,11 +374,18 @@ At the end of every plus phase, a new deep-layer context net input is computed f
 \end{equation}
 This net input is then added in with the standard net input at each cycle of processing.
 
+% (JLR) I'm pretty confused here - what are these context layers for?
+% (JLR) The math is also confusing/unclear. Would be helpful to have a sentence afterward explaining what each term is, like "..., where x_i is blah, w_ij is blah"
+% (JLR) Also I think the dot product is written incorrectly. If w_j is its own vector (what does j index?), where w_ij is each element in that vector, then the "i" index should be removed from the x_i and w_ij in the inner product defintion: \eta = \langle x, w_j \rangle = \oneo{n} \sum_i x_i \wij
+% (JLR) Also, dot product technically refers to the sum, not the average, i.e. without the 1/n?
+
 The relative strength of these context layer inputs was set progressively larger for higher layers in the network, with a maximum of 4 in V4, TEO, and TE.  In addition, TEO and TE received {\em self} context projections which provide an extended window of temporal context into the prior 200 msec interval.  These self projections were connected only within the narrower Pool level of units, enabling these neurons to develop mutually-excitatory loops to sustain activations over the multiple trials when the same object was present.  We hypothesize that these modifications correspond to biological adaptations in IT cortex that likewise support greater sustained activation of object-level representations.
 
 Learning of the context weights occurs as normal, but using the sending activation states from the {\em prior} time step's activation.
 
 \subsubsection{Computational and Biological Details of SRN-like Functionality}
+
+% (JLR) "SRN" = "simple recurrent network" is not introduced anywhere
 
 Predictive auto-encoder learning has been explored in various frameworks, but the most relevant to our model comes from the application of the SRN to a range of predictive learning domains \cite{Elman90,ElmanBatesKarmiloff-SmithEtAl96}.  One of the most powerful features of the SRN is that it enables error-driven learning, instead of arbitrary parameter settings, to determine how prior information is integrated with new information.  Thus, SRNs can learn to hold onto some important information for a relatively long interval, while rapidly updating other information that is only relevant for a shorter duration.  This same flexibility is present in our DeepLeabra model.  Furthermore, because this temporal context information is hypothesized to be present in the deep layers throughout the entire neocortex (in every microcolumn of tissue), the DeepLeabra model provides a more pervasive and interconnected form of temporal integration compared to the SRN, which typically just has a single temporal context layer associated with the internal ``hidden'' layer of processing units.
 
@@ -426,7 +437,9 @@ E_l^t = [ReLU(A_l^t - \hat{A}_l^t); ReLU(\hat{A}_l^t - A_l^t)]
 R_l^t = ConvLSTM(E_l^{t-1},R_l^{t-1},UpSample(R_{l+1}^t))
 \end{equation}
 
-At each time step in the video sequence, PredNet generates a prediction of the next frame. This is done as follows: first, the $R_l$ is computed for each layer starting from the top of the hierarchy (because each $R_l^t$ depends on input from $R_{l+1}^t$), and then the $A_l^t$, $\hat{A}_l^{t+1}$ and $E_l^t$ are computed in a feed-forward fashion (becauase each $A_l^t$ depends on input from the layer below, $E_{l-1}^t$). 
+At each time step in the video sequence, PredNet generates a prediction of the next frame. This is done as follows: first, the $R_l$ is computed for each layer starting from the top of the hierarchy (because each $R_l^t$ depends on input from $R_{l+1}^t$), and then the $A_l^t$, $\hat{A}_l^{t}$ and $E_l^t$ are computed in a feed-forward fashion (becauase each $A_l^t$ depends on input from the layer below, $E_{l-1}^t$). 
+
+% (JLR) Fixed $\hat{A}_l^{t+1}$ to be $\hat{A}_l^{t}$. This always confuses me. I had it right originally, then I changed it, but now it is correct.
 
 All analyses in the RSA were conducted using the representations from the $R_l$ layers. 
 
