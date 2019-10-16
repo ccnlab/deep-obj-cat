@@ -1,4 +1,4 @@
-\documentclass[12pt,twoside]{article}
+\documentclass[12pt,twoside]{nature}
 %\documentclass[10pt,twoside,twocolumn]{article}
 \usepackage[english]{babel}
 \usepackage{times,subeqnarray}
@@ -13,14 +13,12 @@
 %  \pdftrue
    \usepackage[pdftex]{graphicx}
 \fi
-\usepackage{apatitlepages}
 % if you want to be more fully apa-style for submission, then use this
 %\usepackage{setspace,psypub,ulem}
 %\usepackage{setspace} % must come before psypub
 %\usepackage{psypub}
 %\usepackage{psydraft}
 \usepackage{one-in-margins}  % use instead of psydraft for one-in-margs
-\usepackage{scicite}
 %\usepackage{apa}       % apa must come last
 % using latex2e as standard, use the following for latex209
 % \documentstyle [times,11pt,twoside,subeqnarray,psydraft,apa,epsf]{article}
@@ -61,20 +59,11 @@
 \pagestyle{myheadings}
 \markboth{\hspace{.5in} \myheading \hfill}{\hfill O'Reilly, Russin, \& Rohrlich \hspace{.5in}}
 
-\bibliographystyle{Science}
+\bibliographystyle{naturemag}
 
-\title{ {\bf Title:} Deep Predictive Learning as a Model of Human Learning } 
+\title{ Deep Predictive Learning as a Model of Human Learning } 
 
-\author{{\bf Authors:} Randall C. O'Reilly,$^\ast$ Jacob L. Russin, and John Rohrlich\\
-\vspace{.15in}\\
-  {\bf Affiliations:} Departments of Psychology and Computer Science\\
-  Center for Neuroscience\\
-  University of California, Davis \\
-  \vspace{.15in}\\
-  $^\ast$Correspondence to: \texttt{oreilly@ucdavis.edu}\\
-  1544 Newton Ct\\
-  Davis, CA 95616\\
-  \\}
+\author{Randall C. O'Reilly$^{1,\ast}$, Jacob L. Russin$^1$, \& John Rohrlich$^1$}
 
 \begin{document}
 
@@ -85,16 +74,20 @@
 
 \maketitle 
 
-\begin{sciabstract}
-{\bf Abstract:} Understanding the principles underlying the power of human learning is a widely held goal of research in machine learning, yet these models unrealistically rely on massive human-labeled datasets.  We present a biologically based model of predictive learning, which generates predictions at the alpha frequency (100 msec), and learns from prediction errors, requiring no labeled inputs.  Distinctive patterns of connectivity between the neocortex and thalamus drive alternating top-down prediction and bottom-up outcome representations over the pulvinar nucleus, with the temporal difference driving error-driven learning throughout neocortex.  However, can it learn abstractions that go beyond the surface input level?  Our model does, in ways that match both human category representations and monkey electrophysiology, while comparison models lacking biological features do not.
-
-{\bf One Sentence Summary:} The human brain learns from prediction errors generated on the pulvinar nucleus, and a model thereof develops abstract knowledge.
-
-\end{sciabstract}
+\begin{affiliations}
+  \item Departments of Psychology and Computer Science, Center for Neuroscience, 
+  University of California, Davis
+  \item[$^\ast$]Correspondence to: \texttt{oreilly@ucdavis.edu}, 1544 Newton Ct,
+  Davis, CA 95616
+\end{affiliations}
 
 \clearpage
 
 \pagestyle{myheadings}
+
+\begin{abstract}
+Understanding the principles underlying the power of human learning is a widely held goal of research in machine learning, yet these models unrealistically rely on massive human-labeled datasets.  We present a biologically based model of predictive learning, which generates predictions at the alpha frequency (100 msec), and learns from prediction errors, requiring no labeled inputs.  Distinctive patterns of connectivity between the neocortex and thalamus drive alternating top-down prediction and bottom-up outcome representations over the pulvinar nucleus, with the temporal difference driving error-driven learning throughout neocortex.  However, can it learn abstractions that go beyond the surface input level?  Our model does, in ways that match both human category representations and monkey electrophysiology, while comparison models lacking biological features do not.
+\end{abstract}
 
 The success of deep convolutional neural networks (DCNN's) \cite{KrizhevskySutskeverHinton12,LeCunBengioHinton15,Schmidhuber15a} in object recognition and many other domains raises the question of how well they model human learning, at both neural and cognitive levels.  Although the engine of these models, error backpropagation \cite{RumelhartHintonWilliams86}, has long been questioned on biological grounds \cite{Crick89}, various related biologically plausible mechanisms have been proposed \cite{OReilly96,XieSeung03,BengioMesnardFischerEtAl17}.  However, the need for massive amounts of labeled data still makes these models cognitively implausible: non-human primates and infants learn to recognize and categorize objects without the benefit of such labeled data \cite{LakeUllmanTenenbaumEtAl17}.  An alternative, biologically plausible approach is to use {\em predictive error-driven learning}, where error signals arise from differences between a prediction of what will happen next, and what actually does occur \cite{Elman90,ElmanBatesKarmiloff-SmithEtAl96}.  In principle, all that this requires is: 1) for events to unfold over time; 2) a learning system that is somehow organized to generate predictions of these events; and 3) a biological mechanism that learns from prediction errors. Furthermore, a system that learned to accurately predict complex real-world events would require considerable knowledge to have been acquired in the process of so doing, and thus there is reason to believe that predictive learning could power sophisticated, important forms of developmental learning.
 
@@ -102,7 +95,7 @@ Here we show that canonical circuits between the neocortex and thalamus have sev
 
 \begin{figure}
   \centering\includegraphics[width=6in]{figs/fig_deepleabra_wwi_abc_pred_model_frames}
-  \caption{\small {\bf a)} Schematic illustration of the temporal evolution of information flow in the DeepLeabra model predicting visual sequences, over two alpha cycles of 100 msec each.  During each alpha cycle, the V2 Deep layer (cortical lamina 5, 6) uses the prior 100 msec of context information to generate a prediction or expectation (minus phase) over the pulvinar thalamic relay cell (TRC) neurons, of what will happen next.  The bottom-up actual outcome is driven over the pulvinar via the 5IB strong driver inputs from V1, providing the {\em plus} or {\em target} phase of learning.  Error-driven learning occurs as a function of the {\em temporal difference} between the plus and minus activation states, in both superficial (lamina 2, 3) and deep layers, via the pulvinar projections into these layers.  The 5IB bursting in V2 drives an update of the local temporal context information in V2 Deep layers, which is used in generating the minus phase prediction in the next alpha cycle, and so on.  These same 5IB cells drive a plus phase in higher area TRC's as well, which perform the same kind of {\em local} predictive auto-encoder learning as shown for V2 here.  See supplementary material for more details. {\bf b)} The three-visual-stream deep predictive learning model ({\em What-Where-Integration, WWI} model). The dorsal {\em Where} pathway learns first, using easily-abstracted {\em spatial blobs}, to predict where an object will move next, based on prior motion history, visual motion, and saccade efferent copy signals.  This drives strong top-down inputs to lower areas with accurate spatial predictions, leaving the {\em residual} error concentrated on {\em What} and {\em What * Where} integration information.  The V3 and DP (dorsal prelunate) areas constitute the {\em What * Where} integration pathway, helping bind features and locations.  V4, TEO, and TE are the {\em What} pathway, learning abstracted object category representations, which also drive strong top-down inputs to lower areas.  {\em s} suffix = superficial layer, {\em d} = deep layer, and {\em p} = pulvinar. {\bf c)} An example sequence of 8 frames (8 alpha cycles) that the model learned to predict, with the reconstruction of each image based on the V1 gabor filters ({\em V1 recon}), and a reconstruction of the model-generated prediction for each frame over the higher resolution V1hp pulvinar layer (to compare against V1 recon, correlation value $r$ shown).  The relatively low resolution encoding of the image makes these somewhat difficult to interpret, but the $r$ values are well above the $r$'s for each V1 state compared to the previous time step (mean = .38, min of .16 on frame 4 when the prediction is at .57 -- see supplementary material for more analysis), indicating that the model has learned somewhat vague but broadly accurate predictions that go beyond e.g., just copying the previous time step.  The eye icons indicate when a saccade occurred.}
+  \caption{\small {\bf a)} Temporal evolution of information flow in the DeepLeabra model predicting visual sequences, over two alpha cycles of 100 msec each.   In each alpha cycle, the V2 Deep layer (lamina 5, 6) uses the prior 100 msec of context to generate a prediction ({\em minus} phase) on the pulvinar thalamic relay cells (TRC). The bottom-up outcome is driven by V1 5IB strong driver inputs ({\em plus} phase); error-driven learning occurs as a function of the temporal difference between these phase, in both superficial (lamina 2, 3) and deep, sent via broad pulvinar projections. 5IB bursting in V2 drives update of temporal context in V2 Deep layers, and also the plus phase in higher area TRC, to drive higher-level predictive learning.  See supplementary information (SI) for more details. {\bf b)} The three-visual-stream deep predictive learning model ({\em What-Where-Integration, WWI} model). The dorsal {\em Where} pathway learns first, using easily-abstracted {\em spatial blobs}, to predict where an object will move next, based on prior motion history, visual motion, and saccade efferent copy signals.  This drives strong top-down inputs to lower areas with accurate spatial predictions, leaving the {\em residual} error concentrated on {\em What} and {\em What * Where} integration information.  The V3 and DP (dorsal prelunate) areas constitute the {\em What * Where} integration pathway, helping bind features and locations.  V4, TEO, and TE are the {\em What} pathway, learning abstracted object category representations, which also drive strong top-down inputs to lower areas.  {\em s} suffix = superficial layer, {\em d} = deep layer, and {\em p} = pulvinar. {\bf c)} An example sequence of 8 frames (8 alpha cycles) that the model learned to predict, with the reconstruction of each image based on the V1 gabor filters ({\em V1 recon}), and a reconstruction of the model-generated prediction for each frame over the higher resolution V1hp pulvinar layer (to compare against V1 recon, correlation value $r$ shown).  The relatively low resolution encoding of the image makes these somewhat difficult to interpret, but the $r$ values are well above the $r$'s for each V1 state compared to the previous time step (mean = .38, min of .16 on frame 4 when the prediction is at .57 -- see SI for more analysis), indicating that the model has learned somewhat vague but broadly accurate predictions that go beyond e.g., just copying the previous time step.  The eye icons indicate when a saccade occurred.}
   \label{fig.model}
 \end{figure}
 
@@ -114,11 +107,11 @@ To determine if our biologically based predictive learning model (Figure~\ref{fi
 
 \begin{figure}
   \centering\includegraphics[width=6in]{figs/fig_deepleabra_wwi_rsa_leabra_expt1}
-  \caption{\small {\bf a)} Category similarity structure that developed in the highest layer, TE, of the biologically based predictive learning model, showing {\em 1-correlation} similarity of the TE representation for each 3D object against every other 3D object (156 total objects). Blue cells have high similarity, and model has learned block-diagonal clusters or categories of high-similarity groupings, contrasted against dissimilar off-diagonal other categories.  Clustering maximized the overall average {\em within - between} correlation distance across given set of clusters (see supplementary materials for details).  Note that all items from the same ``objective'' basic-level object categories (N=20) are reliably sorted within a given learned category, so these categories subsume our more fine-grained object categories. {\bf b)} Human similarity ratings for the same 3D objects, presented with the V1 reconstruction (see Fig 1c) to capture coarse perception in our model, aggregated at the level of the 20 basic-level categories since we could not sample the entire 156 x 156 matrix. Each cell is 1 - proportion of time the given pair of objects was rated as more similar than another pair of objects (see supplementary material for details of the experiment).  The resulting similarity matrix generally exhibits the same categorical structure as the model (confirmed by permutation testing and agglomorative cluster analysis).  {\bf c)} Emergence of abstract category structure over the hierarchy of layers.  Red line shows correlation similarity between the similarity matrix for TE (shown in panel a) against the similarity matrix computed for every other layer, and the black line shows the correlation similarity for the V1 layer matrix against every other layer (1 = identical; 0 = orthogonal). Both show that IT layers (TEO, TE) progressively differentiate from raw input similarity structure present in V1, and, critically, that the model has learned structure beyond that present in the input.}
+  \caption{\small {\bf a)} Category similarity structure that developed in the highest layer, TE, of the biologically based predictive learning model, showing {\em 1-correlation} similarity of the TE representation for each 3D object against every other 3D object (156 total objects). Blue cells have high similarity, and model has learned block-diagonal clusters or categories of high-similarity groupings, contrasted against dissimilar off-diagonal other categories.  Clustering maximized the overall average {\em within - between} correlation distance across given set of clusters (see supplementary informations for details).  Note that all items from the same ``objective'' basic-level object categories (N=20) are reliably sorted within a given learned category, so these categories subsume our more fine-grained object categories. {\bf b)} Human similarity ratings for the same 3D objects, presented with the V1 reconstruction (see Fig 1c) to capture coarse perception in our model, aggregated at the level of the 20 basic-level categories since we could not sample the entire 156 x 156 matrix. Each cell is 1 - proportion of time the given pair of objects was rated as more similar than another pair of objects (see supplementary information for details of the experiment).  The resulting similarity matrix generally exhibits the same categorical structure as the model (confirmed by permutation testing and agglomorative cluster analysis).  {\bf c)} Emergence of abstract category structure over the hierarchy of layers.  Red line shows correlation similarity between the similarity matrix for TE (shown in panel a) against the similarity matrix computed for every other layer, and the black line shows the correlation similarity for the V1 layer matrix against every other layer (1 = identical; 0 = orthogonal). Both show that IT layers (TEO, TE) progressively differentiate from raw input similarity structure present in V1, and, critically, that the model has learned structure beyond that present in the input.}
   \label{fig.rsa}
 \end{figure}
 
-We performed a representational similarity analysis (RSA) on the learned activity patterns at each layer in the model, and found that the highest IT layer (TE) produced a systematic organization of the 156 3D objects into 5 categories (Figure~\ref{fig.rsa}a), which visually correspond to the overall shape of the objects (pyramid-shaped, vertically-elongated, round, boxy / square, and horizontally-elongated). This organization of the objects matches that produced by humans making shape similarity judgments on the same set of objects, using the V1 reconstruction as shown in Figure~\ref{fig.model}c to capture the model's coarse-grained perception (Figure~\ref{fig.rsa}b; see supplementary material for methods and further analysis).  Critically, Figure~\ref{fig.rsa}c shows that the overall similarity structure present in IT layers (TEO, TE) of the biological model is significantly different from the similarity structure at the level of the V1 primary visual input.  Thus the model, despite being trained only to generate accurate visual input-level predictions, has learned to represent these objects in an abstract way that goes beyond the raw input-level information.  Furthermore, because this abstract category organization reflects the overall visual shapes of the objects as judged by human participants, this suggests that the model is extracting the geometrical shape information that is apparent once these objects are encoded in representations that are  invariant to differences in motion, rotation, and scaling present in the V1 visual inputs.  We further verified that at the highest IT levels in the model, a consistent, spatially-invariant representation is present across different views of the same object (e.g., the average correlation across frames within an object was .901).  This is also evident in Figure~\ref{fig.rsa}a by virtue of the close similarity across multiple objects within the same category.
+We performed a representational similarity analysis (RSA) on the learned activity patterns at each layer in the model, and found that the highest IT layer (TE) produced a systematic organization of the 156 3D objects into 5 categories (Figure~\ref{fig.rsa}a), which visually correspond to the overall shape of the objects (pyramid-shaped, vertically-elongated, round, boxy / square, and horizontally-elongated). This organization of the objects matches that produced by humans making shape similarity judgments on the same set of objects, using the V1 reconstruction as shown in Figure~\ref{fig.model}c to capture the model's coarse-grained perception (Figure~\ref{fig.rsa}b; see supplementary information for methods and further analysis).  Critically, Figure~\ref{fig.rsa}c shows that the overall similarity structure present in IT layers (TEO, TE) of the biological model is significantly different from the similarity structure at the level of the V1 primary visual input.  Thus the model, despite being trained only to generate accurate visual input-level predictions, has learned to represent these objects in an abstract way that goes beyond the raw input-level information.  Furthermore, because this abstract category organization reflects the overall visual shapes of the objects as judged by human participants, this suggests that the model is extracting the geometrical shape information that is apparent once these objects are encoded in representations that are  invariant to differences in motion, rotation, and scaling present in the V1 visual inputs.  We further verified that at the highest IT levels in the model, a consistent, spatially-invariant representation is present across different views of the same object (e.g., the average correlation across frames within an object was .901).  This is also evident in Figure~\ref{fig.rsa}a by virtue of the close similarity across multiple objects within the same category.
 
 \begin{figure}
   \centering\includegraphics[width=4in]{figs/fig_deepleabra_wwi_rsa_leabra_macaque}
@@ -164,7 +157,7 @@ We thank Dean Wyatte, Tom Hazy, Seth Herd, Kai Krueger, Tim Curran, David Sheinb
 
 {\bf Data and Materials Availability:}  All data and materials will be available at \url{https://github.com/ccnlab/deep-obj-cat} upon publication.
 
-\section*{Supplementary materials}
+\section*{Supplementary Information}
 
 \noindent Materials and Methods
 
