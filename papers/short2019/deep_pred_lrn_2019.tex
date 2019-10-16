@@ -29,22 +29,6 @@
   \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.mps,.tif}
 \fi
 
-\newenvironment{sciabstract}{%
-\begin{quote}}
-{\end{quote}}
-
-\renewcommand\refname{References and Notes}
-
-\newcounter{lastnote}
-\newenvironment{scilastnote}{%
-\setcounter{lastnote}{\value{enumiv}}%
-\addtocounter{lastnote}{+1}%
-\begin{list}%
-{\arabic{lastnote}.}
-{\setlength{\leftmargin}{.22in}}
-{\setlength{\labelsep}{.5em}}}
-{\end{list}}
-
 % use 0 for psypub format 
 \parskip 2pt
 % for double-spacing, determines spacing 
@@ -63,7 +47,7 @@
 
 \title{ Deep Predictive Learning as a Model of Human Learning } 
 
-\author{Randall C. O'Reilly$^{1,\ast}$, Jacob L. Russin$^1$, \& John Rohrlich$^1$}
+\author{Randall C. O'Reilly$^{1}$, Jacob L. Russin$^1$, \& John Rohrlich$^1$}
 
 \begin{document}
 
@@ -77,11 +61,7 @@
 \begin{affiliations}
   \item Departments of Psychology and Computer Science, Center for Neuroscience, 
   University of California, Davis
-  \item[$^\ast$]Correspondence to: \texttt{oreilly@ucdavis.edu}, 1544 Newton Ct,
-  Davis, CA 95616
 \end{affiliations}
-
-\clearpage
 
 \pagestyle{myheadings}
 
