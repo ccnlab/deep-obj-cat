@@ -419,7 +419,7 @@ The backpropagation version of the WWI model has exactly the same layer sizes an
 \section{PredNet Model Methods}
 
 The PredNet architecture was designed to incorporate principles from predictive coding theory into a neural network model for predicting the next frame in a video sequence. Details of the model can be found in the original paper %\cite{LotterKreimanCox16}
-{\em (14)}, but here we provide a brief overview of architecture. 
+{\em (14)}, but here we provide a brief overview of the architecture. 
 
 \subsection{Architecture}
 
@@ -456,11 +456,21 @@ All analyses in the RSA were conducted using the representations from the $R_l$ 
 
 \subsection{Implementation details}
 
-All experiments with the PredNet architecture were performed using PyTorch. An informal hyperparameter search was conducted, starting from the hyperparameters reported in the original paper. Most hyperparameters reported in the original paper worked best. Our final architecture had 4 layers with 3, 48, 96, and 192 filters in the $A_l$ and $R_l$ modules, and 3x3 kernels throughout the whole network. However, we found that using sigmoid and tanh activation functions in fully-connected convolutional LSTMs slightly improved performance, so these were used for all experiments.
+All experiments with the PredNet architecture were performed using PyTorch. An informal hyperparameter search was conducted, starting from the hyperparameters reported in the original paper. Our final architecture had 6 layers with 3, 16, 32, 64, 128, and 256 filters in the $A_l$ and $R_l$ modules, and 3x3 kernels throughout the whole network. However, we found that using sigmoid and tanh activation functions in fully-connected convolutional LSTMs slightly improved performance, so these were used for all experiments.
 
 The weights in the PredNet model are trained using error backpropagation. Predictions are generated and errors are computed at all levels of the hierarchy, but the model performs better when only the lowest layer's errors are backpropagated %\cite{LotterKreimanCox16}
 {\em (14)}. We confirmed these results with experiments that backpropagated the errors in higher layers, in which performance (in terms of mean squared error) was marginally reduced but the RSA results were similar. For this reason, all reported experiments used a PredNet that was trained by only backpropagating the lowest level error.
 
-The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 iterations.  Training curve shown in Figure~\ref{fig.prednet_lrn}, showing that it achieves the best overall prediction accuracy, and yet has the least well differentiated, categorical representations.
+The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 batches.  A training curve is shown in Figure~\ref{fig.prednet_lrn}, showing that it achieves the best overall prediction accuracy of any model we tested, and yet has the least well differentiated, categorical representations, as shown in the main paper.
+
+\subsection{Regularization experiments}
+
+As discussed in the main paper, our biologically based model includes a number of important biologically motivated properties that may be contributing to the development of its categorical representations. These properties, including excitatory bidirectional connections, inhibitory competition, and an additional form of Hebbian learning, may be acting as regularizers that encourage categorical learning. We therefore tested whether standard regularization methods used in deep learning research would have similar effects on the representations developed in the PredNet architecture. We tested 1) batch normalization, 2) dropout, and 3) weight decay. 
+
+% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
+% (JLR) my initials are wrong in the "author contributions" section of the main paper
+% (JLR) all references to PredNet "layer3" should now be layer 5 (or layer 6, depending on if you start counting from 0)
+
+
 
 \end{document}
