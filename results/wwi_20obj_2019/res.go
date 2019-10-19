@@ -226,15 +226,39 @@ var V1Cats = map[string]string{
 	"banana":      "cat3",
 }
 
-// -0.0253 = best 2 categ
-var PredNetCats = map[string]string{
+// 0.2820 = best 3 categ
+var PredNetCats3 = map[string]string{
+	"tablelamp":   "cat1",
+	"person":      "cat1",
+	"guitar":      "cat1",
+	"trafficcone": "cat1",
+	"sailboat":    "cat1",
+	"layercake":   "cat1",
+	"elephant":    "cat2",
+	"donut":       "cat2",
+	"banana":      "cat2",
+	"handgun":     "cat2",
+	"slrcamera":   "cat2",
+	"trex":        "cat2",
+	"car":         "cat2",
+	"heavycannon": "cat2",
+	"motorcycle":  "cat2",
+	"stapler":     "cat2",
+	"fish":        "cat2",
+	"doorknob":    "cat3",
+	"chair":       "cat3",
+	"piano":       "cat3",
+}
+
+// 0.2546 = best 2 categ
+var PredNetCats2 = map[string]string{
 	"tablelamp":   "cat1",
 	"person":      "cat1",
 	"guitar":      "cat1",
 	"trafficcone": "cat1",
 	"chair":       "cat1",
-	"sailboat":    "cat2",
-	"layercake":   "cat2",
+	"sailboat":    "cat1",
+	"layercake":   "cat1",
 	"elephant":    "cat2",
 	"piano":       "cat2",
 	"donut":       "cat2",
@@ -397,9 +421,9 @@ func (rs *Res) OpenFullSimMatPredNet(sm *simat.SimMat, nms *[]string, fname stri
 		log.Println(err)
 		return
 	}
-	for i, v := range smat.Values { // getting correlations here, not 1-correls
-		smat.Values[i] = 1 - v
-	}
+	// for i, v := range smat.Values { // getting correlations here, not 1-correls
+	// 	smat.Values[i] = 1 - v
+	// }
 	svals := ltab.Values
 	sm.Rows = simat.BlankRepeat(svals)
 	sm.Cols = sm.Rows
@@ -508,9 +532,13 @@ func (rs *Res) OpenSimMats() {
 	rs.OpenFullSimMat(&rs.Lba200SimMat, &rs.Lba200Names, "sim_leabra_simat_200epc.tsv", "sim_leabra_simat_200epc_lbl.tsv", "1.5")
 	rs.OpenFullSimMat(&rs.Lba600SimMat, &rs.Lba600Names, "sim_leabra_simat_600epc.tsv", "sim_leabra_simat_600epc_lbl.tsv", "1.5")
 
-	rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, "prednet_layer3.csv", "prednet_labels.csv", "0.15")
-	rs.OpenFullSimMatPredNet(&rs.PredNetPixelSimMat, &rs.PredNetFullNames, "prednet_pixels.csv", "prednet_labels.csv", "0.06")
-	rs.OpenFullSimMatPredNet(&rs.PredNetLay0SimMat, &rs.PredNetFullNames, "prednet_layer0.csv", "prednet_labels.csv", "0.04")
+	// rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, "prednet_layer3.csv", "prednet_labels.csv", "0.15")
+	// rs.OpenFullSimMatPredNet(&rs.PredNetPixelSimMat, &rs.PredNetFullNames, "prednet_pixels.csv", "prednet_labels.csv", "0.06")
+	// rs.OpenFullSimMatPredNet(&rs.PredNetLay0SimMat, &rs.PredNetFullNames, "prednet_layer0.csv", "prednet_labels.csv", "0.04")
+
+	rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, "prednet_64x64_6l_dropout0p1_layer6.csv", "prednet_64x64_6l_dropout0p1_labels.csv", "0.75")
+	rs.OpenFullSimMatPredNet(&rs.PredNetPixelSimMat, &rs.PredNetFullNames, "prednet_64x64_6l_dropout0p1_pixels.csv", "prednet_64x64_6l_dropout0p1_labels.csv", "0.06")
+	rs.OpenFullSimMatPredNet(&rs.PredNetLay0SimMat, &rs.PredNetFullNames, "prednet_64x64_6l_dropout0p1_layer1.csv", "prednet_64x64_6l_dropout0p1_labels.csv", "0.04")
 
 	// bool arg = use within - between (else just within)
 	rs.CatSortSimMat(&rs.V1FullSimMat, &rs.V1V1CatSimMat, rs.V1FullNames, V1Cats, true, "V1_V1Cat")
@@ -532,10 +560,10 @@ func (rs *Res) OpenSimMats() {
 	rs.CatSortSimMat(&rs.BpPredFullSimMat, &rs.BpPredLbaCatSimMat, rs.BpPredFullNames, LbaCats, true, "BpPred_LbaCat")
 	rs.CatSortSimMat(&rs.BpEncFullSimMat, &rs.BpEncBpCatSimMat, rs.BpEncFullNames, BpCats, true, "BpEnc_BpCat")
 	rs.CatSortSimMat(&rs.BpEncFullSimMat, &rs.BpEncV1CatSimMat, rs.BpEncFullNames, V1Cats, true, "BpEnc_V1Cat")
-	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetBpCatSimMat, rs.PredNetFullNames, BpCats, false, "PredNet_BpCat")      // doesn't work with contrast as is too noisy
-	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetV1CatSimMat, rs.PredNetFullNames, V1Cats, false, "PredNet_V1Cat")      // doesn't work with contrast as is too noisy
-	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetLbaCatSimMat, rs.PredNetFullNames, LbaCats, false, "PredNet_LbaCat")   // doesn't work with contrast as is too noisy
-	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetPNCatSimMat, rs.PredNetFullNames, PredNetCats, false, "PredNet_PNCat") // doesn't work with contrast as is too noisy
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetBpCatSimMat, rs.PredNetFullNames, BpCats, false, "PredNet_BpCat")       // doesn't work with contrast as is too noisy
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetV1CatSimMat, rs.PredNetFullNames, V1Cats, false, "PredNet_V1Cat")       // doesn't work with contrast as is too noisy
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetLbaCatSimMat, rs.PredNetFullNames, LbaCats, false, "PredNet_LbaCat")    // doesn't work with contrast as is too noisy
+	rs.CatSortSimMat(&rs.PredNetFullSimMat, &rs.PredNetPNCatSimMat, rs.PredNetFullNames, PredNetCats3, false, "PredNet_PNCat") // doesn't work with contrast as is too noisy
 
 	rs.CatSortSimMat(&rs.PredNetPixelSimMat, &rs.PredNetPixV1CatSimMat, rs.PredNetFullNames, V1Cats, false, "PredNetPixels_V1Cat")
 	rs.CatSortSimMat(&rs.PredNetLay0SimMat, &rs.PredNetLay0V1CatSimMat, rs.PredNetFullNames, V1Cats, false, "PredNetLayer0_V1Cat")
@@ -867,9 +895,13 @@ func (rs *Res) PermuteFitCats() {
 		// all get to BpCats, nmw
 	}
 	if old {
+		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, PredNetCats2, "PredNet PredNetCats2")
+		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, PredNetCats3, "PredNet PredNetCats3")
 		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, BpCats, "PredNet BpCats")
 		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, V1Cats, "PredNet V1Cats")
 		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, LbaCats5, "PredNet LbaCats5")
+		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, Expt1Cats5, "PredNet Expt1Cats5")
+		rs.PermuteCatTest(&rs.PredNetFullSimMat, rs.PredNetFullNames, Expt1Cats3, "PredNet Expt1Cats3")
 	}
 	if old {
 		rs.PermuteCatTest(&rs.V1FullSimMat, rs.V1FullNames, V1Cats, "V1 V1Cats")
