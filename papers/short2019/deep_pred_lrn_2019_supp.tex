@@ -89,7 +89,8 @@ The different representations being compared here are:
 \item[Leabra:] The DeepLeabra (biological model) TE layer representations (specifically TEs = superficial -- results are very similar for deep as well).
 \item[Bp:] The TEs layer representations from the backpropagation version of biological model, including {\em What, Where} and {\em What * Where} integration layers, trained with the V1p and V1hp (low and high resolution pulvinar) layers as final output layers, using the time $t$ target pattern from the $t-1$ input (i.e., as a predictive network).
 \item[V1:] The gabor-filtered representation of the visual input to both of the above models, which was identical across them.
-\item[PredNet:] Highest layer (4th Layer) of the PredNet architecture.
+\item[PredNet:] Highest layer (6th Layer) of the PredNet architecture.
+% (JLR) all references to 4th layer of PredNet should now be layer 6
 
 \item[Expt:] Similarity matrix constructed from human pairwise similarity judgments (see {\em Behavioral Experiment Methods}).
 \end{description}
@@ -225,11 +226,9 @@ The different representations being compared here are:
 	\end{enumerate}
 	}\\
 	\end{tabular}
-	\caption{Shape categories used for similarity matrix plots in main paper.  {\em Centroid} shape categories are near-best for both the Leabra model and the Expt results, and fit our visual intuitions about overall shape. {\em Bp} are reliably optimal for Bp model from all starting points.  {\em V1} are reliably optimal for V1 inputs, and also were best for the PredNet layer 3 representations.}
+	\caption{Shape categories used for similarity matrix plots in main paper.  {\em Centroid} shape categories are near-best for both the Leabra model and the Expt results, and fit our visual intuitions about overall shape. {\em Bp} are reliably optimal for Bp model from all starting points.  {\em V1} are reliably optimal for V1 inputs, and also were best for the PredNet layer 6 representations.}
 	\label{fig.cats}
 \end{figure}
-
-% (JLR) Should be layer *4* in PredNet, as you said earlier
 
 An optimal category cluster can be defined as one that has high within-cluster similarity and low between-cluster similarity.  This can be operationalized by the {\em contrast} distance metric, based on a 1-correlation ({\em correlation distance}) measure, as the difference between the average within-cluster similarity and the average between-cluster similarity:
 \begin{equation}
@@ -241,9 +240,9 @@ Starting with an initial set of clusters, a permutation-based hill-climbing stra
 
 Figure~\ref{fig.cats} shows the resulting categories. The Bp model converged on the same cluster state from all starting configurations tested, varying from 5 to 2 initial categories.  This is the cluster set shown in Figure 4a of the main paper, and has an average contrast distance ({\em acd}) of 0.0838 (this is relatively low because the patterns were overall quite similar).  Likewise, the V1 patterns (which were the same across Leabra and Bp models) reliably converged on the same pattern (shown in Figure 4d), with {\em acd} = 0.2448.
 
-For the PredNet layer3 representations, starting from the V1 categories was already optimal ({\em acd} = 0.0250 -- very low contrast overall), strongly indicating that it did not go beyond the structure present in the input, even though it did not use the V1 gabor filtering used in the Leabra and Bp models (i.e., this V1-level encoding well-captures the structure of the visual inputs in general).  The PredNet pixel and layer 0 representations both converged on essentially a single monolitic category with very low acd (0.0160).
+For the PredNet layer6 representations, starting from the V1 categories was already optimal ({\em acd} = 0.0250 -- very low contrast overall), strongly indicating that it did not go beyond the structure present in the input, even though it did not use the V1 gabor filtering used in the Leabra and Bp models (i.e., this V1-level encoding well-captures the structure of the visual inputs in general).  The PredNet pixel and layer 1 representations both converged on essentially a single monolitic category with very low acd (0.0160).
 
-% (JLR) Again - layer4, not 3
+% (JLR) I assume that 0.0160 number should be changed - I changed the layer names to "6" (rather than "3" because there are more layers now) and "1" (rather than 0 - I decided to start counting from 1.)
 
 For the Leabra TE representations, we found a set of {\em centroid} shape categories that are near-best when considering both the Leabra model and the results from the human behavioral experiment (Expt).  Starting from these  categories, the permutation analysis converged on reducing the size of the vertical and round categories to one item each, over a sequence of 5 steps.  This is consistent with the observation from Figure 2a that there are three broader categories within which the 5 finer-grained categories are embedded (i.e., vertical and pyramid are overall similar to each other, as are round and box).  Nevertheless, our initial visual intuition about the broad shape categories, along with a bias against having single-item categories, reinforced the use of the finer-grained centroid selection.  The average contrast difference of our centroid selection is 0.5071, while the maximal result from the permutation was 0.5526, which is a relatively small proportional difference.
 
@@ -353,6 +352,7 @@ The projections from ObjVel (object velocity) and SaccadePlan layers to LIPs, LI
   \caption{{\bf a)} Predictive learning curve for DeepLeabra, showing the correlation between prediction and actual over the two different V1 layers.  Initial learning is quite rapid, followed by a slower but progressive learning process that reflects development of the IT representations (e.g., manipulations that interfere with those areas selectively impair this part of the learning curve).  Overall prediction accuracy remains far from perfect, as shown in Figure~1c in main text, and significantly worse than the backpropagtion-based models.  This is a typical finding from Leabra models which are significantly more constrained as a result of bidirectional attractor dynamics, Hebbian learning, and inhibitory competition -- i.e., the very things that are likely important for forming abstract catgorical representations. {\bf b)} Similarity matrix over TEs layer at 200 epochs, which has less contrast and definition compared to the 1,000 epoch result ({\bf c} also shown in Figure~2a in main text).}
   \label{fig.lrn}
 \end{figure}
+% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
 
 Training typically consisted of 512 alpha trials per epoch (51.2 seconds of real time equivalent), for 1,000 such epochs. Each trial was generated from a virtual reality environment in the emergent simulator, that rendered first-person views with moving eye position onto the object tumbling through space with fixed motion and rotation parameters over the sequence of 8 frames (see Figure~1c in main text for representative example).  Because the start of each sequence of 8 frames is unpredictable, we turned off learning for that trial, which improves learning overall.  We have recently developed an automatic such mechanism based on the running-average (and running variance) of the prediction error, where we turn off learning whenever the current prediction error z-normalized by these running average values is below 1.5 standard deviations, which works well, and will be incorporated into future models.  Biologically, this could correspond to a connection between pulvinar and neuromodulatory areas that could regulate the effective learning rate in this way.
 
@@ -413,6 +413,7 @@ There are a couple of remaining challenges for this transformation of the SRN.  
   \caption{Learning curves for the backpropagation version of the WWI model.  Although it achieves better predictive accuracy than the DeepLeabra version, it fails to acquire abstract object category structure, indicating a potential tradeoff between simplifying and categorizing inputs, versus predicting precisely where the low-level visual features will move.}
   \label{fig.bp_lrn}
 \end{figure}
+% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
 
 The backpropagation version of the WWI model has exactly the same layer sizes and {\em feedforward} patterns of connectivity as the DeepLeabra version.  Topographically, the V1p and V1hp pulvinar layers serve as output layers at the highest level of the network, receiving all the various connections from deep layers as shown in Table~\ref{tab.layer_sizes}.  Likewise, the LIPp served as a target output layer for the Where pathway.  To achieve predictive learning, the V1 pulvinar targets were from the scene at time $t$, while the V1s inputs were from the scene at time $t-1$.  We also ran a comparison auto-encoder model that had inputs and target outputs from the same time step, and it showed even less systematic organziation of its higher-level representations, further supporting the notion that predictive learning is important, across all frameworks.  The learning curve for the predictive version is shown in Figure~\ref{fig.bp_lrn}, which shows better overall prediction accuracy compared to the DeepLeabra model.  However, as the RSA showed, this backpropagation model failed to learn object categories that go beyond the input similarity structure, indicating that perhaps it was paying too much ``attention'' in learning to this low-level structure, and lacked the necessary mechanisms to enable it to impose a simplifying higher-level structure on top of these inputs.
 
@@ -453,24 +454,25 @@ All analyses in the RSA were conducted using the representations from the $R_l$ 
   \caption{Learning curves for the PredNet model.  This model achieves the best overall prediction performance but also has the least well differentiated, categorical representations.}
   \label{fig.prednet_lrn}
 \end{figure}
+% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
 
 \subsection{Implementation details}
 
-All experiments with the PredNet architecture were performed using PyTorch. An informal hyperparameter search was conducted, starting from the hyperparameters reported in the original paper. Our final architecture had 6 layers with 3, 16, 32, 64, 128, and 256 filters in the $A_l$ and $R_l$ modules, and 3x3 kernels throughout the whole network. However, we found that using sigmoid and tanh activation functions in fully-connected convolutional LSTMs slightly improved performance, so these were used for all experiments.
+All experiments with the PredNet architecture were performed using PyTorch. An informal hyperparameter search was conducted to find the settings that maximized representational similarity to the human judgments. This was done by conducting RSA on each layer for each hyperparameter setting, and computing, according to the Centroid categories derived from the human data, the difference between the average within-category similarity and the average between-category similarity. Our final architecture had 6 layers with 3, 16, 32, 64, 128, and 256 filters in the $A_l$ and $R_l$ modules, and 3x3 kernels throughout the whole network. We also found that using sigmoid and tanh activation functions in fully-connected convolutional LSTMs slightly improved performance, so these were used for all experiments.
 
 The weights in the PredNet model are trained using error backpropagation. Predictions are generated and errors are computed at all levels of the hierarchy, but the model performs better when only the lowest layer's errors are backpropagated %\cite{LotterKreimanCox16}
 {\em (14)}. We confirmed these results with experiments that backpropagated the errors in higher layers, in which performance (in terms of mean squared error) was marginally reduced but the RSA results were similar. For this reason, all reported experiments used a PredNet that was trained by only backpropagating the lowest level error.
 
-The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 batches.  A training curve is shown in Figure~\ref{fig.prednet_lrn}, showing that it achieves the best overall prediction accuracy of any model we tested, and yet has the least well differentiated, categorical representations, as shown in the main paper.
+The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 batches.  A training curve is shown in Figure~\ref{fig.prednet_lrn}, showing that it achieves the best overall prediction accuracy of any model we tested, and yet does not have representations that are as differentiated or categorical as our biologically based model, as shown in the main paper.
 
 \subsection{Regularization experiments}
 
-As discussed in the main paper, our biologically based model includes a number of important biologically motivated properties that may be contributing to the development of its categorical representations. These properties, including excitatory bidirectional connections, inhibitory competition, and an additional form of Hebbian learning, may be acting as regularizers that encourage categorical learning. We therefore tested whether standard regularization methods used in deep learning research would have similar effects on the representations developed in the PredNet architecture. We tested 1) batch normalization, 2) dropout, and 3) weight decay. 
+As discussed in the main paper, our biologically based model includes a number of important biologically motivated properties that may be contributing to the development of its categorical representations. These properties, including excitatory bidirectional connections, inhibitory competition, and an additional form of Hebbian learning, may be acting as regularizers that encourage categorical learning. We therefore tested whether standard regularization methods used in deep learning wofuld have similar effects on the representations developed in the PredNet architecture. We tested 1) batch normalization, 2) dropout (0.1, 0.3, and 0.5), and 3) weight decay (0.01,0.001,0.0001,0.00001). All experiments with batch normalization and weight decay showed reduced performance (in terms of both prediction error on the test set and within-category correlation). As shown in figure \ref{fig.prednet_dropout_within_between}, dropout marginally improved the within-category correlation while also slightly improving prediction accuracy, so a dropout rate of 0.1 was used for the comparison to our biologically based model in the main paper. 
 
-% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
-% (JLR) my initials are wrong in the "author contributions" section of the main paper
-% (JLR) all references to PredNet "layer3" should now be layer 5 (or layer 6, depending on if you start counting from 0)
-
-
+\begin{figure}
+  \centering\includegraphics[width=2.5in]{figs/prednet_dropout_meta_within_between}
+  \caption{Effect of dropout in PredNet on RSA, as measured by the difference between the average within-category correlation and the average between category correlation (using the Centroid categories derived from human data). Dropout marginally improves the category structure learned in PredNet.}
+  \label{fig.prednet_dropout_within_between}
+\end{figure}
 
 \end{document}
