@@ -1,4 +1,4 @@
-\documentclass[12pt,twoside]{naturefigs}
+\documentclass[12pt,twoside]{article}
 %\documentclass[10pt,twoside,twocolumn]{article}
 \usepackage[english]{babel}
 \usepackage{times,subeqnarray}
@@ -16,7 +16,7 @@
 %\usepackage{apatitlepages}
 % if you want to be more fully apa-style for submission, then use this
 %\usepackage{setspace,psypub,ulem}
-%\usepackage{setspace} % must come before psypub
+\usepackage{setspace} % must come before psypub
 %\usepackage{psypub}
 %\usepackage{psydraft}
 \usepackage{one-in-margins}  % use instead of psydraft for one-in-margs
@@ -37,7 +37,7 @@
 \parskip 2pt
 % for double-spacing, determines spacing 
 %\doublespacing
-%\setstretch{1.7}
+\setstretch{1}
 
 % rename figures as S1, etc
 \setcounter{table}{0}
@@ -48,15 +48,15 @@
 
 \columnsep .25in   % 3/8 in column separation
 
-\def\myheading{ Deep Predictive Learning Supplemental Information}
+\def\myheading{ Deep Predictive Learning Supporting Information}
 
 % no twoside for pure apa style, use \markright with heading only
 \pagestyle{myheadings}
 \markboth{\hspace{.5in} \myheading \hfill}{\hfill O'Reilly, Russin, \& Rohrlich \hspace{.5in}}
 
-\bibliographystyle{naturemag}
+\bibliographystyle{pnas-new}
 
-\title{ Supplementary Information For:\\
+\title{ Supporting Information For:\\
 Deep Predictive Learning as a Model of Human Learning } 
 
 \author{Randall C. O'Reilly, Jacob L. Russin, and John Rohrlich\\
@@ -68,14 +68,14 @@ Deep Predictive Learning as a Model of Human Learning }
 \sloppy
 \raggedbottom
 %\baselineskip20pt
-\spacing{1}
+%\spacing{1}
 
 \maketitle 
 
 \noindent This PDF includes:
 \begin{description}
 \item Materials and Methods
-\item Figures S1-S10
+\item Figures S1-S9
 \item Table S1
 \end{description}
 
@@ -102,7 +102,7 @@ The different representations being compared here are:
   \begin{tabular}{llll}
    \multicolumn{2}{c}{Centroid} & \multicolumn{2}{c}{Bp} \\
 	% Centroid categories
-	 \parbox[t]{1.4in}{\raggedright  	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright  	\setstretch{.5} \small
 	\begin{enumerate}
 	\item pyramid
 	\begin{itemize}[leftmargin=*]
@@ -125,7 +125,7 @@ The different representations being compared here are:
 	\end{itemize}
 	\end{enumerate}
 	} & 
-	 \parbox[t]{1.4in}{\raggedright 	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright 	\setstretch{.5} \small
 	\begin{enumerate}
 	\item[3.] round cont'd
 	\begin{itemize}[leftmargin=*]
@@ -149,7 +149,7 @@ The different representations being compared here are:
 	\end{enumerate}
 	} &
 	% Bp categories
-	 \parbox[t]{1.4in}{\raggedright  	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright  	\setstretch{.5} \small
 	\begin{enumerate}
 	\item cat1
 	\begin{itemize}[leftmargin=*]
@@ -166,7 +166,7 @@ The different representations being compared here are:
 	\end{itemize}
 	\end{enumerate}
 	} & 
-	 \parbox[t]{1.4in}{\raggedright 	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright 	\setstretch{.5} \small
 	\begin{enumerate}
 	\item[1.] cat1 cont'd
 	\begin{itemize}[leftmargin=*]
@@ -189,7 +189,7 @@ The different representations being compared here are:
    \multicolumn{2}{c}{V1} &
    \multicolumn{2}{c}{PredNet} \\
 	% V1 categories
-	 \parbox[t]{1.4in}{\raggedright  	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright  	\setstretch{.5} \small
 	\begin{enumerate}
 	\item cat1
 	\begin{itemize}[leftmargin=*]
@@ -209,7 +209,7 @@ The different representations being compared here are:
 	\end{itemize}
 	\end{enumerate}
 	} & 
-	 \parbox[t]{1.4in}{\raggedright 	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright 	\setstretch{.5} \small
 	\begin{enumerate}
 	\item[2.] cat2 cont'd
 	\begin{itemize}[leftmargin=*]
@@ -230,7 +230,7 @@ The different representations being compared here are:
 	\end{enumerate}
 	} & 
 	% PredNet categories
-	 \parbox[t]{1.4in}{\raggedright  	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright  	\setstretch{.5} \small
 	\begin{enumerate}
 	\item cat1
 	\begin{itemize}[leftmargin=*]
@@ -250,7 +250,7 @@ The different representations being compared here are:
 	\end{itemize}
 	\end{enumerate}
 	} & 
-	 \parbox[t]{1.4in}{\raggedright 	\spacing{1} \small
+	 \parbox[t]{1.4in}{\raggedright 	\setstretch{.5} \small
 	\begin{enumerate}
 	\item[2.] cat2 cont'd
 	\begin{itemize}[leftmargin=*]
@@ -283,11 +283,11 @@ With distance-like 1-correlation values, this contrast distance should be minimi
 
 Starting with an initial set of clusters, a permutation-based hill-climbing strategy was used to determine a local minimum in this measure: each item was tested in each of the other possible categories, and if that configuration reduced the overall average contrast distance metric across all items, then it was adopted and the process iterated until no such permutation improved the metric.  This algorithm can only decrease the number of clusters (by moving all items out of a given cluster), so different numbers of initial clusters can be used to search the overall space.
 
-Figure~\ref{fig.cats} shows the resulting categories. The Bp model converged on the same cluster state from all starting configurations tested, varying from 5 to 2 initial categories.  This is the cluster set shown in Figure 4a of the main paper, and has an average contrast distance ({\em acd}) of 0.0838 (this is relatively low because the patterns were overall quite similar).  Likewise, the V1 patterns (which were the same across Leabra and Bp models) reliably converged on the same pattern (shown in Figure 4d), with {\em acd} = 0.2448.
+Figure~\ref{fig.cats} shows the resulting categories. The Bp model converged on the same cluster state from all starting configurations tested, varying from 5 to 2 initial categories.  This is the cluster set shown in Figure~5a of the main paper, and has an average contrast distance ({\em acd}) of 0.0838 (this is relatively low because the patterns were overall quite similar).  Likewise, the V1 patterns (which were the same across Leabra and Bp models) reliably converged on the same pattern (shown in Figure~5d), with {\em acd} = 0.2448.
 
 For the PredNet layer 6 representations, starting from the V1 categories gave the best results of any other set ({\em acd} = 0.1967), and a few permutations resulted in a reliable solution that was arrived at from all other 3 category starting points tested, shown in Figure~\ref{fig.cats} ({\em acd} = 0.2820).  This indicates that PredNet did not go much beyond the structure present in the input, even though it did not use the V1 gabor filtering used in the Leabra and Bp models (i.e., this V1-level encoding well-captures the structure of the visual inputs in general).  The PredNet pixel and layer 1 representations both converged on essentially a single monolitic category with very low acd (0.0018, 0.0013).
 
-For the Leabra TE representations, we found a set of {\em centroid} shape categories that are near-best when considering both the Leabra model and the results from the human behavioral experiment (Expt).  Starting from these  categories, the permutation analysis converged on reducing the size of the vertical and round categories to one item each, over a sequence of 5 steps.  This is consistent with the observation from Figure 2a that there are three broader categories within which the 5 finer-grained categories are embedded (i.e., vertical and pyramid are overall similar to each other, as are round and box).  Nevertheless, our initial visual intuition about the broad shape categories, along with a bias against having single-item categories, reinforced the use of the finer-grained centroid selection.  The average contrast difference of our centroid selection is 0.5071, while the maximal result from the permutation was 0.5526, which is a relatively small proportional difference.
+For the Leabra TE representations, we found a set of {\em centroid} shape categories that are near-best when considering both the Leabra model and the results from the human behavioral experiment (Expt).  Starting from these  categories, the permutation analysis converged on reducing the size of the vertical and round categories to one item each, over a sequence of 5 steps.  This is consistent with the observation from Figure~3a that there are three broader categories within which the 5 finer-grained categories are embedded (i.e., vertical and pyramid are overall similar to each other, as are round and box).  Nevertheless, our initial visual intuition about the broad shape categories, along with a bias against having single-item categories, reinforced the use of the finer-grained centroid selection.  The average contrast difference of our centroid selection is 0.5071, while the maximal result from the permutation was 0.5526, which is a relatively small proportional difference.
 
 Furthermore, once we had collected the human experimental data ({\em Expt}), it was clear that it strongly coincided with our original shape intuitions, and with the finer-grained 5 category centroid structure.  Starting from the centroid categories, the maximal permutation made only 3 changes, moving trex (T-rex) and handgun into the horizontal category, and chair into the pyramid, going from a distance score of 0.3083 to 0.3225, which is a relatively small improvement.  However, using the maximal {\em Expt} clusters directly on the Leabra model gives a lower {\em acd} measure of 0.3745 (compared to 0.5071 for centroid), so the centroid categories represent a good middle-ground between experiment and the model, and this strong shared similarity structure with near-optimal cluster structures confirms that the model and people are encoding largely the same information.
 
@@ -363,17 +363,11 @@ TE & TEs & 10 & 10 & 4 & 4 & TEOs V1p V1hp \\
 \label{tab.layer_sizes}
 \end{table}
 
-Figure~1 in the main text shows the general configuration of the model, and Table~\ref{tab.layer_sizes} shows the specific sizes of each of the layers, and where they receive inputs from. 
+Figure~2 in the main text shows the general configuration of the model, and Table~\ref{tab.layer_sizes} shows the specific sizes of each of the layers, and where they receive inputs from. 
 
 All the activation and general learning parameters in the model are at their standard Leabra defaults.
 
 \subsection{Projections}
-
-\begin{figure}
-  \centering\includegraphics[width=4in]{figs/fig_sherman_guillery_summary}
-  \caption{Summary figure from Sherman \& Guillery (2006) showing the strong feedforward driver projection eminating from layer 5IB cells in lower layers (e.g., V1), and the much more numerous feedback ``modulatory'' projection from layer 6CT cells.  We interpret these same connections as providing a prediction (6CT) vs. outcome (5IB) activity pattern over the pulvinar.  Note that much of the bursting dynamics discussed by these authors is not found in awake behaving animals, where pulvinar neurons exhibit sustained activity over the course of visual inputs similar to what is observed in corresponding visual areas (Robinson, 1993).}
-  \label{fig.sandg}
-\end{figure}
 
 \begin{figure}
   \centering\includegraphics[width=5in]{figs/fig_deepleabra_wwi_cons_all}
@@ -381,9 +375,9 @@ All the activation and general learning parameters in the model are at their sta
   \label{fig.model_cons}
 \end{figure}
 
-The general principles and patterns of connectivity are shown in Figures~\ref{fig.sandg} and \ref{fig.model_cons}.
+The general principles and patterns of connectivity are shown in Figure~\ref{fig.model_cons} (and Figure 1 in the main text).
 
-Detailing each of the specific parameters associated with the different projections shown in Table~\ref{tab.layer_sizes} would take too much space --- those interested in this level of detail should download the model from the link shown above.  There are topographic projections between many of the lower-level retinotopically-mapped layers, consistent with our earlier vision models\cite{OReillyWyatteHerdEtAl13}.  For example the 8x8 unit groups in V2 are reduced down to the 4x4 groups in V3 via a 4x4 unit-group topographic projection, where neighboring units have half-overlapping receptive fields (i.e., the field moves over 2 unit groups in V2 for every 1 unit group in V3), and the full space is uniformly tiled by using a wrap-around effect at the edges.  Similar patterns of connectivity are used in current deep convolutional neural networks.  However, we do not share weights across units as in a true convolutional network.
+Detailing each of the specific parameters associated with the different projections shown in Table~\ref{tab.layer_sizes} would take too much space --- those interested in this level of detail should download the model from the link shown above.  There are topographic projections between many of the lower-level retinotopically-mapped layers, consistent with our earlier vision models \cite{OReillyWyatteHerdEtAl13}.  For example the 8x8 unit groups in V2 are reduced down to the 4x4 groups in V3 via a 4x4 unit-group topographic projection, where neighboring units have half-overlapping receptive fields (i.e., the field moves over 2 unit groups in V2 for every 1 unit group in V3), and the full space is uniformly tiled by using a wrap-around effect at the edges.  Similar patterns of connectivity are used in current deep convolutional neural networks.  However, we do not share weights across units as in a true convolutional network.
 
 The projections from ObjVel (object velocity) and SaccadePlan layers to LIPs, LIPd were initialized with a topographic sigmoidal pattern that moved as a function of the position of the unit group, by a factor of .5, while the projections from EyePos were initialized with a gaussian pattern.  These patterns multiplied uniformly distributed random weights in the .25 to .75 range, with the lowest values in the topographic pattern having a multiplier of .6, while the highest had a multiplier of 1 (i.e., a fairly subtle effect).  This produced faster convergence of the LIP layer when doing {\em Where} pathway pre-training compared to purely random initial weights.  In addition to exploring different patterns of overall connectivity, we also explored differences in the relative strengths of receiving projections, which can be set with a \texttt{wt\_scale.rel} parameter in the simulator.  All feedforward pathways have a default strength of 1.  For the feedback projections, which are typically weaker (consistent with the biology), we explored a discrete range of strengths, typically .5, .2, .1, and .05.  The strongest top-down projections were into V2s from LIP and V3, while most others were .2 or .1.  Likewise projections from the pulvinar were weaker, typically .1.  These differences in strength sometimes had large effects on performance during the initial bootstrapping of the overall model structure, but in the final model they are typically not very consequential for any individual projection.
 
@@ -391,12 +385,12 @@ The projections from ObjVel (object velocity) and SaccadePlan layers to LIPs, LI
 
 \begin{figure}
   \centering\includegraphics[width=5.5in]{figs/fig_deepleabra_wwi_emer_lrn_v1p_simat}
-  \caption{{\bf a)} Predictive learning curve for DeepLeabra, showing the correlation between prediction and actual over the two different V1 layers.  Initial learning is quite rapid, followed by a slower but progressive learning process that reflects development of the IT representations (e.g., manipulations that interfere with those areas selectively impair this part of the learning curve).  Overall prediction accuracy remains far from perfect, as shown in Figure~1c in main text, and significantly worse than the backpropagtion-based models.  This is a typical finding from Leabra models which are significantly more constrained as a result of bidirectional attractor dynamics, Hebbian learning, and inhibitory competition -- i.e., the very things that are likely important for forming abstract catgorical representations. {\bf b)} Similarity matrix over TEs layer at 200 epochs, which has less contrast and definition compared to the 1,000 epoch result ({\bf c} also shown in Figure~2a in main text).}
+  \caption{{\bf a)} Predictive learning curve for DeepLeabra, showing the correlation between prediction and actual over the two different V1 layers.  Initial learning is quite rapid, followed by a slower but progressive learning process that reflects development of the IT representations (e.g., manipulations that interfere with those areas selectively impair this part of the learning curve).  Overall prediction accuracy remains far from perfect, as shown in Figure~2c in main text, and significantly worse than the backpropagtion-based models.  This is a typical finding from Leabra models which are significantly more constrained as a result of bidirectional attractor dynamics, Hebbian learning, and inhibitory competition -- i.e., the very things that are likely important for forming abstract catgorical representations. {\bf b)} Similarity matrix over TEs layer at 200 epochs, which has less contrast and definition compared to the 1,000 epoch result ({\bf c} also shown in Figure~3a in main text).}
   \label{fig.lrn}
 \end{figure}
 % (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
 
-Training typically consisted of 512 alpha trials per epoch (51.2 seconds of real time equivalent), for 1,000 such epochs. Each trial was generated from a virtual reality environment in the emergent simulator, that rendered first-person views with moving eye position onto the object tumbling through space with fixed motion and rotation parameters over the sequence of 8 frames (see Figure~1c in main text for representative example).  Because the start of each sequence of 8 frames is unpredictable, we turned off learning for that trial, which improves learning overall.  We have recently developed an automatic such mechanism based on the running-average (and running variance) of the prediction error, where we turn off learning whenever the current prediction error z-normalized by these running average values is below 1.5 standard deviations, which works well, and will be incorporated into future models.  Biologically, this could correspond to a connection between pulvinar and neuromodulatory areas that could regulate the effective learning rate in this way.
+Training typically consisted of 512 alpha trials per epoch (51.2 seconds of real time equivalent), for 1,000 such epochs. Each trial was generated from a virtual reality environment in the emergent simulator, that rendered first-person views with moving eye position onto the object tumbling through space with fixed motion and rotation parameters over the sequence of 8 frames (see Figure~2c in main text for representative example).  Because the start of each sequence of 8 frames is unpredictable, we turned off learning for that trial, which improves learning overall.  We have recently developed an automatic such mechanism based on the running-average (and running variance) of the prediction error, where we turn off learning whenever the current prediction error z-normalized by these running average values is below 1.5 standard deviations, which works well, and will be incorporated into future models.  Biologically, this could correspond to a connection between pulvinar and neuromodulatory areas that could regulate the effective learning rate in this way.
 
 Figure~\ref{fig.lrn}a shows the learning trajectory of the model, indicating that it learns quite rapidly.  This rapid initial learning is likely facilitated by the extensive use of shortcut connections convering from all over the simulated visual system onto the V1 pulvinar layers, and direct projections back from these pulvinar layers.  Thus, error signals are directly communicated and can drive learning quickly and efficiently.  However, there are also extensive indirect, bidirectional connections among the superficial layers, which can drive indirect error backpropagation learning as well.
 
@@ -406,7 +400,7 @@ To be able to monitor similarity metrics as the model trained, we used a running
 
 \subsection{Model Algorithms}
 
-The biologically-based model was implemented using the Leabra framework, which is described in detail in previous publications\cite{OReillyMunakataFrankEtAl12,OReillyMunakata00,OReilly98,OReilly96}, and summarized here.  There are two main implementations of Leabra, one in the {\em C++ emergent} software, and a new one using  Go and Python language at: \url{https://github.com/emer/leabra}.  There are also other simpler implementations in Python and MATLAB, see \url{https://grey.colorado.edu/emergent/index.php/Leabra}.   Both of the preceeding links contain a full detailed description of the algorithm.  These same equations and standard parameters have been used to simulate over 40 different models in\cite{OReillyMunakataFrankEtAl12,OReillyMunakata00}, and a number of other research models.  Thus, the model can be viewed as an instantiation of a systematic modeling framework using standardized mechanisms, instead of constructing new mechanisms for each model.  Here, we only detail properties of the predictive learning algorithm that go beyond the basic Leabra model.
+The biologically-based model was implemented using the Leabra framework, which is described in detail in previous publications \cite{OReillyMunakataFrankEtAl12,OReillyMunakata00,OReilly98,OReilly96}, and summarized here.  There are two main implementations of Leabra, one in the {\em C++ emergent} software, and a new one using  Go and Python language at: \url{https://github.com/emer/leabra}.  There are also other simpler implementations in Python and MATLAB, see \url{https://grey.colorado.edu/emergent/index.php/Leabra}.   Both of the preceeding links contain a full detailed description of the algorithm.  These same equations and standard parameters have been used to simulate over 40 different models in \cite{OReillyMunakataFrankEtAl12,OReillyMunakata00}, and a number of other research models.  Thus, the model can be viewed as an instantiation of a systematic modeling framework using standardized mechanisms, instead of constructing new mechanisms for each model.  Here, we only detail properties of the predictive learning algorithm that go beyond the basic Leabra model.
 
 \subsubsection{Deep Context}
 
@@ -430,7 +424,7 @@ Learning of the context weights occurs as normal, but using the sending activati
 
 % (JLR) "SRN" = "simple recurrent network" is not introduced anywhere
 
-Predictive auto-encoder learning has been explored in various frameworks, but the most relevant to our model comes from the application of the SRN to a range of predictive learning domains\cite{Elman90,ElmanBatesKarmiloff-SmithEtAl96}.  One of the most powerful features of the SRN is that it enables error-driven learning, instead of arbitrary parameter settings, to determine how prior information is integrated with new information.  Thus, SRNs can learn to hold onto some important information for a relatively long interval, while rapidly updating other information that is only relevant for a shorter duration.  This same flexibility is present in our DeepLeabra model.  Furthermore, because this temporal context information is hypothesized to be present in the deep layers throughout the entire neocortex (in every microcolumn of tissue), the DeepLeabra model provides a more pervasive and interconnected form of temporal integration compared to the SRN, which typically just has a single temporal context layer associated with the internal ``hidden'' layer of processing units.
+Predictive auto-encoder learning has been explored in various frameworks, but the most relevant to our model comes from the application of the SRN to a range of predictive learning domains \cite{Elman90,ElmanBatesKarmiloff-SmithEtAl96}.  One of the most powerful features of the SRN is that it enables error-driven learning, instead of arbitrary parameter settings, to determine how prior information is integrated with new information.  Thus, SRNs can learn to hold onto some important information for a relatively long interval, while rapidly updating other information that is only relevant for a shorter duration.  This same flexibility is present in our DeepLeabra model.  Furthermore, because this temporal context information is hypothesized to be present in the deep layers throughout the entire neocortex (in every microcolumn of tissue), the DeepLeabra model provides a more pervasive and interconnected form of temporal integration compared to the SRN, which typically just has a single temporal context layer associated with the internal ``hidden'' layer of processing units.
 
 An extensive computational analysis of what makes the SRN work as well as it does, and explorations of a range of possible alternative frameworks, has led us to an important general principle: {\em subsequent outcomes determine what is relevant from the past}.  At some level, this may seem obvious, but it has significant implications for predictive learning mechanisms based on temporal context.  It means that the information encoded in a temporal context representation cannot be learned at the time when that information is presently active.  Instead, the relevant contextual information is learned on the basis of what happens next.  This explains the peculiar power of the otherwise strange property of the SRN: the temporal context information is preserved as a {\em direct copy} of the state of the hidden layer units on the previous time step (Figure~\ref{fig.srn_vs_ti}), and then learned synaptic weights integrate that copied context information into the next hidden state (which is then copied to the context again, and so on).  This enables the error-driven learning taking place in the {\em current} time step to determine how context information from the {\em previous} time step is integrated.  And the simple direct copy operation eschews any attempt to shape this temporal context itself, instead relying on the learning pressure that shapes the hidden layer representations to also shape the context representations.  In other words, this copy operation is essential, because there is no other viable source of learning signals to shape the nature of the context representation itself (because these learning signals require future outcomes, which are by definition only available later).
 
@@ -458,7 +452,7 @@ The backpropagation version of the WWI model has exactly the same layer sizes an
 
 \section{PredNet Model Methods}
 
-The PredNet architecture was designed to incorporate principles from predictive coding theory into a neural network model for predicting the next frame in a video sequence. Details of the model can be found in the original paper\cite{LotterKreimanCox16}, but here we provide a brief overview of the architecture. 
+The PredNet architecture was designed to incorporate principles from predictive coding theory into a neural network model for predicting the next frame in a video sequence. Details of the model can be found in the original paper \cite{LotterKreimanCox16}, but here we provide a brief overview of the architecture. 
 
 \subsection{Architecture}
 
@@ -498,7 +492,7 @@ All analyses in the RSA were conducted using the representations from the $R_l$ 
 
 All experiments with the PredNet architecture were performed using PyTorch. An informal hyperparameter search was conducted to find the settings that maximized representational similarity to the human judgments. This was done by conducting RSA on each layer for each hyperparameter setting, and computing, according to the Centroid categories derived from the human data, the difference between the average within-category similarity and the average between-category similarity. Our final architecture had 6 layers with 3, 16, 32, 64, 128, and 256 filters in the $A_l$ and $R_l$ modules, and 3x3 kernels throughout the whole network. We also found that using sigmoid and tanh activation functions in fully-connected convolutional LSTMs slightly improved performance, so these were used for all experiments.
 
-The weights in the PredNet model are trained using error backpropagation. Predictions are generated and errors are computed at all levels of the hierarchy, but the model performs better when only the lowest layer's errors are backpropagated\cite{LotterKreimanCox16}. We confirmed these results with experiments that backpropagated the errors in higher layers, in which performance (in terms of mean squared error) was marginally reduced but the RSA results were similar. For this reason, all reported experiments used a PredNet that was trained by only backpropagating the lowest level error.
+The weights in the PredNet model are trained using error backpropagation. Predictions are generated and errors are computed at all levels of the hierarchy, but the model performs better when only the lowest layer's errors are backpropagated \cite{LotterKreimanCox16}. We confirmed these results with experiments that backpropagated the errors in higher layers, in which performance (in terms of mean squared error) was marginally reduced but the RSA results were similar. For this reason, all reported experiments used a PredNet that was trained by only backpropagating the lowest level error.
 
 The model was trained using a batch size of 8 and an Adam optimizer with a learning rate of 0.0001, with no scheduler, for 150,000 batches.  A training curve is shown in Figure~\ref{fig.prednet_lrn}, showing that it achieves the best overall prediction accuracy of any model we tested, and yet does not have representations that are as differentiated or categorical as our biologically based model, as shown in the main paper.
 
