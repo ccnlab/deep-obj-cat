@@ -365,7 +365,7 @@ func (rs *Res) OpenFullSimMat(sm *simat.SimMat, nms *[]string, fname string, lab
 	smat.SetMetaData("colormap", "Viridis")
 	smat.SetMetaData("grid-fill", "1")
 	smat.SetMetaData("dim-extra", "0.5")
-	err = etensor.OpenCSV(smat, gi.FileName(fname), etable.Tab)
+	err = etensor.OpenCSV(smat, gi.FileName(fname), etable.Tab.Rune())
 	if err != nil {
 		log.Println(err)
 		return
@@ -402,7 +402,7 @@ func (rs *Res) OpenFullSimMatPredNet(sm *simat.SimMat, nms *[]string, fname stri
 	no := 156 // known
 	ltab := &etensor.String{}
 	ltab.SetShape([]int{no}, nil, nil)
-	err := etensor.OpenCSV(ltab, gi.FileName(lab), etable.Comma)
+	err := etensor.OpenCSV(ltab, gi.FileName(lab), etable.Comma.Rune())
 	if err != nil {
 		log.Println(err)
 		return
@@ -416,7 +416,7 @@ func (rs *Res) OpenFullSimMatPredNet(sm *simat.SimMat, nms *[]string, fname stri
 	smat.SetMetaData("colormap", "Viridis")
 	smat.SetMetaData("grid-fill", "1")
 	smat.SetMetaData("dim-extra", "0.5")
-	err = etensor.OpenCSV(smat, gi.FileName(fname), etable.Tab)
+	err = etensor.OpenCSV(smat, gi.FileName(fname), etable.Tab.Rune())
 	if err != nil {
 		log.Println(err)
 		return
@@ -624,7 +624,7 @@ func (rs *Res) OpenExptMat() {
 	sm.Init()
 	smat := sm.Mat.(*etensor.Float64)
 	smat.SetShape([]int{no, no}, nil, nil)
-	err := etensor.OpenCSV(smat, gi.FileName("expt1_simat.csv"), etable.Comma)
+	err := etensor.OpenCSV(smat, gi.FileName("expt1_simat.csv"), etable.Comma.Rune())
 	if err != nil {
 		log.Println(err)
 		return
@@ -963,7 +963,7 @@ func (rs *Res) ConfigGui() *gi.Window {
 	gi.SetAppName("results")
 	gi.SetAppAbout(`analyze results`)
 
-	win := gi.NewWindow2D("results", "analyze results", width, height, true)
+	win := gi.NewMainWindow("results", "analyze results", width, height)
 	// vi.Win = win
 
 	vp := win.WinViewport2D()
