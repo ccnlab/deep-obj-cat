@@ -314,7 +314,7 @@ func (ex *Expt) DoSims() {
 		}
 	}
 	smat.SetMetaData("precision", "4")
-	etensor.SaveCSV(smat, "simat.csv", etable.Comma)
+	etensor.SaveCSV(smat, "simat.csv", etable.Comma.Rune())
 }
 
 func (ex *Expt) Clust() {
@@ -365,7 +365,7 @@ func (ex *Expt) ConfigGui() *gi.Window {
 	gi.SetAppName("expt")
 	gi.SetAppAbout(`analyze experiment`)
 
-	win := gi.NewWindow2D("expt", "analyze expt", width, height, true)
+	win := gi.NewMainWindow("expt", "analyze expt", width, height)
 	// vi.Win = win
 
 	vp := win.WinViewport2D()
