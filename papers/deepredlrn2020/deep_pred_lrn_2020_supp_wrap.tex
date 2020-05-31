@@ -1,0 +1,90 @@
+\documentclass[12pt,twoside]{article}
+%\documentclass[10pt,twoside,twocolumn]{article}
+\usepackage[english]{babel}
+\usepackage{times,subeqnarray}
+\usepackage{url}
+% following is for pdflatex vs. old(dvi) latex
+\newif\myifpdf
+\ifx\pdfoutput\undefined
+%  \pdffalse           % we are not running PDFLaTeX
+   \usepackage[dvips]{graphicx}
+\else
+   \pdfoutput=1        % we are running PDFLaTeX
+%  \pdftrue
+   \usepackage[pdftex]{graphicx}
+\fi
+%\usepackage{apatitlepages}
+% if you want to be more fully apa-style for submission, then use this
+%\usepackage{setspace,psypub,ulem}
+\usepackage{setspace} % must come before psypub
+%\usepackage{psypub}
+%\usepackage{psydraft}
+\usepackage{one-in-margins}  % use instead of psydraft for one-in-margs
+% \usepackage{scicite}
+\usepackage{amsmath} % (JLR) Neede for "cases" in PredNet section
+%\usepackage{apa}       % apa must come last
+% using latex2e as standard, use the following for latex209
+% \documentstyle [times,11pt,twoside,subeqnarray,psydraft,apa,epsf]{article}
+\usepackage{enumitem}
+\input netsym
+
+% tell pdflatex to prefer .pdf files over .png files!!
+\myifpdf
+  \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.mps,.tif}
+\fi
+
+% use 0 for psypub format 
+\parskip 2pt
+% for double-spacing, determines spacing 
+%\doublespacing
+\setstretch{1}
+
+% rename figures as S1, etc
+\setcounter{table}{0}
+\renewcommand{\thetable}{S\arabic{table}}%
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}%
+\setlength{\itemindent}{-2em}
+
+\columnsep .25in   % 3/8 in column separation
+
+\def\myheading{ Deep Predictive Learning Supporting Information}
+
+% no twoside for pure apa style, use \markright with heading only
+\pagestyle{myheadings}
+\markboth{\hspace{.5in} \myheading \hfill}{\hfill O'Reilly, Russin, \& Rohrlich \hspace{.5in}}
+
+\bibliographystyle{pnas-new}
+
+\title{ Supporting Information For:\\
+Deep Predictive Learning as a Model of Human Learning } 
+
+\author{Randall C. O'Reilly, Jacob L. Russin, and John Rohrlich\\
+  Correspondence to: \texttt{oreilly@ucdavis.edu}\\}
+
+\begin{document}
+
+% sloppy is the way to go!
+\sloppy
+\raggedbottom
+%\baselineskip20pt
+%\spacing{1}
+
+\maketitle 
+
+\noindent This PDF includes:
+\begin{description}
+\item Materials and Methods
+\item Figures S1-S9
+\item Table S1
+\end{description}
+
+\clearpage
+
+\pagestyle{myheadings}
+
+\input deep_pred_lrn_2020_supp
+
+\bibliography{ccnlab}
+
+\end{document}
