@@ -304,7 +304,6 @@ The projections from ObjVel (object velocity) and SaccadePlan layers to LIPs, LI
   \caption{{\bf a)} Predictive learning curve for DeepLeabra, showing the correlation between prediction and actual over the two different V1 layers.  Initial learning is quite rapid, followed by a slower but progressive learning process that reflects development of the IT representations (e.g., manipulations that interfere with those areas selectively impair this part of the learning curve).  Overall prediction accuracy remains far from perfect, as shown in Figure~2c in main text, and significantly worse than the backpropagtion-based models.  This is a typical finding from Leabra models which are significantly more constrained as a result of bidirectional attractor dynamics, Hebbian learning, and inhibitory competition -- i.e., the very things that are likely important for forming abstract catgorical representations. {\bf b)} Similarity matrix over TEs layer at 200 epochs, which has less contrast and definition compared to the 1,000 epoch result ({\bf c} also shown in Figure~3a in main text).}
   \label{fig.lrn}
 \end{figure}
-% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
 
 Training typically consisted of 512 alpha trials per epoch (51.2 seconds of real time equivalent), for 1,000 such epochs. Each trial was generated from a virtual reality environment in the emergent simulator, that rendered first-person views with moving eye position onto the object tumbling through space with fixed motion and rotation parameters over the sequence of 8 frames (see Figure~2c in main text for representative example).  Because the start of each sequence of 8 frames is unpredictable, we turned off learning for that trial, which improves learning overall.  We have recently developed an automatic such mechanism based on the running-average (and running variance) of the prediction error, where we turn off learning whenever the current prediction error z-normalized by these running average values is below 1.5 standard deviations, which works well, and will be incorporated into future models.  Biologically, this could correspond to a connection between pulvinar and neuromodulatory areas that could regulate the effective learning rate in this way.
 
@@ -362,7 +361,6 @@ There are a couple of remaining challenges for this transformation of the SRN.  
   \caption{Learning curves for the backpropagation version of the WWI model.  Although it achieves better predictive accuracy than the DeepLeabra version, it fails to acquire abstract object category structure, indicating a potential tradeoff between simplifying and categorizing inputs, versus predicting precisely where the low-level visual features will move.}
   \label{fig.bp_lrn}
 \end{figure}
-% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
 
 The backpropagation version of the WWI model has exactly the same layer sizes and {\em feedforward} patterns of connectivity as the DeepLeabra version.  Topographically, the V1p and V1hp pulvinar layers serve as output layers at the highest level of the network, receiving all the various connections from deep layers as shown in Table~\ref{tab.layer_sizes}.  Likewise, the LIPp served as a target output layer for the Where pathway.  To achieve predictive learning, the V1 pulvinar targets were from the scene at time $t$, while the V1s inputs were from the scene at time $t-1$.  We also ran a comparison auto-encoder model that had inputs and target outputs from the same time step, and it showed even less systematic organziation of its higher-level representations, further supporting the notion that predictive learning is important, across all frameworks.  The learning curve for the predictive version is shown in Figure~\ref{fig.bp_lrn}, which shows better overall prediction accuracy compared to the DeepLeabra model.  However, as the RSA showed, this backpropagation model failed to learn object categories that go beyond the input similarity structure, indicating that perhaps it was paying too much ``attention'' in learning to this low-level structure, and lacked the necessary mechanisms to enable it to impose a simplifying higher-level structure on top of these inputs.
 
@@ -402,7 +400,6 @@ All analyses in the RSA were conducted using the representations from the $R_l$ 
   \caption{Learning curves for the PredNet model.  This model achieves the best overall prediction performance but also has the least well differentiated, categorical representations.}
   \label{fig.prednet_lrn}
 \end{figure}
-% (JLR) y-axis on all of these training curves should say prediction accuracy - not prediction error
 
 \subsection{Implementation details}
 
