@@ -1,0 +1,305 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% RCS INFO
+%% $Author: monheit $
+%% $Date: 90/11/24 13:06:36 $
+%% $Revision: 1.5 $
+%% $Source: /u2/monheit/latex/styles/RCS/psychpap.sty,v $
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% psychdraft.sty
+%%      Stanford Psychology APA'ish style for papers.
+%%      Modifications to Latex article style
+%%      9/10/90 MAM & RLM,
+%%
+%%      5/7/92 by ROR to be single-spaced,
+%%        (put doublespace in yourself if you want it)
+%%
+%%      Use this style to get APA formatted papers, with figures,
+%%      tables, and footnotes integrated into the text.  If you are
+%%      submitting a paper for publication to a journal requiring APA 
+%%      format, use suapapub.sty.  That style floats all tables and
+%%      figures to the end, and makes footnotes be endnotes, etc.
+%%
+%%      This style makes several important changes to LaTeX's article 
+%%      style.  It is meant to be used as an optional style as follows:
+%%              \documentstyle[?????]{article}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% doublespace.sty
+%%      APA style submissions should be doublespaced.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% modified by ror, 5/7/92
+% modified by jlm, 11/20/93 -- more stuff is doublespaced when
+% doublespacing is in effect.
+%
+%\input doublespace.sty   optional -- changes everything
+
+\@ifundefined{singlespace}{
+        \newcommand{\singlespace}{} }%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% fancyheadings.sty
+%%      Allows things like multi-line headers, running heads, etc.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\RequirePackage{fancyhdr}
+%\input fancyheadings.sty
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Section headings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The default is to handle 3 levels of sectioning.  APA heading styles
+% change slightly depending on whether 3 or 4 levels of headings are
+% used in a paper.  To use 4 levels of headings, specify (???) as a
+% \documentstyle option.
+
+% ROR 9/14/92:
+% modified to change default section commands to section* versions,
+% that also add table of contents entries, but still allow for
+% explicit * entries that have to refer to the \psy version of the
+% section command
+
+% JLM: This now has four levels, section, subsection, subsubsection,
+% and paragraph.  APA does not have anything corresponding to the
+% subsubsection command here; it is just a smaller-font version of
+% subsection and is listed in the toc at the right level.
+
+% APA Level 1
+% Section heading is large, centered
+\def\psysection{\@startsection {section}{1}{\z@}
+{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+{\large\centering}}
+
+\renewcommand{\section}[1]{\psysection*{#1} \addcontentsline{toc}{section}{#1}}
+
+% APA Level 2
+% Subsection heading to large, italic, flushleft
+\def\psysubsection{\@startsection{subsection}{2}{\z@}
+{2.0ex plus 1ex minus .2ex}{1.0ex plus \parskip}
+{\large\it}}
+
+\renewcommand{\subsection}[1]{\psysubsection*{#1}
+ \addcontentsline{toc}{subsection}{#1}}
+
+% APA Level 3
+% Subsubsection is normalzize, italic, flushleft
+% This extends APA style -- to follow apa standards just don't use
+% subsubsection.
+
+\def\psysubsubsection{\@startsection{subsubsection}{3}{\z@}
+{1.0ex plus \parskip}{0.01ex plus \parskip}
+{\normalsize\it}}
+
+\renewcommand{\subsubsection}[1]{\psysubsubsection*{#1}
+ \addcontentsline{toc}{subsubsection}{#1}}
+
+% APA Level 4
+% paragraph is normalsize, italic, run-in
+
+\def\psyparagraph{\@startsection{paragraph}{4}{\parindent}
+{0ex}{-1em}
+{\it}}
+
+% doesn't seem to do anything:
+
+\renewcommand{\paragraph}[1]{\psyparagraph*{#1}
+ \addcontentsline{toc}{paragraph}{#1}}
+
+\def\tableofcontents{\psysection*{Contents\@mkboth{CONTENTS}{CONTENTS}}
+ \@starttoc{toc}}
+
+% ROR 9/14/92:
+% changed to allow for single-spaced toc (by setting \parskip in .tex
+% file )
+
+\def\l@section#1#2{\addpenalty{\@secpenalty} \addvspace{\parskip} \addvspace{.4em}
+\@tempdima 1.5em \begingroup
+ \parindent \z@ \rightskip \@pnumwidth 
+ \parfillskip -\@pnumwidth 
+ \bf \leavevmode \advance\leftskip\@tempdima \hskip -\leftskip #1\nobreak\hfil
+\nobreak\hbox to\@pnumwidth{\hss #2}\par
+ \endgroup}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Modification of titlepage.sty
+%%    Redesigned and added the command: \runninghead.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\gdef\@runninghead{}
+\gdef\@runhead{}
+\def\runninghead#1{\gdef\@runninghead{#1}
+                   \gdef\@runhead{Running Head:\ }}
+
+\def\maketitle{\begin{titlepage}
+ \let\footnotesize\small       % Local definitions to make \thanks produce
+% \let\footnoterule\relax      % \normalsize footnotes with no separating rule.
+ \setcounter{page}{0}
+ \null
+ \vfil
+ \vskip 60pt                   % To adjust centering.
+ \begin{center}
+   {\large \@title \par}       % Set title in \large size.
+   \vskip 4em                  % Vertical space after title.
+   {\large                     % Set author in \large size.
+     \lineskip .75em
+     \begin{tabular}[t]{c}\@author 
+     \end{tabular}\par}
+    \vskip 1.5em               % Vertical space after author
+   {\@date \par}               % Date
+   \vskip 19.0ex               % Vertical space after date.
+   {\normalsize\@runhead \@runninghead \par}  % add running head if spec.
+\end{center} \par
+\@thanks
+\vfil
+\null
+\end{titlepage}
+% \setcounter{page}{0}          % Reset the page number too.
+\setcounter{footnote}{0}        % Footnotes start at zero again.
+\let\thanks\relax
+\gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\maketitle\relax}    
+
+\def\abstract{\titlepage
+% \null\vfil                    % Don't center abstract on page
+\begin{center}
+{\large Abstract}
+\end{center}}
+
+\def\endabstract{\par\vfil\null\endtitlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Include the bibliography changes for APA format
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% SDM, 26-Aug-89, got rid of parens in @cite
+% mam, 29-aug-90, removed parindent and markboth for headings.
+% mam, 29-sep-90, added \clearpage to get rid of all figures
+%      before outputting the bibliography
+%\def\@cite#1#2{#1\if@tempswa , #2\fi}
+%\def\@biblabel#1{}
+
+%\newlength{\bibhang}
+%\setlength{\bibhang}{2em}
+
+% \setlength{\parindent}{5pc}
+
+%\@ifundefined{chapter}{\def\thebibliography#1{\clearpage\newpage
+%  \par\singlespace
+%  \section{References}\list
+%  {\relax}{\setlength{\labelsep}{0em}
+%        \setlength{\itemindent}{-\bibhang}
+%        \setlength{\leftmargin}{\bibhang}}
+%    \def\newblock{\hskip .11em plus .33em minus .07em}
+%    \sloppy\clubpenalty4000\widowpenalty4000
+%    \sfcode`\.=1000\relax}}%
+%{\def\thebibliography#1{\chapter*{Bibliography\@mkboth
+%  {BIBLIOGRAPHY}{BIBLIOGRAPHY}}\list
+%  {\relax}{\setlength{\labelsep}{0em}
+%        \setlength{\itemindent}{-\bibhang}
+%        \setlength{\leftmargin}{\bibhang}}
+%    \def\newblock{\hskip .11em plus .33em minus .07em}
+%    \sloppy\clubpenalty4000\widowpenalty4000
+%    \sfcode`\.=1000\relax}}
+
+%\def\@citex[#1]#2{\if@filesw\immediate\write\@auxout{\string\citation{#2}}\fi
+%  \def\@citea{}\@cite{\@for\@citeb:=#2\do
+%    {\@citea\def\@citea{; }\@ifundefined
+%       {b@\@citeb}{{\bf ?}\@warning
+%       {Citation `\@citeb' on page \thepage \space undefined}}%
+%{\csname b@\@citeb\endcsname}}}{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Add listoffigures and producenotes commands that do nothing, so
+%% that versions intended for submission won't generate an error
+%% message. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\producenotes{}
+\def\listoffigures{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Lists
+%%      Make verse, quotation, and quote single spaced.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VERSE
+%   The verse environment is defined by making clever use of the
+%   list environment's parameters.  The user types \\ to end a line.
+%   This is implemented by \let'in \\ equal \@centercr.
+%
+\def\verse{\par\singlespace\let\\=\@centercr  
+  \list{}{\itemsep\z@ \itemindent -1.5em\listparindent \itemindent 
+          \rightmargin\leftmargin\advance\leftmargin 1.5em}\item[]}
+\let\endverse\endlist
+
+% QUOTATION
+%   Fills lines
+%   Indents paragraph
+%   
+\def\quotation{\par\singlespace\list{}{\listparindent 1.5em
+    \itemindent\listparindent
+    \rightmargin\leftmargin \parsep 0pt plus 1pt}\item[]}
+\let\endquotation=\endlist
+
+% QUOTE -- same as quotation except no paragraph indent
+% at start of quote
+\def\quote{\par\singlespace\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+
+% SINGLE -- just a single spaced paragraph!
+%
+\def\single{\par\singlespace}
+\let\endsingle=\endlist
+
+% ENUMERATE
+%
+\def\enumerate{\ifnum \@enumdepth >3 \@toodeep\else
+      \advance\@enumdepth \@ne 
+      \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+      \par\list
+      {\csname label\@enumctr\endcsname}{\usecounter
+        {\@enumctr}\def\makelabel##1{\hss\llap{##1}}}\fi}
+
+\let\endenumerate =\endlist
+
+% ITEMIZE
+%
+\def\itemize{\ifnum \@itemdepth >3 \@toodeep\else \advance\@itemdepth \@ne
+\edef\@itemitem{labelitem\romannumeral\the\@itemdepth}%
+\par
+\list{\csname\@itemitem\endcsname}{\def\makelabel##1{\hss\llap{##1}}}\fi}
+
+\let\enditemize =\endlist
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Lengths, Spaces, etc.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\oddsidemargin 0pt
+\evensidemargin 0pt
+\headheight 12pt
+\headsep .5in
+\topmargin -.75in
+%\setlength\footheight{.25in}
+\footskip .75in
+\textheight 9in
+\textwidth 6.5in
+\parskip 10pt
+\parindent 15pt
+
+% Print the running head and page number at right
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+%\setlength{\headrulewidth}{0pt}
+\rhead{\singlespace \@runninghead \ \rm\thepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% allow larger figures on pages!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\topfraction}{0.9}
+\setcounter{bottomnumber}{4}
+\renewcommand{\bottomfraction}{0.9}
+\setcounter{totalnumber}{4}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.9} % limits blank space on float page
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\dblfloatpagefraction}{0.9} % limits blank space on float page
