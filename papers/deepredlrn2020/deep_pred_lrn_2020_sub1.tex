@@ -54,6 +54,10 @@
   Davis, CA 95618\\
   {\small oreilly@ucdavis.edu}\\}
 
+% eLife impact statement (30 words or less):
+
+% The brain has distinctive neural circuits in the neocortex and thalamus that can support a powerful form of learning, based on generating predictions and learning from prediction errors.
+
 % Please add here a significance statement to explain the relevance of your work
 % \significancestatement{We present a significant advance in understanding how the human brain learns, based on the idea that canonical circuits between the neocortex and thalamus drive alternating phases of prediction and bottom-up outcomes, and the resulting prediction errors (as differences in activation states over time) can drive powerful learning.  Critically, we show for the first time that learning based solely on predicting raw visual inputs can generate higher-level abstract categorical representations of 3D objects, which previously has required explicit human-labeled training.  This captures the seemingly magic way in which human learning can create knowledge out of raw experience, without explicit teaching.}
 
@@ -66,12 +70,12 @@
 % \keywords{Computational Modeling $|$ Predictive Learning $|$ Object Recognition $|$ Pulvinar $|$ Neocortex } 
 
 \def\mynote{
-We thank Dean Wyatte, Tom Hazy, Seth Herd, Kai Krueger, Tim Curran, David Sheinberg, Lew Harvey, Jessica Mollick, Will Chapman, Helene Devillez, and the rest of the CCN Lab for many helpful comments and suggestions.
+We thank Marty Usrey, Dean Wyatte, Tom Hazy, Seth Herd, Kai Krueger, Tim Curran, David Sheinberg, Lew Harvey, Jessica Mollick, Will Chapman, Helene Devillez, and the rest of the CCN Lab for many helpful comments and suggestions.
 Supported by: ONR grants ONR N00014-19-1-2684 / N00014-18-1-2116, N00014-14-1-0670 / N00014-16-1-2128, N00014-18-C-2067, N00014-13-1-0067, D00014-12-C-0638.  This work utilized the Janus supercomputer, which is supported by the National Science Foundation (award number CNS-0821794) and the University of Colorado Boulder. The Janus supercomputer is a joint effort of the University of Colorado Boulder, the University of Colorado Denver and the National Center for Atmospheric Research.
 All data and materials will be available at \url{https://github.com/ccnlab/deep-obj-cat} upon publication.}
 
 \def\myabstract{
-How does the human brain learn new concepts from raw sensory experience, without explicit instruction?  We still do not have a widely-accepted answer to this central question.  Here, we propose a detailed biological mechanism for the widely-embraced idea that learning is based on the differences between predictions and actual outcomes (i.e., \emph{predictive error-driven learning}).  Specifically, numerous weak projections into the pulvinar nucleus of the thalamus generate top-down predictions, and sparse, focal \emph{driver} inputs from lower areas supply the actual outcome, originating in layer 5 intrinsic bursting (5IB) neurons.  Thus, the outcome is only briefly activated, roughly every 100 msec (i.e., 10 Hz, \emph{alpha}), resulting in a \emph{temporal difference error signal}, which drives local synaptic changes throughout the neocortex, resulting in a biologically-plausible form of error backpropagation learning.  We implemented these mechanisms in a large-scale model of the visual system, and found that the simulated inferotemporal (IT) pathway learns to systematically categorize 3D objects according to invariant shape properties, based solely on predictive learning from raw visual inputs.  These categories match human judgments on the same stimuli, and are consistent with neural representations in IT cortex in primates.
+How does the human brain learn new concepts from raw sensory experience, without explicit instruction? We propose a detailed biological mechanism for the widely-embraced idea that learning is based on the differences between predictions and actual outcomes. Specifically, numerous weaker projections into the pulvinar thalamus generate top-down predictions, and sparse, focal driver inputs from lower areas supply the actual outcome, originating in layer 5 intrinsic bursting (5IB) neurons. This results in a temporal difference error signal every alpha cycle (10 Hz), which drives local synaptic changes throughout the neocortex. We implemented these mechanisms in a large-scale model of the visual system, and found that the simulated inferotemporal (IT) pathway learns to systematically categorize 3D objects according to invariant shape properties, based solely on predictive learning from raw visual inputs. These categories match human judgments on the same stimuli, and are consistent with neural representations in IT cortex in primates.
 }
 
 \begin{document}
