@@ -1,11 +1,12 @@
-// Copyright (c) 2020, The CCNLab Authors. All rights reserved.
+// Copyright (c) 2020, The Emergent Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package objenv
+package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 
@@ -35,31 +36,31 @@ type Saccade struct {
 	AddRows      bool       `desc:"add rows to Table for each step (for debugging) -- else re-use 0"`
 
 	// State below here
-	Table       *etable.Table    `desc:"table showing visualization of state"`
-	WorldTsr    *etensor.Float32 `desc:"tensor state showing world position of obj"`
-	ViewTsr     *etensor.Float32 `desc:"tensor state showing view position of obj"`
-	TrajLen     int              `desc:"current trajectory length"`
-	FixDur      int              `desc:"current fixation duration"`
-	Tick        env.Ctr          `desc:"tick counter within trajectory"`
-	SacTick     env.Ctr          `desc:"tick counter within current fixation"`
-	World       minmax.F32       `desc:"World minus margin"`
-	View        minmax.F32       `desc:"View minus margin"`
-	ObjPos      mat32.Vec2       `desc:"object position, in world coordinates"`
-	ObjViewPos  mat32.Vec2       `desc:"object position, in view coordinates"`
-	ObjVel      mat32.Vec2       `desc:"object velocity, in world coordinates"`
-	ObjPosNext  mat32.Vec2       `desc:"next object position, in world coordinates"`
-	ObjVelNext  mat32.Vec2       `desc:"next object velocity, in world coordinates"`
-	EyePos      mat32.Vec2       `desc:"eye position, in world coordinates"`
-	SacPlan     mat32.Vec2       `desc:"eye movement plan, in world coordinates"`
-	Saccade     mat32.Vec2       `desc:"current trial eye movement, in world coordinates"`
-	NewTraj     bool             `desc:"true if new trajectory started"`
-	NewTrajNext bool             `desc:"true if next trial will be a new trajectory"`
-	DidSaccade  bool             `desc:"did saccade on current trial"`
+	Table       *etable.Table    `inactive:"+" desc:"table showing visualization of state"`
+	WorldTsr    *etensor.Float32 `inactive:"+" desc:"tensor state showing world position of obj"`
+	ViewTsr     *etensor.Float32 `inactive:"+" desc:"tensor state showing view position of obj"`
+	TrajLen     int              `inactive:"+" desc:"current trajectory length"`
+	FixDur      int              `inactive:"+" desc:"current fixation duration"`
+	Tick        env.Ctr          `inactive:"+" desc:"tick counter within trajectory, counts up from 0..TrajLen-1"`
+	SacTick     env.Ctr          `inactive:"+" desc:"tick counter within current fixation"`
+	World       minmax.F32       `inactive:"+" desc:"World minus margin"`
+	View        minmax.F32       `inactive:"+" desc:"View minus margin"`
+	ObjPos      mat32.Vec2       `inactive:"+" desc:"object position, in world coordinates"`
+	ObjViewPos  mat32.Vec2       `inactive:"+" desc:"object position, in view coordinates"`
+	ObjVel      mat32.Vec2       `inactive:"+" desc:"object velocity, in world coordinates"`
+	ObjPosNext  mat32.Vec2       `inactive:"+" desc:"next object position, in world coordinates"`
+	ObjVelNext  mat32.Vec2       `inactive:"+" desc:"next object velocity, in world coordinates"`
+	EyePos      mat32.Vec2       `inactive:"+" desc:"eye position, in world coordinates"`
+	SacPlan     mat32.Vec2       `inactive:"+" desc:"eye movement plan, in world coordinates"`
+	Saccade     mat32.Vec2       `inactive:"+" desc:"current trial eye movement, in world coordinates"`
+	NewTraj     bool             `inactive:"+" desc:"true if new trajectory started on this trial"`
+	NewSac      bool             `inactive:"+" desc:"true if new saccade was made on this trial"`
+	NewTrajNext bool             `inactive:"+" desc:"true if next trial will be a new trajectory"`
 }
 
 // Defaults sets generic defaults -- use ParamSet to override
 func (sc *Saccade) Defaults() {
-	sc.TrajLenRange.Set(8, 8)
+	sc.TrajLenRange.Set(4, 4)
 	sc.FixDurRange.Set(2, 2)
 	sc.SacGenMax = 0.4
 	sc.VelGenMax = 0.4
@@ -82,12 +83,16 @@ func (sc *Saccade) Init() {
 		yx := []string{"Y", "X"}
 		sc.WorldTsr = etensor.NewFloat32([]int{sc.WorldVisSz.Y, sc.WorldVisSz.X}, nil, yx)
 		sc.ViewTsr = etensor.NewFloat32([]int{sc.ViewVisSz.Y, sc.ViewVisSz.X}, nil, yx)
+	} else {
+		sc.Table.SetNumRows(0)
 	}
-	sc.GenNextTraj() // start with a trajectory ready
-	sc.NextToCur()
-	sc.DoObjMove()
-	sc.DoSaccade()
-	sc.NewTraj = true
+	sc.Tick.Cur = -1 // will increment to 0
+	sc.NextTraj()    // start with a trajectory ready
+	sc.Tick.Scale = env.Tick
+	sc.Tick.Max = sc.TrajLen
+	sc.SacTick.Scale = env.Tick
+	sc.SacTick.Max = sc.FixDur
+	sc.SacTick.Cur = sc.SacTick.Max - 1 // ensure that we saccade next time
 }
 
 func (sc *Saccade) ConfigTable(dt *etable.Table) {
@@ -116,7 +121,7 @@ func (sc *Saccade) WriteToTable(dt *etable.Table) {
 	}
 	dt.SetNumRows(row + 1)
 
-	nm := fmt.Sprintf("t %d, s %d, x %g, y %g", sc.Tick.Cur, sc.SacTick.Cur, sc.ObjPos.X, sc.ObjPos.Y)
+	nm := fmt.Sprintf("t %d, s %d, x %+4.2f, y %+4.2f", sc.Tick.Cur, sc.SacTick.Cur, sc.ObjPos.X, sc.ObjPos.Y)
 
 	dt.SetCellString("TrialName", row, nm)
 	dt.SetCellFloat("Tick", row, float64(sc.Tick.Cur))
@@ -125,12 +130,22 @@ func (sc *Saccade) WriteToTable(dt *etable.Table) {
 	sc.WorldTsr.SetZeros()
 	opx := int(math.Floor(float64(0.5 * (sc.ObjPos.X + 1) * float32(sc.WorldVisSz.X))))
 	opy := int(math.Floor(float64(0.5 * (sc.ObjPos.Y + 1) * float32(sc.WorldVisSz.Y))))
-	sc.WorldTsr.SetFloat([]int{opy, opx}, 1)
+	idx := []int{opy, opx}
+	if sc.WorldTsr.IdxIsValid(idx) {
+		sc.WorldTsr.SetFloat(idx, 1)
+	} else {
+		log.Printf("Saccade: World index invalid: %v\n", idx)
+	}
 
 	sc.ViewTsr.SetZeros()
 	opx = int(math.Floor(float64((0.5 * (sc.ObjViewPos.X + sc.ViewPct) / sc.ViewPct) * float32(sc.ViewVisSz.X))))
 	opy = int(math.Floor(float64((0.5 * (sc.ObjViewPos.Y + sc.ViewPct) / sc.ViewPct) * float32(sc.ViewVisSz.Y))))
-	sc.ViewTsr.SetFloat([]int{opy, opx}, 1)
+	idx = []int{opy, opx}
+	if sc.ViewTsr.IdxIsValid(idx) {
+		sc.ViewTsr.SetFloat(idx, 1)
+	} else {
+		log.Printf("Saccade: View index invalid: %v\n", idx)
+	}
 
 	dt.SetCellTensor("World", row, sc.WorldTsr)
 	dt.SetCellTensor("View", row, sc.ViewTsr)
@@ -151,7 +166,7 @@ func (sc *Saccade) WriteToTable(dt *etable.Table) {
 	dt.SetCellTensorFloat1D("Saccade", row, 1, float64(sc.Saccade.Y))
 }
 
-func (sc *Saccade) LimitVelWorld(vel, start, trials float32) float32 {
+func (sc *Saccade) LimitVel(vel, start, trials float32) float32 {
 	if trials <= 0 {
 		return vel
 	}
@@ -208,99 +223,89 @@ func (sc *Saccade) LimitSac(sacDev, start, objPos, objVel, trials float32) float
 	return sacDev
 }
 
-func (sc *Saccade) GenNextTraj() {
+// NextTraj computes the next object position and trajectory, at start of a
+func (sc *Saccade) NextTraj() {
 	sc.TrajLen = sc.TrajLenRange.Min + rand.Intn(sc.TrajLenRange.Range()+1)
-	sc.Tick.Init()
 	zeroVel := erand.BoolProb(sc.ZeroVelP, -1)
+	sc.ObjPosNext.X = sc.World.Min + rand.Float32()*sc.World.Range()
+	sc.ObjPosNext.Y = sc.World.Min + rand.Float32()*sc.World.Range()
 	if zeroVel {
 		sc.ObjVelNext.SetZero()
 	} else {
-		sc.ObjVelNext.X = rand.Float32() * sc.VelGenMax
-		sc.ObjVelNext.Y = rand.Float32() * sc.VelGenMax
-		sc.ObjVelNext.X = sc.LimitVelWorld(sc.ObjVelNext.X, sc.ObjPosNext.X, float32(sc.TrajLen))
-		sc.ObjVelNext.Y = sc.LimitVelWorld(sc.ObjVelNext.Y, sc.ObjPosNext.Y, float32(sc.TrajLen))
+		sc.ObjVelNext.X = -sc.VelGenMax + 2*rand.Float32()*sc.VelGenMax
+		sc.ObjVelNext.Y = -sc.VelGenMax + 2*rand.Float32()*sc.VelGenMax
+		sc.ObjVelNext.X = sc.LimitVel(sc.ObjVelNext.X, sc.ObjPosNext.X, float32(sc.TrajLen))
+		sc.ObjVelNext.Y = sc.LimitVel(sc.ObjVelNext.Y, sc.ObjPosNext.Y, float32(sc.TrajLen))
 	}
-	sc.ObjPosNext.X = sc.ObjPos.X + sc.ObjVelNext.X
-	sc.ObjPosNext.Y = sc.ObjPos.Y + sc.ObjVelNext.Y
-	sc.ObjPosNext.X = sc.LimitPos(sc.ObjPosNext.X, sc.World.Max)
-	sc.ObjPosNext.Y = sc.LimitPos(sc.ObjPosNext.Y, sc.World.Max)
-	// always need new saccade at onset of new traj
-	sc.GenNextSaccade()
+	// saccade directly to position of new object at start -- set duration too
+	sc.FixDur = sc.FixDurRange.Min + rand.Intn(sc.FixDurRange.Range()+1)
+	sc.SacPlan.X = sc.ObjPosNext.X - sc.EyePos.X
+	sc.SacPlan.Y = sc.ObjPosNext.Y - sc.EyePos.Y
+	sc.SacTick.Cur = sc.SacTick.Max - 1 // ensure that we saccade next time
 	sc.NewTrajNext = true
 }
 
-func (sc *Saccade) GenNextSaccade() {
+// NextSaccade generates next saccade plan
+func (sc *Saccade) NextSaccade() {
+	sc.FixDur = sc.FixDurRange.Min + rand.Intn(sc.FixDurRange.Range()+1)
 	sc.SacPlan.X = rand.Float32() * sc.SacGenMax
 	sc.SacPlan.Y = rand.Float32() * sc.SacGenMax
-	sc.FixDur = sc.FixDurRange.Min + rand.Intn(sc.FixDurRange.Range()+1)
 	sc.SacPlan.X = sc.LimitSac(sc.SacPlan.X, sc.EyePos.X, sc.ObjPosNext.X, sc.ObjVelNext.X, float32(sc.FixDur))
 	sc.SacPlan.Y = sc.LimitSac(sc.SacPlan.Y, sc.EyePos.Y, sc.ObjPosNext.Y, sc.ObjVelNext.Y, float32(sc.FixDur))
 }
 
+// DoSaccade updates current eye position with planned saccade, resets plan
 func (sc *Saccade) DoSaccade() {
 	sc.EyePos.X = sc.EyePos.X + sc.SacPlan.X
 	sc.EyePos.Y = sc.EyePos.Y + sc.SacPlan.Y
 	sc.Saccade.X = sc.SacPlan.X
 	sc.Saccade.Y = sc.SacPlan.Y
-	sc.DidSaccade = true
-	sc.SacTick.Init()
 	sc.SacPlan.X = 0
 	sc.SacPlan.Y = 0
 }
 
+// DoneSaccade clears saccade state
 func (sc *Saccade) DoneSaccade() {
 	sc.Saccade.X = 0
 	sc.Saccade.Y = 0
-	sc.DidSaccade = false
 }
 
-func (sc *Saccade) PlanObjMove() {
+// Step is primary method to call -- generates next state and
+// outputs currents tate to table
+func (sc *Saccade) Step() {
+	sc.NewTraj = sc.Tick.Incr()
+	sc.NewSac = sc.SacTick.Incr()
+
 	if sc.NewTrajNext {
-		sc.Tick.Init()
-		sc.NewTraj = true
 		sc.NewTrajNext = false
 	}
-
-	sc.ObjPosNext = sc.ObjPos.Add(sc.ObjVel)
-
-	if sc.SacTick.Cur+1 >= sc.FixDur {
-		sc.GenNextSaccade()
-	}
-}
-
-func (sc *Saccade) DoObjMove() {
-	sc.ObjPos = sc.ObjPosNext
-}
-
-func (sc *Saccade) NextToCur() {
-	if sc.NewTrajNext {
+	if sc.NewTraj {
+		sc.Tick.Max = sc.TrajLen // was computed last time
 		sc.ObjVel = sc.ObjVelNext
 	}
-}
 
-// Step is primary method to call -- advances saccade state to next
-func (sc *Saccade) Step() {
-	if sc.Tick.Cur < 0 || sc.Tick.Cur+1 == sc.TrajLen {
-		sc.GenNextTraj()
-	} else {
-		sc.PlanObjMove()
-	}
-
-	sc.ObjViewPos.X = sc.ObjPos.X - sc.EyePos.X
-	sc.ObjViewPos.Y = sc.ObjPos.Y - sc.EyePos.Y
-
-	sc.WriteToTable(sc.Table)
-
-	sc.NextToCur()
-	sc.DoObjMove()
-	if sc.NewTrajNext || sc.SacTick.Cur+1 >= sc.FixDur {
+	if sc.NewSac { // actually move eyes according to plan
 		sc.DoSaccade()
+		sc.SacTick.Max = sc.FixDur // was computed last time
 	} else {
-		if sc.DidSaccade {
-			sc.DoneSaccade()
+		sc.DoneSaccade()
+	}
+	// increment state -- next has already been computed
+	sc.ObjPos = sc.ObjPosNext
+	sc.ObjViewPos = sc.ObjPos.Sub(sc.EyePos)
+
+	// now make new plans
+
+	// if we will exceed traj next time, prepare new trajectory
+	if sc.Tick.Cur+1 >= sc.Tick.Max {
+		sc.NextTraj()
+	} else { // otherwise, move object along and see if we need to plan saccade
+		sc.ObjPosNext = sc.ObjPos.Add(sc.ObjVel)
+		if sc.SacTick.Cur+1 >= sc.SacTick.Max {
+			sc.NextSaccade()
 		}
-		sc.SacTick.Incr()
 	}
 
-	sc.Tick.Incr()
+	// write current state to table
+	sc.WriteToTable(sc.Table)
 }
