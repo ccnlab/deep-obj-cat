@@ -3,8 +3,10 @@
 // license that can be found in the LICENSE file.
 
 /*
-wwi_emer does deep predictive learning of 3D objects tumbling through space, with
+wwi3d does deep predictive learning of 3D objects tumbling through space, with
 periodic saccadic eye movements, providing plenty of opportunity for prediction errors.
+wwi = what, where integration: both pathways combine to predict object --
+*where* (dorsal) pathway is trained first and residual prediction error trains *what* pathway.
 */
 package main
 
@@ -71,50 +73,54 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.Learn.Norm.On":     "true",
 					"Prjn.Learn.Momentum.On": "true",
-					"Prjn.Learn.WtBal.On":    "false", // not obviously beneficial, maybe worse
-					"Prjn.Learn.Lrate":       "0.04",  // must set initial lrate here when using schedule!
+					"Prjn.Learn.WtBal.On":    "true", // essential
+					"Prjn.Learn.Lrate":       "0.04", // must set initial lrate here when using schedule!
 				}},
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
 					"Layer.Learn.AvgL.Gain": "2.5", // standard
 					"Layer.Act.Gbar.L":      "0.1", // more distributed activity with 0.1
 				}},
+
+			// layer classes, specifics
+			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "3",
+					"Layer.Inhib.ActAvg.Init": "0.03",
+				}},
+			{Sel: ".LIP", Desc: "high, pool inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi":    "2.4",
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.5",
+					"Layer.Inhib.ActAvg.Init": "0.1",
+				}},
+			{Sel: "#LIPCT", Desc: "higher inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "2.6",
+				}},
+			{Sel: "#LIPP", Desc: "layer only",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "1.8",
+					"Layer.Inhib.Pool.On":  "false",
+				}},
+
+			// prjn classes, specifics
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.1",
 				}},
-			{Sel: "#V1", Desc: "pool inhib (not used), initial activity",
+			{Sel: ".Fixed", Desc: "fixed weights",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true", // clamped, so not relevant, but just in case
-					"Layer.Inhib.ActAvg.Init": "0.1",
+					"Prjn.Learn.Learn": "false",
+					"Prjn.WtInit.Mean": "0.8",
+					"Prjn.WtInit.Var":  "0",
+					"Prjn.WtInit.Sym":  "true",
 				}},
-			{Sel: "#V4", Desc: "pool inhib, sparse activity",
+			{Sel: "#MTPosToLIP", Desc: "fixed weights",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true", // needs pool-level
-					"Layer.Inhib.ActAvg.Init": "0.05", // sparse
-				}},
-			{Sel: "#IT", Desc: "initial activity",
-				Params: params.Params{
-					"Layer.Inhib.ActAvg.Init": "0.1",
-				}},
-			{Sel: "#Output", Desc: "high inhib for one-hot output",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "2.8",
-					"Layer.Inhib.ActAvg.Init": "0.05",
-				}},
-		},
-	}},
-	{Name: "NovelLearn", Desc: "learning for novel objects case -- IT, Output connections learn", Sheets: params.Sheets{
-		"Network": &params.Sheet{
-			{Sel: "Prjn", Desc: "lr = 0",
-				Params: params.Params{
-					"Prjn.Learn.Lrate":     "0",
-					"Prjn.Learn.LrateInit": "0", // make sure for sched
-				}},
-			{Sel: ".NovLearn", Desc: "lr = 0.04",
-				Params: params.Params{
-					"Prjn.Learn.Lrate":     "0.04",
-					"Prjn.Learn.LrateInit": "0.04", // double sure
+					"Prjn.WtScale.Rel": "0.5",
 				}},
 		},
 	}},
@@ -126,30 +132,33 @@ var ParamSets = params.Sets{
 // as arguments to methods, and provides the core GUI interface (note the view tags
 // for the fields which provide hints to how things should be displayed).
 type Sim struct {
-	Net         *deep.Network     `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
-	LIPOnly     bool              `desc:"if true, only build, train the LIP portion"`
-	TrnEpcLog   *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
-	TstEpcLog   *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
-	TstTrlLog   *etable.Table     `view:"no-inline" desc:"testing trial-level log data"`
-	ActRFs      actrf.RFs         `view:"no-inline" desc:"activation-based receptive fields"`
-	RunLog      *etable.Table     `view:"no-inline" desc:"summary log of each run"`
-	RunStats    *etable.Table     `view:"no-inline" desc:"aggregate stats on all runs"`
-	Params      params.Sets       `view:"no-inline" desc:"full collection of param sets"`
-	ParamSet    string            `desc:"which set of *additional* parameters to use -- always applies Base and optionaly this next if set"`
-	Tag         string            `desc:"extra tag string to add to any file names output from sim (e.g., weights files, log files, params for run)"`
-	Prjn4x4Skp2 *prjn.PoolTile    `view:"projection from V1 to V4 which is tiled 4x4 skip 2 with topo scale values"`
-	MaxRuns     int               `desc:"maximum number of model runs to perform"`
-	MaxEpcs     int               `desc:"maximum number of epochs to run per model run"`
-	MaxTrls     int               `desc:"maximum number of training trials per epoch"`
-	NZeroStop   int               `desc:"if a positive number, training will stop after this many epochs with zero SSE"`
-	TrainEnv    Obj3DSacEnv       `desc:"Training environment -- 3D Object training"`
-	TestEnv     Obj3DSacEnv       `desc:"Testing environment -- testing 3D Objects"`
-	Time        leabra.Time       `desc:"leabra timing parameters and state"`
-	ViewOn      bool              `desc:"whether to update the network view while running"`
-	TrainUpdt   leabra.TimeScales `desc:"at what time scale to update the display during training?  Anything longer than Epoch updates at Epoch in this model"`
-	TestUpdt    leabra.TimeScales `desc:"at what time scale to update the display during testing?  Anything longer than Epoch updates at Epoch in this model"`
-	LayStatNms  []string          `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
-	ActRFNms    []string          `desc:"names of layers to compute activation rfields on"`
+	Net           *deep.Network     `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
+	LIPOnly       bool              `desc:"if true, only build, train the LIP portion"`
+	TrnEpcLog     *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
+	TstEpcLog     *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
+	TstTrlLog     *etable.Table     `view:"no-inline" desc:"testing trial-level log data"`
+	ActRFs        actrf.RFs         `view:"no-inline" desc:"activation-based receptive fields"`
+	RunLog        *etable.Table     `view:"no-inline" desc:"summary log of each run"`
+	RunStats      *etable.Table     `view:"no-inline" desc:"aggregate stats on all runs"`
+	Params        params.Sets       `view:"no-inline" desc:"full collection of param sets"`
+	ParamSet      string            `desc:"which set of *additional* parameters to use -- always applies Base and optionaly this next if set"`
+	Tag           string            `desc:"extra tag string to add to any file names output from sim (e.g., weights files, log files, params for run)"`
+	Prjn4x4Skp2   *prjn.PoolTile    `view:"Standard feedforward topographic projection, recv = 1/2 send size"`
+	Prjn3x3Skp1   *prjn.PoolTile    `view:"Standard same-to-same size topographic projection"`
+	PrjnSigTopo   *prjn.PoolTile    `view:"sigmoidal topographic projection used in LIP saccade remapping layers"`
+	PrjnGaussTopo *prjn.PoolTile    `view:"gaussian topographic projection used in LIP saccade remapping layers"`
+	MaxRuns       int               `desc:"maximum number of model runs to perform"`
+	MaxEpcs       int               `desc:"maximum number of epochs to run per model run"`
+	MaxTrls       int               `desc:"maximum number of training trials per epoch"`
+	NZeroStop     int               `desc:"if a positive number, training will stop after this many epochs with zero SSE"`
+	TrainEnv      Obj3DSacEnv       `desc:"Training environment -- 3D Object training"`
+	TestEnv       Obj3DSacEnv       `desc:"Testing environment -- testing 3D Objects"`
+	Time          leabra.Time       `desc:"leabra timing parameters and state"`
+	ViewOn        bool              `desc:"whether to update the network view while running"`
+	TrainUpdt     leabra.TimeScales `desc:"at what time scale to update the display during training?  Anything longer than Epoch updates at Epoch in this model"`
+	TestUpdt      leabra.TimeScales `desc:"at what time scale to update the display during testing?  Anything longer than Epoch updates at Epoch in this model"`
+	LayStatNms    []string          `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
+	ActRFNms      []string          `desc:"names of layers to compute activation rfields on"`
 
 	// statistics: note use float64 as that is best for etable.Table
 	TrlErr        float64 `inactive:"+" desc:"1 if trial was error, 0 if correct -- based on SSE = 0 (subject to .5 unit-wise tolerance)"`
@@ -209,6 +218,17 @@ func (ss *Sim) New() {
 	ss.RunLog = &etable.Table{}
 	ss.RunStats = &etable.Table{}
 	ss.Params = ParamSets
+	ss.RndSeed = 1
+	ss.ViewOn = true
+	ss.TrainUpdt = leabra.Quarter
+	ss.TestUpdt = leabra.Quarter
+	ss.LayStatNms = []string{"LIPP"}
+	ss.ActRFNms = []string{"V4:Image", "V4:Output", "IT:Image", "IT:Output"}
+	ss.Defaults()
+}
+
+// Defaults sets default values for params / prjns
+func (ss *Sim) Defaults() {
 	ss.Prjn4x4Skp2 = prjn.NewPoolTile()
 	ss.Prjn4x4Skp2.Size.Set(4, 4)
 	ss.Prjn4x4Skp2.Skip.Set(2, 2)
@@ -216,14 +236,35 @@ func (ss *Sim) New() {
 	ss.Prjn4x4Skp2.TopoRange.Min = 0.8 // note: none of these make a very big diff
 	// but using a symmetric scale range .8 - 1.2 seems like it might be good -- otherwise
 	// weights are systematicaly smaller.
+	// note: gauss defaults on
 	// ss.Prjn4x4Skp2.GaussFull.DefNoWrap()
 	// ss.Prjn4x4Skp2.GaussInPool.DefNoWrap()
-	ss.RndSeed = 1
-	ss.ViewOn = true
-	ss.TrainUpdt = leabra.Quarter
-	ss.TestUpdt = leabra.Quarter
-	ss.LayStatNms = []string{"V1", "Output"}
-	ss.ActRFNms = []string{"V4:Image", "V4:Output", "IT:Image", "IT:Output"}
+
+	ss.Prjn3x3Skp1 = prjn.NewPoolTile()
+	ss.Prjn3x3Skp1.Size.Set(3, 3)
+	ss.Prjn3x3Skp1.Skip.Set(1, 1)
+	ss.Prjn3x3Skp1.Start.Set(-1, -1)
+	ss.Prjn3x3Skp1.TopoRange.Min = 0.8 // note: none of these make a very big diff
+
+	ss.PrjnSigTopo = prjn.NewPoolTile()
+	ss.PrjnSigTopo.GaussOff()
+	ss.PrjnSigTopo.Size.Set(1, 1)
+	ss.PrjnSigTopo.Skip.Set(0, 0)
+	ss.PrjnSigTopo.Start.Set(0, 0)
+	ss.PrjnSigTopo.TopoRange.Min = 0.6
+	ss.PrjnSigTopo.SigFull.On = true
+	ss.PrjnSigTopo.SigFull.Gain = 0.05
+	ss.PrjnSigTopo.SigFull.CtrMove = 0.5
+
+	ss.PrjnGaussTopo = prjn.NewPoolTile()
+	ss.PrjnGaussTopo.Size.Set(1, 1)
+	ss.PrjnGaussTopo.Skip.Set(0, 0)
+	ss.PrjnGaussTopo.Start.Set(0, 0)
+	ss.PrjnGaussTopo.TopoRange.Min = 0.6
+	ss.PrjnGaussTopo.GaussInPool.On = false // Full only
+	ss.PrjnGaussTopo.GaussFull.Sigma = 0.6
+	ss.PrjnGaussTopo.GaussFull.Wrap = true
+	ss.PrjnGaussTopo.GaussFull.CtrMove = 1
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,18 +311,28 @@ func (ss *Sim) ConfigEnv() {
 }
 
 func (ss *Sim) ConfigNet(net *deep.Network) {
-	net.InitName(net, "Objrec")
+	net.InitName(net, "WWI3D")
 	v1m := net.AddLayer4D("V1m", 8, 8, 5, 4, emer.Input)
 	v1h := net.AddLayer4D("V1h", 16, 16, 5, 4, emer.Input)
 
 	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 4, 4)
+	lipp.Shape().SetShape([]int{8, 8, 1, 1}, nil, nil)
 
-	mtpos := net.AddLayer2D("MtPos", 8, 8, emer.Hidden)
+	mtpos := net.AddLayer4D("MTPos", 8, 8, 1, 1, emer.Hidden)
+
+	lipp.(*deep.TRCLayer).Drivers.Add("MTPos")
 
 	eyepos := net.AddLayer2D("EyePos", 21, 21, emer.Input)
 	sacplan := net.AddLayer2D("SacPlan", 11, 11, emer.Input)
 	sac := net.AddLayer2D("Saccade", 11, 11, emer.Input)
 	objvel := net.AddLayer2D("ObjVel", 11, 11, emer.Input)
+
+	v1m.SetClass("V1")
+	v1h.SetClass("V1")
+
+	lip.SetClass("LIP")
+	lipct.SetClass("LIP")
+	lipp.SetClass("LIP")
 
 	v1h.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1m.Name(), YAlign: relpos.Front, Space: 2})
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
@@ -293,6 +344,29 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	sacplan.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: eyepos.Name(), XAlign: relpos.Left, Space: 2})
 	sac.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sacplan.Name(), XAlign: relpos.Left, Space: 2})
 	objvel.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sac.Name(), XAlign: relpos.Left, Space: 2})
+
+	full := prjn.NewFull()
+	pone2one := prjn.NewPoolOneToOne()
+
+	pj := net.ConnectLayers(v1m, mtpos, pone2one, emer.Forward)
+	pj.SetClass("Fixed")
+
+	pj = net.ConnectLayers(mtpos, lip, pone2one, emer.Forward)
+	pj.SetClass("Fixed")
+
+	pj = lipp.RecvPrjns().SendName("LIPCT")
+	pj.SetPattern(full)
+
+	net.ConnectLayers(eyepos, lip, full, emer.Forward)  // InitWts sets ss.PrjnGaussTopo
+	net.ConnectLayers(sacplan, lip, full, emer.Forward) // InitWts sets ss.PrjnSigTopo
+	net.ConnectLayers(objvel, lip, full, emer.Forward)  // InitWts sets ss.PrjnSigTopo
+
+	pj = lipct.RecvPrjns().SendName("LIP")
+	pj.SetPattern(ss.Prjn3x3Skp1)
+
+	net.ConnectLayers(eyepos, lipct, full, emer.Forward) // InitWts sets ss.PrjnGaussTopo
+	net.ConnectLayers(sac, lipct, full, emer.Forward)    // InitWts sets ss.PrjnSigTopo
+	net.ConnectLayers(objvel, lipct, full, emer.Forward) // InitWts sets ss.PrjnSigTopo
 
 	// net.ConnectLayers(v1, v4, ss.Prjn4x4Skp2, emer.Forward)
 	// v4IT, _ := net.BidirConnectLayers(v4, it, prjn.NewFull())
@@ -312,16 +386,27 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	ss.InitWts(net)
 }
 
-func (ss *Sim) InitWts(net *deep.Network) {
-	return
+func (ss *Sim) SetTopoScales(net *deep.Network, send, recv string, pooltile *prjn.PoolTile) {
+	slay := net.LayerByName(send)
+	rlay := net.LayerByName(recv)
 
-	// set scales after building but before InitWts
-	v1 := net.LayerByName("V1")
-	v4 := net.LayerByName("V4")
-	v1v4 := v4.RecvPrjns().SendName("V1").(*leabra.Prjn)
+	pj := rlay.RecvPrjns().SendName(send).(leabra.LeabraPrjn).AsLeabra()
 	scales := &etensor.Float32{}
-	ss.Prjn4x4Skp2.TopoWts(v1.Shape(), v4.Shape(), scales)
-	v1v4.SetScalesRPool(scales)
+	pooltile.TopoWts(slay.Shape(), rlay.Shape(), scales)
+	pj.SetScalesRPool(scales)
+}
+
+func (ss *Sim) InitWts(net *deep.Network) {
+	// set scales after building but before InitWts
+	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "SacPlan", "LIP", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIP", ss.PrjnSigTopo)
+
+	ss.SetTopoScales(net, "LIP", "LIPCT", ss.Prjn3x3Skp1)
+	ss.SetTopoScales(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
+
 	net.InitWts()
 	net.LrateMult(1) // restore initial learning rate value
 }
@@ -436,7 +521,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"V1", "Output"}
+	lays := []string{"V1m", "V1h", "EyePos", "SacPlan", "Saccade", "ObjVel"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		pats := en.State(ly.Nm)
@@ -478,7 +563,6 @@ func (ss *Sim) TrainTrial() {
 	}
 
 	// note: type must be in place before apply inputs
-	ss.Net.LayerByName("Output").SetType(emer.Target)
 	ss.ApplyInputs(&ss.TrainEnv)
 	ss.AlphaCyc(true)   // train
 	ss.TrialStats(true) // accumulate
@@ -537,7 +621,7 @@ func (ss *Sim) InitStats() {
 // different time-scales over which stats could be accumulated etc.
 // You can also aggregate directly from log data, as is done for testing stats
 func (ss *Sim) TrialStats(accum bool) (sse, avgsse, cosdiff float64) {
-	out := ss.Net.LayerByName("Output").(leabra.LeabraLayer).AsLeabra()
+	out := ss.Net.LayerByName("LIPP").(leabra.LeabraLayer).AsLeabra()
 	ss.TrlCosDiff = float64(out.CosDiff.Cos)
 	ss.TrlSSE, ss.TrlAvgSSE = out.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
 	if ss.TrlSSE > 0 {
@@ -656,7 +740,6 @@ func (ss *Sim) TestTrial(returnOnChg bool) {
 	}
 
 	// note: type must be in place before apply inputs
-	ss.Net.LayerByName("Output").SetType(emer.Compare)
 	ss.ApplyInputs(&ss.TestEnv)
 	ss.AlphaCyc(false)   // !train
 	ss.TrialStats(false) // !accumulate
@@ -1166,10 +1249,10 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	width := 1600
 	height := 1200
 
-	gi.SetAppName("objrec")
-	gi.SetAppAbout(`This simulation explores how a hierarchy of areas in the ventral stream of visual processing (up to inferotemporal (IT) cortex) can produce robust object recognition that is invariant to changes in position, size, etc of retinal input images. See <a href="https://github.com/CompCogNeuro/sims/blob/master/ch6/objrec/README.md">README.md on GitHub</a>.</p>`)
+	gi.SetAppName("wwi3d")
+	gi.SetAppAbout(`wwi3d does deep predictive learning of 3D objects tumbling through space, with periodic saccadic eye movements, providing plenty of opportunity for prediction errors. wwi = what, where integration: both pathways combine to predict object -- *where* (dorsal) pathway is trained first and residual prediction error trains *what* pathway. See <a href="https://github.com/ccnlab/deep-obj-cat/blob/master/sims/wwi3d/README.md">README.md on GitHub</a>.</p>`)
 
-	win := gi.NewMainWindow("objrec", "Object Recognition", width, height)
+	win := gi.NewMainWindow("wwi3d", "WWI 3D", width, height)
 	ss.Win = win
 
 	vp := win.WinViewport2D()

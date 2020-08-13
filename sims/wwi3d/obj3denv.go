@@ -36,6 +36,8 @@ type Obj3DSacEnv struct {
 	Trial     env.Ctr         `view:"inline" desc:"each object trajectory is one trial"`
 	Tick      env.Ctr         `view:"inline" desc:"step along the trajectory"`
 	Row       env.Ctr         `view:"inline" desc:"row of table -- this is actual counter driving everything"`
+	CurCat    string          `desc:"current category"`
+	CurObj    string          `desc:"current object"`
 
 	// user can set the 2D shapes of these tensors -- Defaults sets default shapes
 	EyePos  etensor.Float32 `view:"eye position popcode"`
@@ -186,6 +188,13 @@ func (ev *Obj3DSacEnv) SetCtrs() {
 	ev.Trial.Set(trial)
 	tick := int(ev.Table.CellFloat("Tick", row))
 	ev.Tick.Set(tick)
+
+	ev.CurCat = ev.Table.CellString("Cat", row)
+	ev.CurObj = ev.Table.CellString("Obj", row)
+}
+
+func (ev *Obj3DSacEnv) String() string {
+	return fmt.Sprintf("%s:%s_%d", ev.CurCat, ev.CurObj, ev.Tick.Cur)
 }
 
 func (ev *Obj3DSacEnv) Step() bool {
@@ -225,9 +234,9 @@ func (ev *Obj3DSacEnv) State(element string) etensor.Tensor {
 		return &ev.Saccade
 	case "ObjVel":
 		return &ev.ObjVel
-	case "V1Med":
+	case "V1m":
 		return &ev.V1Med.V1AllTsr
-	case "V1Hi":
+	case "V1h":
 		return &ev.V1Hi.V1AllTsr
 	}
 	et, err := ev.IdxView.Table.CellTensorTry(element, ev.CurRow())
