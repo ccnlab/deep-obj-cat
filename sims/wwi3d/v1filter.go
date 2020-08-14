@@ -9,6 +9,7 @@ import (
 
 	"github.com/anthonynsimon/bild/transform"
 	"github.com/emer/etable/etensor"
+	"github.com/emer/etable/norm"
 	"github.com/emer/leabra/fffb"
 	"github.com/emer/vision/gabor"
 	"github.com/emer/vision/kwta"
@@ -19,6 +20,8 @@ import (
 
 // Vis encapsulates specific visual processing pipeline for V1 filtering
 type Vis struct {
+	Binarize      bool            `desc:"binarizing result has been useful: todo: revisit!"`
+	BinThr        float32         `def:"0.4" desc:"threshold for binarizing"`
 	V1sGabor      gabor.Filter    `desc:"V1 simple gabor filter parameters"`
 	V1sGeom       vfilter.Geom    `inactive:"+" view:"inline" desc:"geometry of input, output for V1 simple-cell processing"`
 	V1sNeighInhib kwta.NeighInhib `desc:"neighborhood inhibition for V1s -- each unit gets inhibition from same feature in nearest orthogonal neighbors -- reduces redundancy of feature code"`
@@ -43,6 +46,7 @@ type Vis struct {
 var KiT_Vis = kit.Types.AddType(&Vis{}, nil)
 
 func (vi *Vis) Defaults(sz, spc int) { // high: sz = 12, spc = 4, med: sz = 24, spc = 8
+	vi.BinThr = 0.4
 	vi.V1sGabor.Defaults()
 	vi.V1sGabor.SetSize(sz, spc)
 	// note: first arg is border -- we are relying on Geom
@@ -111,6 +115,10 @@ func (vi *Vis) V1All() {
 	vfilter.FeatAgg([]int{0, 1}, 1, &vi.V1cEndStopTsr, &vi.V1AllTsr)
 	// 2 pooled simple cell
 	vfilter.FeatAgg([]int{0, 1}, 3, &vi.V1sPoolTsr, &vi.V1AllTsr)
+
+	if vi.Binarize {
+		norm.Binarize32(vi.V1AllTsr.Values, vi.BinThr, 1, 0)
+	}
 }
 
 // Filter is overall method to run filters on given image
