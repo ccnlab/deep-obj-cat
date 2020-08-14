@@ -392,6 +392,14 @@ func (ss *Sim) ConfigEnv() {
 
 	ss.TrainEnv.Init(0)
 	ss.TestEnv.Init(0)
+	// test to filter list of items -- todo: do this based on mpi settings!
+	/*
+		ss.TrainEnv.IdxView = etable.NewIdxView(ss.TrainEnv.Table)
+		ss.TrainEnv.IdxView.Filter(func(et *etable.Table, row int) bool {
+			trl := int(et.CellFloat("Trial", row))
+			return trl > 60
+		})
+	*/
 	ss.TrainEnv.Validate()
 	ss.TestEnv.Validate()
 }
@@ -1009,6 +1017,13 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	tick := ss.TrainEnv.Tick.Cur
 	row := dt.Rows
 
+	if row > 1 { // reset at new epoch
+		lstepc := int(dt.CellFloat("Epoch", row-1))
+		if lstepc != epc {
+			dt.SetNumRows(0)
+			row = 0
+		}
+	}
 	if dt.Rows <= row {
 		dt.SetNumRows(row + 1)
 	}
@@ -1022,8 +1037,8 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	dt.SetCellString("TrialName", row, ss.TrainEnv.String())
 
 	for pi, pnm := range ss.PulvLays {
-		dt.SetCellFloat(pnm+" CosDiff", row, ss.PulvTrlCosDiff[pi])
-		dt.SetCellFloat(pnm+" AvgSSE", row, ss.PulvTrlAvgSSE[pi])
+		dt.SetCellFloat(pnm+"_CosDiff", row, ss.PulvTrlCosDiff[pi])
+		dt.SetCellFloat(pnm+"_AvgSSE", row, ss.PulvTrlAvgSSE[pi])
 	}
 
 	// note: essential to use Go version of update when called from another goroutine
@@ -1046,8 +1061,8 @@ func (ss *Sim) ConfigTrnTrlLog(dt *etable.Table) {
 		{"TrialName", etensor.STRING, nil, nil},
 	}
 	for _, pnm := range ss.PulvLays {
-		sch = append(sch, etable.Column{pnm + " CosDiff", etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{pnm + " AvgSSE", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{pnm + "_CosDiff", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{pnm + "_AvgSSE", etensor.FLOAT64, nil, nil})
 	}
 
 	dt.SetFromSchema(sch, 0)
@@ -1067,8 +1082,8 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("TrialName", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 
 	for _, pnm := range ss.PulvLays {
-		plt.SetColParams(pnm+" CosDiff", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(pnm+" AvgSSE", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(pnm+"_CosDiff", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(pnm+"_AvgSSE", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	}
 	return plt
 }
@@ -1082,10 +1097,9 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	row := dt.Rows
 	dt.SetNumRows(row + 1)
 
-	epc := ss.TrainEnv.Epoch.Prv         // this is triggered by increment so use previous value
-	nt := float64(ss.TrainEnv.Trial.Max) // number of trials in view
-
-	// todo: sort by ticks,
+	trl := ss.TrnTrlLog
+	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
+	nt := float64(trl.Rows)
 
 	if ss.LastEpcTime.IsZero() {
 		ss.EpcPerTrlMSec = 0
@@ -1097,16 +1111,28 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 
 	dt.SetCellFloat("Run", row, float64(ss.TrainEnv.Run.Cur))
 	dt.SetCellFloat("Epoch", row, float64(epc))
-	// dt.SetCellFloat("SSE", row, ss.EpcSSE)
-	// dt.SetCellFloat("AvgSSE", row, ss.EpcAvgSSE)
-	// dt.SetCellFloat("PctErr", row, ss.EpcPctErr)
-	// dt.SetCellFloat("PctCor", row, ss.EpcPctCor)
-	// dt.SetCellFloat("CosDiff", row, ss.EpcCosDiff)
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
 
-	for _, lnm := range ss.LayStatNms {
-		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
-		dt.SetCellFloat(ly.Nm+" ActAvg", row, float64(ly.Pools[0].ActAvg.ActPAvgEff))
+	tix := etable.NewIdxView(trl)
+	spl := split.GroupBy(tix, []string{"Tick"})
+	// np := len(ss.PulvLays)
+	for _, pnm := range ss.PulvLays {
+		_, err := split.AggTry(spl, pnm+"_CosDiff", agg.AggMean)
+		if err != nil {
+			log.Println(err)
+		}
+		split.AggTry(spl, pnm+"_AvgSSE", agg.AggMean)
+	}
+	tags := spl.AggsToTable(etable.ColNameOnly)
+	for pi, pnm := range ss.PulvLays {
+		for tck := 0; tck < ss.MaxTicks; tck++ {
+			cnm := fmt.Sprintf("%s_CosDiff_%d", pnm, tck)
+			val := tags.Cols[1+2*pi].FloatVal1D(tck)
+			dt.SetCellFloat(cnm, row, val)
+			cnm = fmt.Sprintf("%s_AvgSSE_%d", pnm, tck)
+			val = tags.Cols[2+2*pi].FloatVal1D(tck)
+			dt.SetCellFloat(cnm, row, val)
+		}
 	}
 
 	// note: essential to use Go version of update when called from another goroutine
@@ -1128,15 +1154,13 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	sch := etable.Schema{
 		{"Run", etensor.INT64, nil, nil},
 		{"Epoch", etensor.INT64, nil, nil},
-		{"SSE", etensor.FLOAT64, nil, nil},
-		{"AvgSSE", etensor.FLOAT64, nil, nil},
-		{"PctErr", etensor.FLOAT64, nil, nil},
-		{"PctCor", etensor.FLOAT64, nil, nil},
-		{"CosDiff", etensor.FLOAT64, nil, nil},
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
 	}
-	for _, lnm := range ss.LayStatNms {
-		sch = append(sch, etable.Column{lnm + " ActAvg", etensor.FLOAT64, nil, nil})
+	for tck := 0; tck < ss.MaxTicks; tck++ {
+		for _, pnm := range ss.PulvLays {
+			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", pnm, tck), etensor.FLOAT64, nil, nil})
+			sch = append(sch, etable.Column{fmt.Sprintf("%s_AvgSSE_%d", pnm, tck), etensor.FLOAT64, nil, nil})
+		}
 	}
 	dt.SetFromSchema(sch, 0)
 }
@@ -1148,15 +1172,15 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	// order of params: on, fixMin, min, fixMax, max
 	plt.SetColParams("Run", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("Epoch", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
-	plt.SetColParams("SSE", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
-	plt.SetColParams("AvgSSE", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
-	plt.SetColParams("PctErr", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1) // default plot
-	plt.SetColParams("PctCor", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-	plt.SetColParams("CosDiff", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	plt.SetColParams("PerTrlMSec", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 
-	for _, lnm := range ss.LayStatNms {
-		plt.SetColParams(lnm+" ActAvg", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 0.5)
+	for tck := 0; tck < ss.MaxTicks; tck++ {
+		for _, pnm := range ss.PulvLays {
+			cnm := fmt.Sprintf("%s_CosDiff_%d", pnm, tck)
+			plt.SetColParams(cnm, eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+			cnm = fmt.Sprintf("%s_AvgSSE_%d", pnm, tck)
+			plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		}
 	}
 	return plt
 }
@@ -1560,43 +1584,45 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	// 		win.Close()
 	// 	})
 
-	inQuitPrompt := false
-	gi.SetQuitReqFunc(func() {
-		if inQuitPrompt {
-			return
-		}
-		inQuitPrompt = true
-		gi.PromptDialog(vp, gi.DlgOpts{Title: "Really Quit?",
-			Prompt: "Are you <i>sure</i> you want to quit and lose any unsaved params, weights, logs, etc?"}, gi.AddOk, gi.AddCancel,
-			win.This(), func(recv, send ki.Ki, sig int64, data interface{}) {
-				if sig == int64(gi.DialogAccepted) {
-					gi.Quit()
-				} else {
-					inQuitPrompt = false
-				}
-			})
-	})
+	/*
+		inQuitPrompt := false
+		gi.SetQuitReqFunc(func() {
+			if inQuitPrompt {
+				return
+			}
+			inQuitPrompt = true
+			gi.PromptDialog(vp, gi.DlgOpts{Title: "Really Quit?",
+				Prompt: "Are you <i>sure</i> you want to quit and lose any unsaved params, weights, logs, etc?"}, gi.AddOk, gi.AddCancel,
+				win.This(), func(recv, send ki.Ki, sig int64, data interface{}) {
+					if sig == int64(gi.DialogAccepted) {
+						gi.Quit()
+					} else {
+						inQuitPrompt = false
+					}
+				})
+		})
 
-	// gi.SetQuitCleanFunc(func() {
-	// 	fmt.Printf("Doing final Quit cleanup here..\n")
-	// })
+		// gi.SetQuitCleanFunc(func() {
+		// 	fmt.Printf("Doing final Quit cleanup here..\n")
+		// })
 
-	inClosePrompt := false
-	win.SetCloseReqFunc(func(w *gi.Window) {
-		if inClosePrompt {
-			return
-		}
-		inClosePrompt = true
-		gi.PromptDialog(vp, gi.DlgOpts{Title: "Really Close Window?",
-			Prompt: "Are you <i>sure</i> you want to close the window?  This will Quit the App as well, losing all unsaved params, weights, logs, etc"}, gi.AddOk, gi.AddCancel,
-			win.This(), func(recv, send ki.Ki, sig int64, data interface{}) {
-				if sig == int64(gi.DialogAccepted) {
-					gi.Quit()
-				} else {
-					inClosePrompt = false
-				}
-			})
-	})
+		inClosePrompt := false
+		win.SetCloseReqFunc(func(w *gi.Window) {
+			if inClosePrompt {
+				return
+			}
+			inClosePrompt = true
+			gi.PromptDialog(vp, gi.DlgOpts{Title: "Really Close Window?",
+				Prompt: "Are you <i>sure</i> you want to close the window?  This will Quit the App as well, losing all unsaved params, weights, logs, etc"}, gi.AddOk, gi.AddCancel,
+				win.This(), func(recv, send ki.Ki, sig int64, data interface{}) {
+					if sig == int64(gi.DialogAccepted) {
+						gi.Quit()
+					} else {
+						inClosePrompt = false
+					}
+				})
+		})
+	*/
 
 	win.SetCloseCleanFunc(func(w *gi.Window) {
 		go gi.Quit() // once main window is closed, quit

@@ -58,6 +58,7 @@ func (ev *Obj3DSacEnv) Validate() error {
 	if ev.Table.NumCols() == 0 {
 		return fmt.Errorf("env.Obj3DSacEnv: %v Table has no columns -- Outputs will be invalid", ev.Nm)
 	}
+	ev.DefaultIdxView()
 	return nil
 }
 
@@ -119,11 +120,21 @@ func (ev *Obj3DSacEnv) OpenTable() error {
 	return err
 }
 
-// CurRow returns current row in table, filtered through indexes
-func (ev *Obj3DSacEnv) CurRow() int {
+// DefaultIdxView ensures that there is an IdxView, creating a default if currently nil
+func (ev *Obj3DSacEnv) DefaultIdxView() {
 	if ev.IdxView == nil {
 		ev.IdxView = etable.NewIdxView(ev.Table)
 		ev.IdxView.Sequential()
+		ev.Row.Max = ev.IdxView.Len()
+	}
+}
+
+// CurRow returns current row in table, filtered through indexes
+func (ev *Obj3DSacEnv) CurRow() int {
+	ev.DefaultIdxView()
+	if ev.Row.Cur >= ev.IdxView.Len() {
+		ev.Row.Max = ev.IdxView.Len()
+		ev.Row.Cur = 0
 	}
 	return ev.IdxView.Idxs[ev.Row.Cur]
 }
