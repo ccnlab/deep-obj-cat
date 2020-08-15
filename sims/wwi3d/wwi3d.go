@@ -88,9 +88,43 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.Gi":     "1.5",
 					"Layer.Inhib.ActAvg.Init": "0.1",
 				}},
-			{Sel: ".IT", Desc: "less avgl.gain",
+			{Sel: ".V2", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Learn.AvgL.Gain": "2.5", // key param -- 3 > 2.5 > 3.5 except IT!
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.8",
+					"Layer.Inhib.ActAvg.Init": "0.04",
+				}},
+			{Sel: ".V3", Desc: "pool inhib, initial activity",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.8",
+					"Layer.Inhib.ActAvg.Init": "0.15",
+				}},
+			{Sel: ".V4", Desc: "pool inhib, initial activity, less avgl.gain",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.8",
+					"Layer.Inhib.ActAvg.Init": "0.15",
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+				}},
+			{Sel: ".DP", Desc: "no pool inhib, initial activity",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":     "false",
+					"Layer.Inhib.ActAvg.Init": "0.15",
+				}},
+			{Sel: ".TEO", Desc: "pool inhib, initial activity, less avgl.gain",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.8",
+					"Layer.Inhib.ActAvg.Init": "0.15",
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+				}},
+			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.8",
+					"Layer.Inhib.ActAvg.Init": "0.15",
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: "#LIPCT", Desc: "higher inhib",
 				Params: params.Params{
@@ -128,6 +162,19 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Sym":  "true",
 				}},
 
+			{Sel: ".StdFF", Desc: "standard feedforward",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "1.0",
+				}},
+			{Sel: ".FwdWeak", Desc: "weak feedforward",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.1",
+				}},
+
+			{Sel: ".StdFB", Desc: "standard feedback",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.1",
+				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.1",
@@ -143,6 +190,10 @@ var ParamSets = params.Sets{
 			{Sel: ".BackWeak05", Desc: "weak .05",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.05",
+				}},
+			{Sel: ".BackLIPCT", Desc: "strength = 1",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "1.0",
 				}},
 
 			{Sel: ".FmPulvMed", Desc: "medium",
@@ -170,7 +221,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1",
 				}},
-			{Sel: "#V2ToV2CT", Desc: "V2 has weaker",
+			{Sel: "#V2ToV2CT", Desc: "V2 has weaker -- todo: untested!",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.5",
 				}},
@@ -203,6 +254,22 @@ var ParamSets = params.Sets{
 					"Prjn.WtScale.Rel": "4",
 				}},
 
+			{Sel: "#V2ToV3", Desc: "weird BottomUpAbsScDn..",
+				Params: params.Params{
+					"Prjn.WtScale.Abs": "0.5", // todo: test if still needed
+					"Prjn.WtScale.Rel": "2",
+				}},
+			{Sel: "#V2ToV4", Desc: "weird BottomUpAbsScDn..",
+				Params: params.Params{
+					"Prjn.WtScale.Abs": "0.5", // todo: test if still needed
+					"Prjn.WtScale.Rel": "2",
+				}},
+
+			{Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.05",
+				}},
+
 			{Sel: "#MTPosToLIP", Desc: "fixed weights",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.5",
@@ -217,36 +284,39 @@ var ParamSets = params.Sets{
 // as arguments to methods, and provides the core GUI interface (note the view tags
 // for the fields which provide hints to how things should be displayed).
 type Sim struct {
-	Net           *deep.Network     `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
-	LIPOnly       bool              `desc:"if true, only build, train the LIP portion"`
-	BinarizeV1    bool              `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
-	MaxTicks      int               `desc:"max number of ticks, for logs, stats"`
-	TrnTrlLog     *etable.Table     `view:"no-inline" desc:"training trial-level log data"`
-	TrnEpcLog     *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
-	TstEpcLog     *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
-	TstTrlLog     *etable.Table     `view:"no-inline" desc:"testing trial-level log data"`
-	ActRFs        actrf.RFs         `view:"no-inline" desc:"activation-based receptive fields"`
-	RunLog        *etable.Table     `view:"no-inline" desc:"summary log of each run"`
-	RunStats      *etable.Table     `view:"no-inline" desc:"aggregate stats on all runs"`
-	Params        params.Sets       `view:"no-inline" desc:"full collection of param sets"`
-	ParamSet      string            `desc:"which set of *additional* parameters to use -- always applies Base and optionaly this next if set"`
-	Tag           string            `desc:"extra tag string to add to any file names output from sim (e.g., weights files, log files, params for run)"`
-	Prjn4x4Skp2   *prjn.PoolTile    `view:"Standard feedforward topographic projection, recv = 1/2 send size"`
-	Prjn3x3Skp1   *prjn.PoolTile    `view:"Standard same-to-same size topographic projection"`
-	PrjnSigTopo   *prjn.PoolTile    `view:"sigmoidal topographic projection used in LIP saccade remapping layers"`
-	PrjnGaussTopo *prjn.PoolTile    `view:"gaussian topographic projection used in LIP saccade remapping layers"`
-	MaxRuns       int               `desc:"maximum number of model runs to perform"`
-	MaxEpcs       int               `desc:"maximum number of epochs to run per model run"`
-	MaxTrls       int               `desc:"maximum number of training trials per epoch"`
-	NZeroStop     int               `desc:"if a positive number, training will stop after this many epochs with zero SSE"`
-	TrainEnv      Obj3DSacEnv       `desc:"Training environment -- 3D Object training"`
-	TestEnv       Obj3DSacEnv       `desc:"Testing environment -- testing 3D Objects"`
-	Time          leabra.Time       `desc:"leabra timing parameters and state"`
-	ViewOn        bool              `desc:"whether to update the network view while running"`
-	TrainUpdt     leabra.TimeScales `desc:"at what time scale to update the display during training?  Anything longer than Epoch updates at Epoch in this model"`
-	TestUpdt      leabra.TimeScales `desc:"at what time scale to update the display during testing?  Anything longer than Epoch updates at Epoch in this model"`
-	LayStatNms    []string          `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
-	ActRFNms      []string          `desc:"names of layers to compute activation rfields on"`
+	Net              *deep.Network     `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
+	LIPOnly          bool              `desc:"if true, only build, train the LIP portion"`
+	BinarizeV1       bool              `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
+	MaxTicks         int               `desc:"max number of ticks, for logs, stats"`
+	TrnTrlLog        *etable.Table     `view:"no-inline" desc:"training trial-level log data"`
+	TrnEpcLog        *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
+	TstEpcLog        *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
+	TstTrlLog        *etable.Table     `view:"no-inline" desc:"testing trial-level log data"`
+	ActRFs           actrf.RFs         `view:"no-inline" desc:"activation-based receptive fields"`
+	RunLog           *etable.Table     `view:"no-inline" desc:"summary log of each run"`
+	RunStats         *etable.Table     `view:"no-inline" desc:"aggregate stats on all runs"`
+	Params           params.Sets       `view:"no-inline" desc:"full collection of param sets"`
+	ParamSet         string            `desc:"which set of *additional* parameters to use -- always applies Base and optionaly this next if set"`
+	Tag              string            `desc:"extra tag string to add to any file names output from sim (e.g., weights files, log files, params for run)"`
+	Prjn4x4Skp2      *prjn.PoolTile    `view:"Standard feedforward topographic projection, recv = 1/2 send size"`
+	Prjn4x4Skp2Recip *prjn.PoolTile    `view:"Reciprocal"`
+	Prjn2x2Skp2      *prjn.PoolTile    `view:"sparser skip 2 -- no overlap"`
+	Prjn2x2Skp2Recip *prjn.PoolTile    `view:"Reciprocal"`
+	Prjn3x3Skp1      *prjn.PoolTile    `view:"Standard same-to-same size topographic projection"`
+	PrjnSigTopo      *prjn.PoolTile    `view:"sigmoidal topographic projection used in LIP saccade remapping layers"`
+	PrjnGaussTopo    *prjn.PoolTile    `view:"gaussian topographic projection used in LIP saccade remapping layers"`
+	MaxRuns          int               `desc:"maximum number of model runs to perform"`
+	MaxEpcs          int               `desc:"maximum number of epochs to run per model run"`
+	MaxTrls          int               `desc:"maximum number of training trials per epoch"`
+	NZeroStop        int               `desc:"if a positive number, training will stop after this many epochs with zero SSE"`
+	TrainEnv         Obj3DSacEnv       `desc:"Training environment -- 3D Object training"`
+	TestEnv          Obj3DSacEnv       `desc:"Testing environment -- testing 3D Objects"`
+	Time             leabra.Time       `desc:"leabra timing parameters and state"`
+	ViewOn           bool              `desc:"whether to update the network view while running"`
+	TrainUpdt        leabra.TimeScales `desc:"at what time scale to update the display during training?  Anything longer than Epoch updates at Epoch in this model"`
+	TestUpdt         leabra.TimeScales `desc:"at what time scale to update the display during testing?  Anything longer than Epoch updates at Epoch in this model"`
+	LayStatNms       []string          `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
+	ActRFNms         []string          `desc:"names of layers to compute activation rfields on"`
 
 	// statistics: note use float64 as that is best for etable.Table
 	PulvLays       []string  `interactive:"-" desc:"pulvinar layers -- for stats"`
@@ -288,7 +358,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true
+	ss.LIPOnly = false
 	ss.BinarizeV1 = true
 	ss.MaxTicks = 8
 	ss.TrnTrlLog = &etable.Table{}
@@ -313,12 +383,32 @@ func (ss *Sim) Defaults() {
 	ss.Prjn4x4Skp2.Size.Set(4, 4)
 	ss.Prjn4x4Skp2.Skip.Set(2, 2)
 	ss.Prjn4x4Skp2.Start.Set(-1, -1)
-	ss.Prjn4x4Skp2.TopoRange.Min = 0.8 // note: none of these make a very big diff
+	ss.Prjn4x4Skp2.TopoRange.Min = 0.8
 	// but using a symmetric scale range .8 - 1.2 seems like it might be good -- otherwise
 	// weights are systematicaly smaller.
 	// note: gauss defaults on
 	// ss.Prjn4x4Skp2.GaussFull.DefNoWrap()
 	// ss.Prjn4x4Skp2.GaussInPool.DefNoWrap()
+
+	ss.Prjn4x4Skp2Recip = prjn.NewPoolTile()
+	ss.Prjn4x4Skp2Recip.Size.Set(4, 4)
+	ss.Prjn4x4Skp2Recip.Skip.Set(2, 2)
+	ss.Prjn4x4Skp2Recip.Start.Set(-1, -1)
+	ss.Prjn4x4Skp2Recip.TopoRange.Min = 0.8 // note: none of these make a very big diff
+	ss.Prjn4x4Skp2Recip.Recip = true
+
+	ss.Prjn2x2Skp2 = prjn.NewPoolTile()
+	ss.Prjn2x2Skp2.Size.Set(2, 2)
+	ss.Prjn2x2Skp2.Skip.Set(2, 2)
+	ss.Prjn2x2Skp2.Start.Set(0, 0)
+	ss.Prjn2x2Skp2.TopoRange.Min = 0.8
+
+	ss.Prjn2x2Skp2Recip = prjn.NewPoolTile()
+	ss.Prjn2x2Skp2Recip.Size.Set(2, 2)
+	ss.Prjn2x2Skp2Recip.Skip.Set(2, 2)
+	ss.Prjn2x2Skp2Recip.Start.Set(0, 0)
+	ss.Prjn2x2Skp2Recip.TopoRange.Min = 0.8
+	ss.Prjn2x2Skp2Recip.Recip = true
 
 	ss.Prjn3x3Skp1 = prjn.NewPoolTile()
 	ss.Prjn3x3Skp1.Size.Set(3, 3)
@@ -408,13 +498,9 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	net.InitName(net, "WWI3D")
 	ss.ConfigNetLIP(net)
 
-	// net.ConnectLayers(v1, v4, ss.Prjn4x4Skp2, emer.Forward)
-	// v4IT, _ := net.BidirConnectLayers(v4, it, prjn.NewFull())
-	// itOut, outIT := net.BidirConnectLayers(it, out, prjn.NewFull())
-
-	// about the same on mac with and without threading
-	// v4.SetThread(1)
-	// it.SetThread(2)
+	if !ss.LIPOnly {
+		ss.ConfigNetRest(net)
+	}
 
 	net.Defaults()
 	ss.SetParams("Network", false) // only set Network params
@@ -426,7 +512,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	ss.InitWts(net)
 }
 
-// just the v1 and LIP dorsal path part
+// ConfigNetLIP configures just the V1 and LIP dorsal path part
 func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	v1m := net.AddLayer4D("V1m", 8, 8, 5, 4, emer.Input)
 	v1h := net.AddLayer4D("V1h", 16, 16, 5, 4, emer.Input)
@@ -453,14 +539,14 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 
 	v1h.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1m.Name(), YAlign: relpos.Front, Space: 2})
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
-	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 2})
-	lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 2})
+	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
+	lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
 	mtpos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 4})
 
 	eyepos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
-	sacplan.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: eyepos.Name(), XAlign: relpos.Left, Space: 2})
-	sac.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sacplan.Name(), XAlign: relpos.Left, Space: 2})
-	objvel.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sac.Name(), XAlign: relpos.Left, Space: 2})
+	sacplan.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: eyepos.Name(), XAlign: relpos.Left, Space: 10})
+	sac.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sacplan.Name(), XAlign: relpos.Left, Space: 10})
+	objvel.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sac.Name(), XAlign: relpos.Left, Space: 10})
 
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
@@ -487,27 +573,200 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	net.ConnectLayers(objvel, lipct, full, emer.Forward) // InitWts sets ss.PrjnSigTopo
 }
 
-func (ss *Sim) SetTopoScales(net *deep.Network, send, recv string, pooltile *prjn.PoolTile) {
-	slay := net.LayerByName(send)
-	rlay := net.LayerByName(recv)
+// ConfigNetRest configures the rest of the network
+func (ss *Sim) ConfigNetRest(net *deep.Network) {
+	v2, v2ct, v2p := net.AddDeep4D("V2", 8, 8, 10, 10)
+	v2p.Shape().SetShape([]int{8, 8, 10, 4}, nil, nil)
+	v2p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..4 = v1m, 5..9 = v1h
 
-	pj := rlay.RecvPrjns().SendName(send).(leabra.LeabraPrjn).AsLeabra()
-	scales := &etensor.Float32{}
-	pooltile.TopoWts(slay.Shape(), rlay.Shape(), scales)
-	pj.SetScalesRPool(scales)
+	v3, v3ct, v3p := net.AddDeep4D("V3", 4, 4, 10, 10)
+	v3p.Shape().SetShape([]int{4, 4, 14, 10}, nil, nil)
+	v3p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V2") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
+
+	dp, dpct, dpp := net.AddDeep4D("DP", 1, 1, 10, 10)
+	dpp.Shape().SetShape([]int{1, 1, 10, 10}, nil, nil)
+	dpp.(*deep.TRCLayer).Drivers.Add("V3") // just does V3..
+
+	v4, v4ct, v4p := net.AddDeep4D("V4", 4, 4, 10, 10)
+	v4p.Shape().SetShape([]int{4, 4, 14, 10}, nil, nil)
+	v4p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V2") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
+
+	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 10, 10)
+	teop.Shape().SetShape([]int{4, 4, 24, 10}, nil, nil)
+	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V2", "V4") // todo: massive!
+
+	te, tect, tep := net.AddDeep4D("TE", 4, 4, 10, 10)
+	tep.Shape().SetShape([]int{4, 4, 20, 10}, nil, nil)
+	tep.(*deep.TRCLayer).Drivers.Add("TEO", "V4")
+
+	v2.SetClass("V2")
+	v2ct.SetClass("V2")
+	v2p.SetClass("V2")
+
+	v3.SetClass("V3")
+	v3ct.SetClass("V3")
+	v3p.SetClass("V3")
+
+	v4.SetClass("V4")
+	v4ct.SetClass("V4")
+	v4p.SetClass("V4")
+
+	dp.SetClass("DP")
+	dpct.SetClass("DP")
+	dpp.SetClass("DP")
+
+	teo.SetClass("TEO")
+	teoct.SetClass("TEO")
+	teop.SetClass("TEO")
+
+	te.SetClass("TE")
+	tect.SetClass("TE")
+	tep.SetClass("TE")
+
+	v1m := net.LayerByName("V1m")
+	v1h := net.LayerByName("V1h")
+	lip := net.LayerByName("LIP")
+	lipct := net.LayerByName("LIPCT")
+	eyepos := net.LayerByName("EyePos")
+
+	v2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
+	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v2.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
+	v2p.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v1m.Name(), XAlign: relpos.Left, Space: 10})
+	v2ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v2.Name(), XAlign: relpos.Left, Space: 10})
+
+	v3.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v2.Name(), YAlign: relpos.Front, Space: 2})
+	v3ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3.Name(), XAlign: relpos.Left, Space: 10})
+	v3p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v3ct.Name(), YAlign: relpos.Front, Space: 2})
+
+	dp.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v3.Name(), YAlign: relpos.Front, Space: 2})
+	dpct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: dp.Name(), XAlign: relpos.Left, Space: 10})
+	dpp.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: dpct.Name(), YAlign: relpos.Front, Space: 2})
+
+	v4.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3ct.Name(), XAlign: relpos.Left, Space: 10})
+	v4ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v4.Name(), XAlign: relpos.Left, Space: 10})
+	v4p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v4ct.Name(), YAlign: relpos.Back, Space: 2})
+
+	teo.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: eyepos.Name(), YAlign: relpos.Front, Space: 2})
+	teoct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teo.Name(), XAlign: relpos.Left, Space: 10})
+	teop.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teoct.Name(), XAlign: relpos.Left, Space: 10})
+
+	te.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: teo.Name(), YAlign: relpos.Front, Space: 2})
+	tect.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: te.Name(), XAlign: relpos.Left, Space: 10})
+	tep.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: tect.Name(), XAlign: relpos.Left, Space: 10})
+
+	full := prjn.NewFull()
+	pone2one := prjn.NewPoolOneToOne()
+	one2one := prjn.NewOneToOne()
+
+	// basic ff cons
+	net.ConnectLayers(v1m, v2, ss.Prjn3x3Skp1, emer.Forward).SetClass("StdFF") // todo: uses V1V2 version of prjn?
+	net.ConnectLayers(v1h, v2, ss.Prjn4x4Skp2, emer.Forward).SetClass("StdFF") // todo: uses V1V2 version of prjn?
+
+	v2v4, v4v2 := net.BidirConnectLayers(v2, v4, ss.Prjn4x4Skp2)
+	v2v4.SetClass("StdFF")
+	v4v2.SetClass("StdFB")
+	v4v2.SetPattern(ss.Prjn4x4Skp2Recip)
+
+	v2v3, v3v2 := net.BidirConnectLayers(v2, v3, ss.Prjn4x4Skp2)
+	v2v3.SetClass("StdFF")
+	v3v2.SetClass("BackMax") // super strong feedback
+	v3v2.SetPattern(ss.Prjn4x4Skp2Recip)
+
+	v3dp, dpv3 := net.BidirConnectLayers(v3, dp, full)
+	v3dp.SetClass("StdFF")
+	dpv3.SetClass("BackStrong")
+
+	v4teo, teov4 := net.BidirConnectLayers(v4, teo, full)
+	v4teo.SetClass("StdFF")
+	teov4.SetClass("StdFB")
+
+	teote, teteo := net.BidirConnectLayers(teo, te, full)
+	teote.SetClass("StdFF")
+	teteo.SetClass("StdFB")
+
+	// non-basic cons
+
+	// to LIP -- weak from v2, v3
+	net.ConnectLayers(v2, lip, pone2one, emer.Forward).SetClass("FwdWeak")
+	net.ConnectLayers(v3, lip, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
+
+	net.ConnectLayers(v2ct, lipct, pone2one, emer.Forward).SetClass("FwdWeak1")
+	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
+
+	// to V2
+	// todo: V1*P -> V2 = .02, -> V2CT = .2 -- currently using .1 default
+	v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1)
+
+	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax") // key top-down attn
+	net.ConnectLayers(teoct, v2, full, emer.Back).SetClass("BackMed")   // todo: scheduled in orig -- big..
+
+	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT")
+	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
+	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
+	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak, but key
+	net.ConnectLayers(teo, v2ct, full, emer.Back).SetClass("BackMax")               // s -> ct, todo: big, necc??
+
+	// to V3
+	v3ct.RecvPrjns().SendName("V3").SetPattern(full)
+
+	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(teo, v3, full, emer.Back).SetClass("BackMed")
+	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed")
+	net.ConnectLayers(teoct, v3, full, emer.Back).SetClass("BackMed")
+
+	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(v4, v3ct, full, emer.Back).SetClass("BackStrong") // s -> ct, "full way better than 3x3" -- retry
+	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong") // s -> ct, "full way better than 3x3" -- retry
+	net.ConnectLayers(teo, v3ct, full, emer.Back).SetClass("BackMax")   // s -> ct
+
+	// to V4
+	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // todo: try pone2one too
+
+	net.ConnectLayers(teoct, v4ct, full, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(tect, v4ct, full, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct
+
+	// to TEO
+	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // todo: try pone2one too
+
+	net.ConnectCtxtToCT(teoct, teoct, pone2one)
+	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
+
+	// to TE
+	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // todo: try pone2one too
+
+	net.ConnectCtxtToCT(tect, tect, pone2one)
+	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
+
+	v2.SetThread(1)
+	v2ct.SetThread(1)
+	v2p.SetThread(1)
+
+	dp.SetThread(1)
+	dpct.SetThread(1)
+	dpp.SetThread(1)
+
+	v3.SetThread(2)
+	v3ct.SetThread(2)
+	v3p.SetThread(2)
+
+	v4.SetThread(2)
+	v4ct.SetThread(2)
+	v4p.SetThread(2)
+
+	teo.SetThread(3)
+	teoct.SetThread(3)
+	teop.SetThread(3)
+
+	te.SetThread(3)
+	tect.SetThread(3)
+	tep.SetThread(3)
 }
 
 func (ss *Sim) InitWts(net *deep.Network) {
-	// set scales after building but before InitWts
-	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
-	ss.SetTopoScales(net, "SacPlan", "LIP", ss.PrjnSigTopo)
-	ss.SetTopoScales(net, "ObjVel", "LIP", ss.PrjnSigTopo)
-
-	ss.SetTopoScales(net, "LIP", "LIPCT", ss.Prjn3x3Skp1)
-	ss.SetTopoScales(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
-	ss.SetTopoScales(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
-	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
-
+	net.InitScalesFmPoolTile() // sets all!
 	net.InitWts()
 	net.LrateMult(1) // restore initial learning rate value
 }
@@ -1382,7 +1641,7 @@ func (ss *Sim) ConfigRunPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D 
 func (ss *Sim) ConfigNetView(nv *netview.NetView) {
 	nv.ViewDefaults()
 	cam := &(nv.Scene().Camera)
-	cam.Pose.Pos.Set(0.0, 1.733, 2.3)
+	cam.Pose.Pos.Set(0.0, 1.3, 2.56)
 	cam.LookAt(mat32.Vec3{0, 0, 0}, mat32.Vec3{0, 1, 0})
 	// cam.Pose.Quat.SetFromAxisAngle(mat32.Vec3{-1, 0, 0}, 0.4077744)
 }
@@ -1417,6 +1676,8 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	tv := gi.AddNewTabView(split, "tv")
 
 	nv := tv.AddNewTab(netview.KiT_NetView, "NetView").(*netview.NetView)
+	nv.Params.Defaults()
+	nv.Params.LayNmSize = 0.03
 	nv.Var = "Act"
 	nv.SetNet(ss.Net)
 	ss.NetView = nv
