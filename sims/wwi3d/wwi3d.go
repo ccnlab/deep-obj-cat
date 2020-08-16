@@ -27,6 +27,8 @@ import (
 	"github.com/emer/emergent/params"
 	"github.com/emer/emergent/prjn"
 	"github.com/emer/emergent/relpos"
+	"github.com/emer/empi/empi"
+	"github.com/emer/empi/mpi"
 	"github.com/emer/etable/agg"
 	"github.com/emer/etable/eplot"
 	"github.com/emer/etable/etable"
@@ -64,219 +66,7 @@ func guirun() {
 // LogPrec is precision for saving float values in logs
 const LogPrec = 4
 
-// ParamSets is the default set of parameters -- Base is always applied, and others can be optionally
-// selected to apply on top of that
-var ParamSets = params.Sets{
-	{Name: "Base", Desc: "these are the best params", Sheets: params.Sheets{
-		"Network": &params.Sheet{
-			// layer classes, specifics
-			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
-				Params: params.Params{
-					"Layer.Learn.AvgL.Gain": "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
-					"Layer.Act.Gbar.L":      "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
-				}},
-			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "3",
-					"Layer.Inhib.ActAvg.Init": "0.03",
-				}},
-			{Sel: ".LIP", Desc: "high, pool inhib",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "2.4",
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.5",
-					"Layer.Inhib.ActAvg.Init": "0.1",
-				}},
-			{Sel: ".V2", Desc: "pool inhib, initial activity",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.04",
-				}},
-			{Sel: ".V3", Desc: "pool inhib, initial activity",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.15",
-				}},
-			{Sel: ".V4", Desc: "pool inhib, initial activity, less avgl.gain",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
-				}},
-			{Sel: ".DP", Desc: "no pool inhib, initial activity",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "false",
-					"Layer.Inhib.ActAvg.Init": "0.15",
-				}},
-			{Sel: ".TEO", Desc: "pool inhib, initial activity, less avgl.gain",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
-				}},
-			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
-				}},
-			{Sel: "#LIPCT", Desc: "higher inhib",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.6",
-				}},
-			{Sel: "#LIPP", Desc: "layer only",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "1.8",
-					"Layer.Inhib.Pool.On":  "false",
-				}},
-			{Sel: "#MTPos", Desc: "layer only",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "1.8",
-					"Layer.Inhib.Pool.On":  "false",
-				}},
-
-			// prjn classes, specifics
-			{Sel: "Prjn", Desc: "yes extra learning factors",
-				Params: params.Params{
-					"Prjn.Learn.Norm.On":       "true",
-					"Prjn.Learn.Momentum.On":   "true",
-					"Prjn.Learn.Momentum.MTau": "20",   // has repeatedly been beneficial
-					"Prjn.Learn.WtBal.On":      "true", // essential
-					"Prjn.Learn.Lrate":         "0.04", // must set initial lrate here when using schedule!
-				}},
-			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-				}},
-			{Sel: ".Fixed", Desc: "fixed weights",
-				Params: params.Params{
-					"Prjn.Learn.Learn": "false",
-					"Prjn.WtInit.Mean": "0.8",
-					"Prjn.WtInit.Var":  "0",
-					"Prjn.WtInit.Sym":  "true",
-				}},
-
-			{Sel: ".StdFF", Desc: "standard feedforward",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1.0",
-				}},
-			{Sel: ".FwdWeak", Desc: "weak feedforward",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-				}},
-
-			{Sel: ".StdFB", Desc: "standard feedback",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-				}},
-			{Sel: ".BackMed", Desc: "medium / default",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-				}},
-			{Sel: ".BackStrong", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2",
-				}},
-			{Sel: ".BackMax", Desc: "strongest",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5",
-				}},
-			{Sel: ".BackWeak05", Desc: "weak .05",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-			{Sel: ".BackLIPCT", Desc: "strength = 1",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1.0",
-				}},
-
-			{Sel: ".FmPulvMed", Desc: "medium",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-				}},
-			{Sel: ".FmPulvStrong", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2",
-				}},
-			{Sel: ".FmPulvWeak05", Desc: "weaker",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-			{Sel: ".FmPulvWeak02", Desc: "weaker",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.02",
-				}},
-			{Sel: ".FmPulvWeak01", Desc: "weaker",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.01",
-				}},
-
-			{Sel: "#LIPToLIPCT", Desc: "default 1",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
-				}},
-			{Sel: "#V2ToV2CT", Desc: "V2 has weaker -- todo: untested!",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5",
-				}},
-			{Sel: "#V3ToV3CT", Desc: "V3 default",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
-				}},
-			{Sel: "#DPToDPCT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "3",
-				}},
-			{Sel: "#V4ToV4CT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
-				}},
-			{Sel: "#TEOToTEOCT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
-				}},
-			{Sel: "#TEOCTToTEOCT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
-				}},
-			{Sel: "#TEToTECT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
-				}},
-			{Sel: "#TECTToTECT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
-				}},
-
-			{Sel: "#V2ToV3", Desc: "weird BottomUpAbsScDn..",
-				Params: params.Params{
-					"Prjn.WtScale.Abs": "0.5", // todo: test if still needed
-					"Prjn.WtScale.Rel": "2",
-				}},
-			{Sel: "#V2ToV4", Desc: "weird BottomUpAbsScDn..",
-				Params: params.Params{
-					"Prjn.WtScale.Abs": "0.5", // todo: test if still needed
-					"Prjn.WtScale.Rel": "2",
-				}},
-
-			{Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-
-			{Sel: "#MTPosToLIP", Desc: "fixed weights",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5",
-				}},
-		},
-	}},
-}
+// see params_def.go for default params..
 
 // Sim encapsulates the entire simulation model, and we define all the
 // functionality as methods on this struct.  This structure keeps all relevant
@@ -287,11 +77,12 @@ type Sim struct {
 	Net              *deep.Network     `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
 	LIPOnly          bool              `desc:"if true, only build, train the LIP portion"`
 	BinarizeV1       bool              `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
-	MaxTicks         int               `desc:"max number of ticks, for logs, stats"`
 	TrnTrlLog        *etable.Table     `view:"no-inline" desc:"training trial-level log data"`
+	TrnTrlLogAll     *etable.Table     `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
 	TrnEpcLog        *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
 	TstEpcLog        *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
 	TstTrlLog        *etable.Table     `view:"no-inline" desc:"testing trial-level log data"`
+	TstTrlLogAll     *etable.Table     `view:"no-inline" desc:"all testing trial-level log data (aggregated from MPI)"`
 	ActRFs           actrf.RFs         `view:"no-inline" desc:"activation-based receptive fields"`
 	RunLog           *etable.Table     `view:"no-inline" desc:"summary log of each run"`
 	RunStats         *etable.Table     `view:"no-inline" desc:"aggregate stats on all runs"`
@@ -307,7 +98,8 @@ type Sim struct {
 	PrjnGaussTopo    *prjn.PoolTile    `view:"gaussian topographic projection used in LIP saccade remapping layers"`
 	MaxRuns          int               `desc:"maximum number of model runs to perform"`
 	MaxEpcs          int               `desc:"maximum number of epochs to run per model run"`
-	MaxTrls          int               `desc:"maximum number of training trials per epoch"`
+	MaxTrls          int               `desc:"maximum number of training trials per epoch (each trial is MaxTicks ticks)"`
+	MaxTicks         int               `desc:"max number of ticks, for logs, stats"`
 	NZeroStop        int               `desc:"if a positive number, training will stop after this many epochs with zero SSE"`
 	TrainEnv         Obj3DSacEnv       `desc:"Training environment -- 3D Object training"`
 	TestEnv          Obj3DSacEnv       `desc:"Testing environment -- testing 3D Objects"`
@@ -323,6 +115,7 @@ type Sim struct {
 	PulvTrlCosDiff []float64 `interactive:"-" desc:"trial-level cos diff for pulvs"`
 	PulvTrlAvgSSE  []float64 `interactive:"-" desc:"trial-level AvgSSE for pulvs"`
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
+	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
 
 	// internal state - view:"-"
 	Win          *gi.Window                    `view:"-" desc:"main GUI window"`
@@ -336,6 +129,7 @@ type Sim struct {
 	TstTrlPlot   *eplot.Plot2D                 `view:"-" desc:"the test-trial plot"`
 	RunPlot      *eplot.Plot2D                 `view:"-" desc:"the run plot"`
 	TrnEpcFile   *os.File                      `view:"-" desc:"log file"`
+	TrnTrlFile   *os.File                      `view:"-" desc:"log file"`
 	RunFile      *os.File                      `view:"-" desc:"log file"`
 	ValsTsrs     map[string]*etensor.Float32   `view:"-" desc:"for holding layer values"`
 	SaveWts      bool                          `view:"-" desc:"for command-line run only, auto-save final weights after each run"`
@@ -346,6 +140,12 @@ type Sim struct {
 	NeedsNewRun  bool                          `view:"-" desc:"flag to initialize NewRun if last one finished"`
 	RndSeed      int64                         `view:"-" desc:"the current random seed"`
 	LastEpcTime  time.Time                     `view:"-" desc:"timer for last epoch"`
+	LastTrlTime  time.Time                     `view:"-" desc:"timer for last trial"`
+
+	UseMPI  bool      `view:"-" desc:"if true, use MPI to distribute computation across nodes"`
+	Comm    *mpi.Comm `view:"-" desc:"mpi communicator"`
+	AllDWts []float32 `view:"-" desc:"buffer of all dwt weight changes -- for mpi sharing"`
+	SumDWts []float32 `view:"-" desc:"buffer of MPI summed dwt weight changes"`
 }
 
 // this registers this Sim Type and gives it properties that e.g.,
@@ -360,11 +160,12 @@ func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
 	ss.LIPOnly = false
 	ss.BinarizeV1 = true
-	ss.MaxTicks = 8
 	ss.TrnTrlLog = &etable.Table{}
+	ss.TrnTrlLogAll = &etable.Table{}
 	ss.TrnEpcLog = &etable.Table{}
 	ss.TstEpcLog = &etable.Table{}
 	ss.TstTrlLog = &etable.Table{}
+	ss.TstTrlLogAll = &etable.Table{}
 	ss.RunLog = &etable.Table{}
 	ss.RunStats = &etable.Table{}
 	ss.Params = ParamSets
@@ -461,7 +262,8 @@ func (ss *Sim) ConfigEnv() {
 		ss.NZeroStop = -1
 	}
 	if ss.MaxTrls == 0 { // allow user override
-		ss.MaxTrls = 512
+		ss.MaxTrls = 64
+		ss.MaxTicks = 8
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
@@ -482,14 +284,14 @@ func (ss *Sim) ConfigEnv() {
 
 	ss.TrainEnv.Init(0)
 	ss.TestEnv.Init(0)
-	// test to filter list of items -- todo: do this based on mpi settings!
-	/*
+	if ss.UseMPI { // filter trials to subset for each proc
+		st, ed, _ := empi.AllocN(ss.MaxTrls)
 		ss.TrainEnv.IdxView = etable.NewIdxView(ss.TrainEnv.Table)
 		ss.TrainEnv.IdxView.Filter(func(et *etable.Table, row int) bool {
 			trl := int(et.CellFloat("Trial", row))
-			return trl > 60
+			return trl >= st && trl < ed
 		})
-	*/
+	}
 	ss.TrainEnv.Validate()
 	ss.TestEnv.Validate()
 }
@@ -740,6 +542,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectCtxtToCT(tect, tect, pone2one)
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
 
+	// return
 	v2.SetThread(1)
 	v2ct.SetThread(1)
 	v2p.SetThread(1)
@@ -829,7 +632,7 @@ func (ss *Sim) AlphaCyc(train bool) {
 	// in which case, move it out to the TrainTrial method where the relevant
 	// counters are being dealt with.
 	if train {
-		ss.Net.WtFmDWt()
+		ss.MPIWtFmDWt()
 	}
 
 	ss.Net.AlphaCycInit()
@@ -952,7 +755,9 @@ func (ss *Sim) NewRun() {
 	ss.InitWts(ss.Net)
 	ss.InitStats()
 	ss.TrnEpcLog.SetNumRows(0)
+	ss.TrnTrlLog.SetNumRows(0)
 	ss.TstEpcLog.SetNumRows(0)
+	ss.TstTrlLog.SetNumRows(0)
 	ss.NeedsNewRun = false
 }
 
@@ -1263,7 +1068,12 @@ func (ss *Sim) WeightsFileName() string {
 
 // LogFileName returns default log file name
 func (ss *Sim) LogFileName(lognm string) string {
-	return ss.Net.Nm + "_" + ss.RunName() + "_" + lognm + ".csv"
+	nm := ss.Net.Nm + "_" + ss.RunName() + "_" + lognm
+	if mpi.WorldRank() > 0 {
+		nm += fmt.Sprintf("_%d", mpi.WorldRank())
+	}
+	nm += ".csv"
+	return nm
 }
 
 //////////////////////////////////////////////
@@ -1299,6 +1109,16 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 		dt.SetCellFloat(pnm+"_CosDiff", row, ss.PulvTrlCosDiff[pi])
 		dt.SetCellFloat(pnm+"_AvgSSE", row, ss.PulvTrlAvgSSE[pi])
 	}
+
+	if ss.LastTrlTime.IsZero() {
+		ss.LastTrlMSec = 0
+	} else {
+		iv := time.Now().Sub(ss.LastTrlTime)
+		ss.LastTrlMSec = float64(iv) / (float64(time.Millisecond))
+	}
+	ss.LastTrlTime = time.Now()
+
+	mpi.Printf("trl: %d %d %d: msec: %5.0f \t obj:%s\n", epc, trl, tick, ss.LastTrlMSec, ss.TrainEnv.String())
 
 	// note: essential to use Go version of update when called from another goroutine
 	ss.TrnTrlPlot.GoUpdate()
@@ -1357,6 +1177,11 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetNumRows(row + 1)
 
 	trl := ss.TrnTrlLog
+	if ss.UseMPI {
+		empi.GatherTableRows(ss.TrnTrlLogAll, ss.TrnTrlLog, ss.Comm)
+		trl = ss.TrnTrlLogAll
+	}
+
 	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
 	nt := float64(trl.Rows)
 
@@ -1401,6 +1226,15 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 			dt.WriteCSVHeaders(ss.TrnEpcFile, etable.Tab)
 		}
 		dt.WriteCSVRow(ss.TrnEpcFile, row, etable.Tab)
+	}
+
+	if ss.TrnTrlFile != nil {
+		if ss.TrainEnv.Run.Cur == 0 && epc == 0 {
+			trl.WriteCSVHeaders(ss.TrnTrlFile, etable.Tab)
+		}
+		for ri := 0; ri < trl.Rows; ri++ {
+			trl.WriteCSVRow(ss.TrnTrlFile, ri, etable.Tab)
+		}
 	}
 }
 
@@ -1515,6 +1349,10 @@ func (ss *Sim) ConfigTstTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 
 func (ss *Sim) LogTstEpc(dt *etable.Table) {
 	trl := ss.TstTrlLog
+	if ss.UseMPI {
+		empi.GatherTableRows(ss.TstTrlLogAll, ss.TstTrlLog, ss.Comm)
+		trl = ss.TstTrlLogAll
+	}
 	tix := etable.NewIdxView(trl)
 	// epc := ss.TrainEnv.Epoch.Prv // ?
 
@@ -1864,7 +1702,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 		})
 
 		// gi.SetQuitCleanFunc(func() {
-		// 	fmt.Printf("Doing final Quit cleanup here..\n")
+		// 	mpi.Printf("Doing final Quit cleanup here..\n")
 		// })
 
 		inClosePrompt := false
@@ -1912,7 +1750,9 @@ func (ss *Sim) CmdArgs() {
 	ss.NoGui = true
 	var nogui bool
 	var saveEpcLog bool
+	var saveTrlLog bool
 	var saveRunLog bool
+	var saveProcLog bool
 	var note string
 	flag.StringVar(&ss.ParamSet, "params", "", "ParamSet name to use -- must be valid name as listed in compiled-in params or loaded params")
 	flag.StringVar(&ss.Tag, "tag", "", "extra tag to add to file names saved from this run")
@@ -1921,19 +1761,26 @@ func (ss *Sim) CmdArgs() {
 	flag.BoolVar(&ss.LogSetParams, "setparams", false, "if true, print a record of each parameter that is set")
 	flag.BoolVar(&ss.SaveWts, "wts", false, "if true, save final weights after each run")
 	flag.BoolVar(&saveEpcLog, "epclog", true, "if true, save train epoch log to file")
+	flag.BoolVar(&saveTrlLog, "trllog", false, "if true, save train trial log to file")
 	flag.BoolVar(&saveRunLog, "runlog", true, "if true, save run epoch log to file")
+	flag.BoolVar(&saveProcLog, "proclog", false, "if true, save log files separately for each processor (for debugging)")
 	flag.BoolVar(&nogui, "nogui", true, "if not passing any other args and want to run nogui, use nogui")
+	flag.BoolVar(&ss.UseMPI, "mpi", false, "if set, use MPI for distributed computation")
 	flag.Parse()
+
+	if ss.UseMPI {
+		ss.MPIInit()
+	}
 	ss.Init()
 
 	if note != "" {
-		fmt.Printf("note: %s\n", note)
+		mpi.Printf("note: %s\n", note)
 	}
 	if ss.ParamSet != "" {
-		fmt.Printf("Using ParamSet: %s\n", ss.ParamSet)
+		mpi.Printf("Using ParamSet: %s\n", ss.ParamSet)
 	}
 
-	if saveEpcLog {
+	if saveEpcLog && (saveProcLog || mpi.WorldRank() == 0) {
 		var err error
 		fnm := ss.LogFileName("epc")
 		ss.TrnEpcFile, err = os.Create(fnm)
@@ -1941,11 +1788,23 @@ func (ss *Sim) CmdArgs() {
 			log.Println(err)
 			ss.TrnEpcFile = nil
 		} else {
-			fmt.Printf("Saving epoch log to: %v\n", fnm)
+			mpi.Printf("Saving epoch log to: %v\n", fnm)
 			defer ss.TrnEpcFile.Close()
 		}
 	}
-	if saveRunLog {
+	if saveTrlLog && (saveProcLog || mpi.WorldRank() == 0) {
+		var err error
+		fnm := ss.LogFileName("trl")
+		ss.TrnTrlFile, err = os.Create(fnm)
+		if err != nil {
+			log.Println(err)
+			ss.TrnTrlFile = nil
+		} else {
+			mpi.Printf("Saving trial log to: %v\n", fnm)
+			defer ss.TrnTrlFile.Close()
+		}
+	}
+	if saveRunLog && (saveProcLog || mpi.WorldRank() == 0) {
 		var err error
 		fnm := ss.LogFileName("run")
 		ss.RunFile, err = os.Create(fnm)
@@ -1953,13 +1812,63 @@ func (ss *Sim) CmdArgs() {
 			log.Println(err)
 			ss.RunFile = nil
 		} else {
-			fmt.Printf("Saving run log to: %v\n", fnm)
+			mpi.Printf("Saving run log to: %v\n", fnm)
 			defer ss.RunFile.Close()
 		}
 	}
 	if ss.SaveWts {
-		fmt.Printf("Saving final weights per run\n")
+		if mpi.WorldRank() != 0 {
+			ss.SaveWts = false
+		}
+		mpi.Printf("Saving final weights per run\n")
 	}
-	fmt.Printf("Running %d Runs\n", ss.MaxRuns)
+	mpi.Printf("Running %d Runs\n", ss.MaxRuns)
 	ss.Train()
+}
+
+////////////////////////////////////////////////////////////////////
+//  MPI code
+
+// MPIInit initializes MPI
+func (ss *Sim) MPIInit() {
+	mpi.Init()
+	var err error
+	ss.Comm, err = mpi.NewComm(nil) // use all procs
+	if err != nil {
+		log.Println(err)
+		ss.UseMPI = false
+	} else {
+		mpi.Printf("MPI running on %d procs\n", mpi.WorldSize())
+	}
+}
+
+// MPIFinalize finalizes MPI
+func (ss *Sim) MPIFinalize() {
+	if ss.UseMPI {
+		mpi.Finalize()
+	}
+}
+
+// CollectDWts collects the weight changes from all synapses into AllDWts
+func (ss *Sim) CollectDWts(net *leabra.Network) {
+	made := net.CollectDWts(&ss.AllDWts, 91824128) // plug in number from printout below, to avoid realloc
+	if made {
+		mpi.Printf("MPI: AllDWts len: %d\n", len(ss.AllDWts)) // put this number in above make
+	}
+}
+
+// MPIWtFmDWt updates weights from weight changes, using MPI to integrate
+// DWt changes across parallel nodes, each of which are learning on different
+// sequences of inputs.
+func (ss *Sim) MPIWtFmDWt() {
+	if false || ss.UseMPI {
+		ss.CollectDWts(&ss.Net.Network)
+		ndw := len(ss.AllDWts)
+		if len(ss.SumDWts) != ndw {
+			ss.SumDWts = make([]float32, ndw)
+		}
+		ss.Comm.AllReduceF32(mpi.OpSum, ss.SumDWts, ss.AllDWts)
+		ss.Net.SetDWts(ss.SumDWts)
+	}
+	ss.Net.WtFmDWt()
 }
