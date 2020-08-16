@@ -1861,7 +1861,7 @@ func (ss *Sim) CollectDWts(net *leabra.Network) {
 // DWt changes across parallel nodes, each of which are learning on different
 // sequences of inputs.
 func (ss *Sim) MPIWtFmDWt() {
-	if false || ss.UseMPI {
+	if ss.UseMPI {
 		ss.CollectDWts(&ss.Net.Network)
 		ndw := len(ss.AllDWts)
 		if len(ss.SumDWts) != ndw {
