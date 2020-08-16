@@ -247,9 +247,11 @@ func (ss *Sim) Config() {
 	ss.ConfigNet(ss.Net)
 	ss.InitStats()
 	ss.ConfigTrnTrlLog(ss.TrnTrlLog)
+	ss.ConfigTrnTrlLog(ss.TrnTrlLogAll)
 	ss.ConfigTrnEpcLog(ss.TrnEpcLog)
 	ss.ConfigTstEpcLog(ss.TstEpcLog)
 	ss.ConfigTstTrlLog(ss.TstTrlLog)
+	ss.ConfigTstTrlLog(ss.TstTrlLogAll)
 	ss.ConfigRunLog(ss.RunLog)
 }
 
