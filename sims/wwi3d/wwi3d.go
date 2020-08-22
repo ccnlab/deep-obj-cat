@@ -554,29 +554,60 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectCtxtToCT(tect, tect, pone2one)
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
 
-	v2.SetThread(1)
-	v2ct.SetThread(1)
-	v2p.SetThread(1)
+	// 4 threads = about 500 msec / trl @8 mpi
+	/*
+		v2.SetThread(1)
+		v2ct.SetThread(1)
+		v2p.SetThread(1)
 
-	dp.SetThread(1)
-	dpct.SetThread(1)
-	dpp.SetThread(1)
+		dp.SetThread(1)
+		dpct.SetThread(1)
+		dpp.SetThread(1)
 
-	v3ct.SetThread(1)
+		v3ct.SetThread(1)
 
-	v3p.SetThread(2)
-	v3.SetThread(2)
+		v3p.SetThread(2)
+		v3.SetThread(2)
 
-	v4.SetThread(2)
-	v4ct.SetThread(2)
-	v4p.SetThread(2)
+		v4.SetThread(2)
+		v4ct.SetThread(2)
+		v4p.SetThread(2)
 
-	teo.SetThread(3) // 23 M -- by far biggest
+		teo.SetThread(3) // 23 M -- by far biggest
+
+		teoct.SetThread(0) // 19 M
+		teop.SetThread(0)
+
+		te.SetThread(2)
+
+		tect.SetThread(0)
+		tep.SetThread(0)
+	*/
+
+	//	2 threads = about 600 msec / trl @8 mpi
+	v2.SetThread(0)
+	v2ct.SetThread(0)
+	v2p.SetThread(0)
+
+	dp.SetThread(0)
+	dpct.SetThread(0)
+	dpp.SetThread(0)
+
+	v3ct.SetThread(0)
+
+	v3p.SetThread(1)
+	v3.SetThread(1)
+
+	v4.SetThread(1)
+	v4ct.SetThread(1)
+	v4p.SetThread(1)
+
+	teo.SetThread(1) // 23 M -- by far biggest
 
 	teoct.SetThread(0) // 19 M
 	teop.SetThread(0)
 
-	te.SetThread(2)
+	te.SetThread(1)
 
 	tect.SetThread(0)
 	tep.SetThread(0)
@@ -1152,7 +1183,7 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	}
 	ss.LastTrlTime = time.Now()
 
-	mpi.Printf("trl: %d %d %d: msec: %5.0f \t obj:%s\n", epc, trl, tick, ss.LastTrlMSec, ss.TrainEnv.String())
+	// mpi.Printf("trl: %d %d %d: msec: %5.0f \t obj:%s\n", epc, trl, tick, ss.LastTrlMSec, ss.TrainEnv.String())
 
 	if ss.TrnTrlFile != nil && (!ss.UseMPI || ss.SaveProcLog) { // otherwise written at end of epoch, integrated
 		if ss.TrainEnv.Run.Cur == 0 && epc == 0 && row == 0 {

@@ -7,4 +7,13 @@ This is (an updated version of) the model described in:
 * O’Reilly, R. C., Russin, J. L., Zolfaghar, M., & Rohrlich, J. (2020). Deep Predictive Learning in Neocortex and Pulvinar. ArXiv:2006.14800 [q-Bio]. http://arxiv.org/abs/2006.14800
 
 
+# TODO:
+
+* save weights and exit when done running -- right now seems to be just hanging?
+
+* pretrain lip
+
+* reps record..
+
+* grunti interface with run comparison..
 
