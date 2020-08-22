@@ -14,8 +14,14 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Learn.AvgL.Gain": "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
-					"Layer.Act.Gbar.L":      "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
+					"Layer.Learn.AvgL.Gain":   "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
+					"Layer.Act.Gbar.L":        "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
+					"Layer.Inhib.Layer.FBTau": "3",   // smoother = faster?
+					"Layer.Inhib.Pool.FBTau":  "3",   // smoother = faster?
+				}},
+			{Sel: "TRCLayer", Desc: "avg mix param",
+				Params: params.Params{
+					"Layer.TRC.AvgMix": "0.5",
 				}},
 			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
 				Params: params.Params{
@@ -81,6 +87,14 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "1.8",
 					"Layer.Inhib.Pool.On":  "false",
+				}},
+			{Sel: "#TEOP", Desc: "no topo",
+				Params: params.Params{
+					"Layer.TRC.NoTopo": "true",
+				}},
+			{Sel: "#TEP", Desc: "no topo",
+				Params: params.Params{
+					"Layer.TRC.NoTopo": "true",
 				}},
 
 			// prjn classes, specifics

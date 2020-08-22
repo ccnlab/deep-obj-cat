@@ -46,11 +46,11 @@ import (
 )
 
 func main() {
-	TheSim.New()
-	TheSim.Config()
+	TheSim.New() // note: not running Config here -- done in CmdArgs for mpi / nogui
 	if len(os.Args) > 1 {
 		TheSim.CmdArgs() // simple assumption is that any args = no gui -- could add explicit arg if you want
 	} else {
+		TheSim.Config()      // for GUI case, config then run..
 		gimain.Main(func() { // this starts gui -- requires valid OpenGL display connection (e.g., X11)
 			guirun()
 		})
@@ -142,10 +142,11 @@ type Sim struct {
 	LastEpcTime  time.Time                     `view:"-" desc:"timer for last epoch"`
 	LastTrlTime  time.Time                     `view:"-" desc:"timer for last trial"`
 
-	UseMPI  bool      `view:"-" desc:"if true, use MPI to distribute computation across nodes"`
-	Comm    *mpi.Comm `view:"-" desc:"mpi communicator"`
-	AllDWts []float32 `view:"-" desc:"buffer of all dwt weight changes -- for mpi sharing"`
-	SumDWts []float32 `view:"-" desc:"buffer of MPI summed dwt weight changes"`
+	UseMPI      bool      `view:"-" desc:"if true, use MPI to distribute computation across nodes"`
+	SaveProcLog bool      `view:"-" desc:"if true, save logs per processor"`
+	Comm        *mpi.Comm `view:"-" desc:"mpi communicator"`
+	AllDWts     []float32 `view:"-" desc:"buffer of all dwt weight changes -- for mpi sharing"`
+	SumDWts     []float32 `view:"-" desc:"buffer of MPI summed dwt weight changes"`
 }
 
 // this registers this Sim Type and gives it properties that e.g.,
@@ -293,6 +294,7 @@ func (ss *Sim) ConfigEnv() {
 			trl := int(et.CellFloat("Trial", row))
 			return trl >= st && trl < ed
 		})
+		mpi.Printf("trial allocs: %d .. %d  idx len: %d\n", st, ed, ss.TrainEnv.IdxView.Len())
 	}
 	ss.TrainEnv.Validate()
 	ss.TestEnv.Validate()
@@ -313,6 +315,14 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 		log.Println(err)
 		return
 	}
+
+	// sr := net.SizeReport()
+	// mpi.Printf("%s", sr)
+
+	//	ar := net.ThreadAlloc(4) // must be done after build
+	ar := net.ThreadReport() // hand tuning now..
+	mpi.Printf("%s", ar)
+
 	ss.InitWts(net)
 }
 
@@ -544,7 +554,6 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectCtxtToCT(tect, tect, pone2one)
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
 
-	// return
 	v2.SetThread(1)
 	v2ct.SetThread(1)
 	v2p.SetThread(1)
@@ -553,25 +562,48 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	dpct.SetThread(1)
 	dpp.SetThread(1)
 
-	v3.SetThread(2)
-	v3ct.SetThread(2)
+	v3ct.SetThread(1)
+
 	v3p.SetThread(2)
+	v3.SetThread(2)
 
 	v4.SetThread(2)
 	v4ct.SetThread(2)
 	v4p.SetThread(2)
 
-	teo.SetThread(3)
-	teoct.SetThread(3)
-	teop.SetThread(3)
+	teo.SetThread(3) // 23 M -- by far biggest
 
-	te.SetThread(3)
-	tect.SetThread(3)
-	tep.SetThread(3)
+	teoct.SetThread(0) // 19 M
+	teop.SetThread(0)
+
+	te.SetThread(2)
+
+	tect.SetThread(0)
+	tep.SetThread(0)
+}
+
+func (ss *Sim) SetTopoScales(net *deep.Network, send, recv string, pooltile *prjn.PoolTile) {
+	slay := net.LayerByName(send)
+	rlay := net.LayerByName(recv)
+	pj := rlay.RecvPrjns().SendName(send).(leabra.LeabraPrjn).AsLeabra()
+	scales := &etensor.Float32{}
+	pooltile.TopoWts(slay.Shape(), rlay.Shape(), scales)
+	pj.SetScalesRPool(scales)
 }
 
 func (ss *Sim) InitWts(net *deep.Network) {
 	net.InitScalesFmPoolTile() // sets all!
+
+	// these are not set automatically b/c prjn is Full, not PoolTile
+	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "SacPlan", "LIP", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIP", ss.PrjnSigTopo)
+
+	ss.SetTopoScales(net, "LIP", "LIPCT", ss.Prjn3x3Skp1)
+	ss.SetTopoScales(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
+
 	net.InitWts()
 	net.LrateMult(1) // restore initial learning rate value
 }
@@ -1074,7 +1106,7 @@ func (ss *Sim) LogFileName(lognm string) string {
 	if mpi.WorldRank() > 0 {
 		nm += fmt.Sprintf("_%d", mpi.WorldRank())
 	}
-	nm += ".csv"
+	nm += ".tsv"
 	return nm
 }
 
@@ -1104,7 +1136,7 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	dt.SetCellFloat("Trial", row, float64(trl))
 	dt.SetCellFloat("Tick", row, float64(tick))
 	dt.SetCellFloat("Idx", row, float64(row))
-	dt.SetCellString("Obj", row, ss.TestEnv.CurCat)
+	dt.SetCellString("Obj", row, ss.TrainEnv.CurCat)
 	dt.SetCellString("TrialName", row, ss.TrainEnv.String())
 
 	for pi, pnm := range ss.PulvLays {
@@ -1121,6 +1153,13 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	ss.LastTrlTime = time.Now()
 
 	mpi.Printf("trl: %d %d %d: msec: %5.0f \t obj:%s\n", epc, trl, tick, ss.LastTrlMSec, ss.TrainEnv.String())
+
+	if ss.TrnTrlFile != nil && (!ss.UseMPI || ss.SaveProcLog) { // otherwise written at end of epoch, integrated
+		if ss.TrainEnv.Run.Cur == 0 && epc == 0 && row == 0 {
+			dt.WriteCSVHeaders(ss.TrnTrlFile, etable.Tab)
+		}
+		dt.WriteCSVRow(ss.TrnTrlFile, row, etable.Tab)
+	}
 
 	// note: essential to use Go version of update when called from another goroutine
 	ss.TrnTrlPlot.GoUpdate()
@@ -1175,6 +1214,11 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 // LogTrnEpc adds data from current epoch to the TrnEpcLog table.
 // computes epoch averages prior to logging.
 func (ss *Sim) LogTrnEpc(dt *etable.Table) {
+	if mpi.WorldRank() == 0 {
+		ss.Net.TimerReport()
+		ss.Net.ThrTimerReset()
+	}
+
 	row := dt.Rows
 	dt.SetNumRows(row + 1)
 
@@ -1230,7 +1274,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 		dt.WriteCSVRow(ss.TrnEpcFile, row, etable.Tab)
 	}
 
-	if ss.TrnTrlFile != nil {
+	if ss.TrnTrlFile != nil && !(!ss.UseMPI || ss.SaveProcLog) { // saved at trial level otherwise
 		if ss.TrainEnv.Run.Cur == 0 && epc == 0 {
 			trl.WriteCSVHeaders(ss.TrnTrlFile, etable.Tab)
 		}
@@ -1754,7 +1798,6 @@ func (ss *Sim) CmdArgs() {
 	var saveEpcLog bool
 	var saveTrlLog bool
 	var saveRunLog bool
-	var saveProcLog bool
 	var note string
 	flag.StringVar(&ss.ParamSet, "params", "", "ParamSet name to use -- must be valid name as listed in compiled-in params or loaded params")
 	flag.StringVar(&ss.Tag, "tag", "", "extra tag to add to file names saved from this run")
@@ -1765,7 +1808,7 @@ func (ss *Sim) CmdArgs() {
 	flag.BoolVar(&saveEpcLog, "epclog", true, "if true, save train epoch log to file")
 	flag.BoolVar(&saveTrlLog, "trllog", false, "if true, save train trial log to file")
 	flag.BoolVar(&saveRunLog, "runlog", true, "if true, save run epoch log to file")
-	flag.BoolVar(&saveProcLog, "proclog", false, "if true, save log files separately for each processor (for debugging)")
+	flag.BoolVar(&ss.SaveProcLog, "proclog", false, "if true, save log files separately for each processor (for debugging)")
 	flag.BoolVar(&nogui, "nogui", true, "if not passing any other args and want to run nogui, use nogui")
 	flag.BoolVar(&ss.UseMPI, "mpi", false, "if set, use MPI for distributed computation")
 	flag.Parse()
@@ -1773,6 +1816,9 @@ func (ss *Sim) CmdArgs() {
 	if ss.UseMPI {
 		ss.MPIInit()
 	}
+
+	// key for Config and Init to be after MPIInit
+	ss.Config()
 	ss.Init()
 
 	if note != "" {
@@ -1782,7 +1828,7 @@ func (ss *Sim) CmdArgs() {
 		mpi.Printf("Using ParamSet: %s\n", ss.ParamSet)
 	}
 
-	if saveEpcLog && (saveProcLog || mpi.WorldRank() == 0) {
+	if saveEpcLog && (ss.SaveProcLog || mpi.WorldRank() == 0) {
 		var err error
 		fnm := ss.LogFileName("epc")
 		ss.TrnEpcFile, err = os.Create(fnm)
@@ -1794,7 +1840,7 @@ func (ss *Sim) CmdArgs() {
 			defer ss.TrnEpcFile.Close()
 		}
 	}
-	if saveTrlLog && (saveProcLog || mpi.WorldRank() == 0) {
+	if saveTrlLog && (ss.SaveProcLog || mpi.WorldRank() == 0) {
 		var err error
 		fnm := ss.LogFileName("trl")
 		ss.TrnTrlFile, err = os.Create(fnm)
@@ -1806,7 +1852,7 @@ func (ss *Sim) CmdArgs() {
 			defer ss.TrnTrlFile.Close()
 		}
 	}
-	if saveRunLog && (saveProcLog || mpi.WorldRank() == 0) {
+	if saveRunLog && (ss.SaveProcLog || mpi.WorldRank() == 0) {
 		var err error
 		fnm := ss.LogFileName("run")
 		ss.RunFile, err = os.Create(fnm)
