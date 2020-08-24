@@ -261,7 +261,11 @@ func (ss *Sim) ConfigEnv() {
 		ss.MaxRuns = 1
 	}
 	if ss.MaxEpcs == 0 { // allow user override
-		ss.MaxEpcs = 50
+		if ss.LIPOnly {
+			ss.MaxEpcs = 50
+		} else {
+			ss.MaxEpcs = 999
+		}
 		ss.NZeroStop = -1
 	}
 	if ss.MaxTrls == 0 { // allow user override
@@ -323,7 +327,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	ar := net.ThreadReport() // hand tuning now..
 	mpi.Printf("%s", ar)
 
-	ss.InitWts(net)
+	// ss.InitWts(net) // too slow
 }
 
 // ConfigNetLIP configures just the V1 and LIP dorsal path part
@@ -623,6 +627,10 @@ func (ss *Sim) SetTopoScales(net *deep.Network, send, recv string, pooltile *prj
 }
 
 func (ss *Sim) InitWts(net *deep.Network) {
+	if len(net.Layers) == 0 {
+		return
+	}
+
 	net.InitScalesFmPoolTile() // sets all!
 
 	// these are not set automatically b/c prjn is Full, not PoolTile
@@ -636,6 +644,11 @@ func (ss *Sim) InitWts(net *deep.Network) {
 	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
 
 	net.InitWts()
+
+	if !ss.LIPOnly {
+		net.OpenWtsJSON(gi.FileName("lip_pretrained.wts.gz"))
+	}
+
 	net.LrateMult(1) // restore initial learning rate value
 }
 
@@ -918,9 +931,15 @@ func (ss *Sim) SaveWeights(filename gi.FileName) {
 // LrateSched implements the learning rate schedule
 func (ss *Sim) LrateSched(epc int) {
 	switch epc {
-	case 40:
+	case 250:
 		ss.Net.LrateMult(0.5)
-		fmt.Printf("dropped lrate 0.5 at epoch: %d\n", epc)
+		mpi.Printf("dropped lrate to 0.5 at epoch: %d\n", epc)
+	case 500:
+		ss.Net.LrateMult(0.2)
+		mpi.Printf("dropped lrate to 0.2 at epoch: %d\n", epc)
+	case 750:
+		ss.Net.LrateMult(0.1)
+		mpi.Printf("dropped lrate to 0.1 at epoch: %d\n", epc)
 	}
 }
 
@@ -1245,10 +1264,10 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 // LogTrnEpc adds data from current epoch to the TrnEpcLog table.
 // computes epoch averages prior to logging.
 func (ss *Sim) LogTrnEpc(dt *etable.Table) {
-	if mpi.WorldRank() == 0 {
-		ss.Net.TimerReport()
-		ss.Net.ThrTimerReset()
-	}
+	// if mpi.WorldRank() == 0 {
+	// 	ss.Net.TimerReport()
+	// 	ss.Net.ThrTimerReset()
+	// }
 
 	row := dt.Rows
 	dt.SetNumRows(row + 1)
@@ -1495,17 +1514,12 @@ func (ss *Sim) LogRun(dt *etable.Table) {
 	// todo: fix or will crash..
 	dt.SetCellFloat("Run", row, float64(run))
 	dt.SetCellString("Params", row, params)
-	dt.SetCellFloat("SSE", row, agg.Mean(epcix, "SSE")[0])
-	dt.SetCellFloat("AvgSSE", row, agg.Mean(epcix, "AvgSSE")[0])
-	dt.SetCellFloat("PctErr", row, agg.Mean(epcix, "PctErr")[0])
-	dt.SetCellFloat("PctCor", row, agg.Mean(epcix, "PctCor")[0])
-	dt.SetCellFloat("CosDiff", row, agg.Mean(epcix, "CosDiff")[0])
 
-	runix := etable.NewIdxView(dt)
-	spl := split.GroupBy(runix, []string{"Params"})
-	split.Desc(spl, "FirstZero")
-	split.Desc(spl, "PctCor")
-	ss.RunStats = spl.AggsToTable(etable.AddAggName)
+	// runix := etable.NewIdxView(dt)
+	// spl := split.GroupBy(runix, []string{"Params"})
+	// split.Desc(spl, "FirstZero")
+	// split.Desc(spl, "PctCor")
+	// ss.RunStats = spl.AggsToTable(etable.AddAggName)
 
 	// note: essential to use Go version of update when called from another goroutine
 	ss.RunPlot.GoUpdate()
@@ -1526,12 +1540,6 @@ func (ss *Sim) ConfigRunLog(dt *etable.Table) {
 	dt.SetFromSchema(etable.Schema{
 		{"Run", etensor.INT64, nil, nil},
 		{"Params", etensor.STRING, nil, nil},
-		{"FirstZero", etensor.FLOAT64, nil, nil},
-		{"SSE", etensor.FLOAT64, nil, nil},
-		{"AvgSSE", etensor.FLOAT64, nil, nil},
-		{"PctErr", etensor.FLOAT64, nil, nil},
-		{"PctCor", etensor.FLOAT64, nil, nil},
-		{"CosDiff", etensor.FLOAT64, nil, nil},
 	}, 0)
 }
 
@@ -1541,12 +1549,6 @@ func (ss *Sim) ConfigRunPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D 
 	plt.SetTable(dt)
 	// order of params: on, fixMin, min, fixMax, max
 	plt.SetColParams("Run", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
-	plt.SetColParams("FirstZero", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 0) // default plot
-	plt.SetColParams("SSE", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 0)
-	plt.SetColParams("AvgSSE", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
-	plt.SetColParams("PctErr", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-	plt.SetColParams("PctCor", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-	plt.SetColParams("CosDiff", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	return plt
 }
 
@@ -1606,6 +1608,9 @@ func (ss *Sim) ConfigGui() *gi.Window {
 
 	tg := tv.AddNewTab(etview.KiT_TensorGrid, "Image").(*etview.TensorGrid)
 	tg.SetStretchMax()
+	tg.Disp.Defaults()
+	// tg.Disp.Image = true
+	tg.Disp.ColorMap = giv.ColorMapName("DarkLight")
 	ss.CurImgGrid = tg
 	tg.SetTensor(&ss.TrainEnv.V1Hi.ImgTsr)
 
@@ -1625,7 +1630,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 		ss.ActRFGrids[nm] = tg
 	}
 
-	split.SetSplits(.3, .7)
+	split.SetSplits(.2, .8)
 
 	tbar.AddAction(gi.ActOpts{Label: "Init", Icon: "update", Tooltip: "Initialize everything including network weights, and start over.  Also applies current params.", UpdateFunc: func(act *gi.Action) {
 		act.SetActiveStateUpdt(!ss.IsRunning)
@@ -1683,6 +1688,14 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	})
 
 	tbar.AddSeparator("spcl")
+
+	// tbar.AddAction(gi.ActOpts{Label: "Config Net", Icon: "update", Tooltip: "configure and build the network", UpdateFunc: func(act *gi.Action) {
+	// 	act.SetActiveStateUpdt(!ss.IsRunning)
+	// }}, win.This(), func(recv, send ki.Ki, sig int64, data interface{}) {
+	// 	ss.ConfigNet(ss.Net)
+	// 	ss.NetView.Config()
+	// 	vp.SetNeedsFullRender()
+	// })
 
 	tbar.AddAction(gi.ActOpts{Label: "Open Trained Wts", Icon: "update", Tooltip: "open weights trained on first phase of training (excluding 'novel' objects)", UpdateFunc: func(act *gi.Action) {
 		act.SetActiveStateUpdt(!ss.IsRunning)
