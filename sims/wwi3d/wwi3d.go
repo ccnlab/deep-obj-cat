@@ -116,6 +116,7 @@ type Sim struct {
 	PulvTrlAvgSSE  []float64 `interactive:"-" desc:"trial-level AvgSSE for pulvs"`
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
+	HidLays        []string  `interactive:"-" desc:"hidden layers: super and CT -- for hogging stats"`
 
 	// internal state - view:"-"
 	Win          *gi.Window                    `view:"-" desc:"main GUI window"`
@@ -645,9 +646,10 @@ func (ss *Sim) InitWts(net *deep.Network) {
 
 	net.InitWts()
 
-	if !ss.LIPOnly {
-		net.OpenWtsJSON(gi.FileName("lip_pretrained.wts.gz"))
-	}
+	// if !ss.LIPOnly {
+	// 	mpi.Printf("loading lip_pretrained.wts.gz...\")
+	// 	net.OpenWtsJSON(gi.FileName("lip_pretrained.wts.gz"))
+	// }
 
 	net.LrateMult(1) // restore initial learning rate value
 }
@@ -846,12 +848,15 @@ func (ss *Sim) InitStats() {
 		return
 	}
 	ss.PulvLays = []string{}
+	ss.HidLays = []string{}
 	net := ss.Net
 	for _, ly := range net.Layers {
-		if ly.Type() != deep.TRC {
-			continue
+		if ly.Type() == emer.Hidden || ly.Type() == deep.CT {
+			ss.HidLays = append(ss.HidLays, ly.Name())
 		}
-		ss.PulvLays = append(ss.PulvLays, ly.Name())
+		if ly.Type() == deep.TRC {
+			ss.PulvLays = append(ss.PulvLays, ly.Name())
+		}
 	}
 	np := len(ss.PulvLays)
 	ss.PulvTrlCosDiff = make([]float64, np)
@@ -1261,6 +1266,28 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 //////////////////////////////////////////////
 //  TrnEpcLog
 
+// HogDead computes the proportion of units in given layer name with ActAvg over hog thr
+// and under dead threshold
+func (ss *Sim) HogDead(lnm string) (hog, dead float64) {
+	lvt := ss.ValsTsr(lnm)
+	ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
+	ly.UnitValsTensor(lvt, "ActAvg")
+	n := float64(lvt.Len())
+	if n == 0 {
+		return
+	}
+	for _, val := range lvt.Values {
+		if val > 0.3 {
+			hog += 1
+		} else if val < 0.01 {
+			dead += 1
+		}
+	}
+	hog /= n
+	dead /= n
+	return
+}
+
 // LogTrnEpc adds data from current epoch to the TrnEpcLog table.
 // computes epoch averages prior to logging.
 func (ss *Sim) LogTrnEpc(dt *etable.Table) {
@@ -1292,6 +1319,12 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("Run", row, float64(ss.TrainEnv.Run.Cur))
 	dt.SetCellFloat("Epoch", row, float64(epc))
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
+
+	for _, pnm := range ss.HidLays {
+		hog, dead := ss.HogDead(pnm)
+		dt.SetCellFloat(fmt.Sprintf("%s_Dead", pnm), row, dead)
+		dt.SetCellFloat(fmt.Sprintf("%s_Hog", pnm), row, hog)
+	}
 
 	tix := etable.NewIdxView(trl)
 	spl := split.GroupBy(tix, []string{"Tick"})
@@ -1345,6 +1378,10 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		{"Epoch", etensor.INT64, nil, nil},
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
 	}
+	for _, pnm := range ss.HidLays {
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_Dead", pnm), etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_Hog", pnm), etensor.FLOAT64, nil, nil})
+	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, pnm := range ss.PulvLays {
 			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", pnm, tck), etensor.FLOAT64, nil, nil})
@@ -1363,6 +1400,12 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("Epoch", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("PerTrlMSec", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 
+	for _, pnm := range ss.HidLays {
+		cnm := fmt.Sprintf("%s_Dead", pnm)
+		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		cnm = fmt.Sprintf("%s_Hog", pnm)
+		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, pnm := range ss.PulvLays {
 			cnm := fmt.Sprintf("%s_CosDiff_%d", pnm, tck)
