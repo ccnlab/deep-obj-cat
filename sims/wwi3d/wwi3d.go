@@ -1397,6 +1397,7 @@ func (ss *Sim) HogDead(lnm string) (hog, dead float64) {
 		}
 	}
 	if n == 0 {
+		n = len(ly.Neurons)
 		for ni := range ly.Neurons {
 			nrn := &ly.Neurons[ni]
 			if nrn.ActAvg > 0.3 {
@@ -1431,8 +1432,14 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
 	nt := float64(trl.Rows)
 
-	if mpi.WorldRank() == 0 && (epc%ss.RSA.Interval) == 0 {
-		ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
+	if mpi.WorldRank() == 0 {
+		if (epc % ss.RSA.Interval) == 0 {
+			ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
+		}
+		for li, lnm := range ss.SuperLays {
+			dt.SetCellFloat(fmt.Sprintf("%s_V1Sim", lnm), row, ss.RSA.V1Sims[li])
+			dt.SetCellFloat(fmt.Sprintf("%s_CatDst", lnm), row, ss.RSA.CatDists[li])
+		}
 	}
 
 	if ss.LastEpcTime.IsZero() {
@@ -1454,11 +1461,6 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 		dt.SetCellFloat(fmt.Sprintf("%s_GeMaxM", lnm), row, ss.HidLaysGeMaxM[li])
 	}
 
-	for li, lnm := range ss.SuperLays {
-		dt.SetCellFloat(fmt.Sprintf("%s_V1Sim", lnm), row, ss.RSA.V1Sims[li])
-		dt.SetCellFloat(fmt.Sprintf("%s_CatDst", lnm), row, ss.RSA.CatDists[li])
-	}
-
 	tix := etable.NewIdxView(trl)
 	spl := split.GroupBy(tix, []string{"Tick"})
 	// np := len(ss.PulvLays)
@@ -1472,12 +1474,10 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	tags := spl.AggsToTable(etable.ColNameOnly)
 	for li, lnm := range ss.PulvLays {
 		for tck := 0; tck < ss.MaxTicks; tck++ {
-			cnm := fmt.Sprintf("%s_CosDiff_%d", lnm, tck)
 			val := tags.Cols[1+2*li].FloatVal1D(tck)
-			dt.SetCellFloat(cnm, row, val)
-			cnm = fmt.Sprintf("%s_AvgSSE_%d", lnm, tck)
-			val = tags.Cols[2+2*li].FloatVal1D(tck)
-			dt.SetCellFloat(cnm, row, val)
+			dt.SetCellFloat(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), row, val)
+			// val = tags.Cols[2+2*li].FloatVal1D(tck)
+			// dt.SetCellFloat(fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), row, val)
 		}
 	}
 
@@ -1525,7 +1525,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", lnm, tck), etensor.FLOAT64, nil, nil})
-			sch = append(sch, etable.Column{fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), etensor.FLOAT64, nil, nil})
+			// sch = append(sch, etable.Column{fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), etensor.FLOAT64, nil, nil})
 		}
 	}
 	dt.SetFromSchema(sch, 0)
@@ -1552,7 +1552,7 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			plt.SetColParams(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
-			plt.SetColParams(fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+			// plt.SetColParams(fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 		}
 	}
 	return plt

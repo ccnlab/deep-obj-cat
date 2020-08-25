@@ -71,6 +71,7 @@ func (rs *RSA) StatsFmActs(acts *etable.Table, cols []string) {
 			sm = &simat.SimMat{}
 		}
 		rs.SimMatFmActs(sm, tix, cn)
+		rs.Sims[cn] = sm
 	}
 
 	v1sm := rs.Sims["V1m"]

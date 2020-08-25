@@ -26,7 +26,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.AvgMix": "0.1",
+					"Layer.TRC.AvgMix": "0.0", // best off for non-TE layers
 				}},
 			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
 				Params: params.Params{
@@ -93,23 +93,23 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi": "1.8",
 					"Layer.Inhib.Pool.On":  "false",
 				}},
-			{Sel: "#V3P", Desc: "more AvgMix?",
-				Params: params.Params{
-					"Layer.TRC.AvgMix": "0.1",
-				}},
-			{Sel: "#V4P", Desc: "more AvgMix?",
-				Params: params.Params{
-					"Layer.TRC.AvgMix": "0.1",
-				}},
+			// {Sel: "#V3P", Desc: "more AvgMix?",
+			// 	Params: params.Params{
+			// 		"Layer.TRC.AvgMix": "0.1",
+			// 	}},
+			// {Sel: "#V4P", Desc: "more AvgMix?",
+			// 	Params: params.Params{
+			// 		"Layer.TRC.AvgMix": "0.1",
+			// 	}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
 					"Layer.TRC.NoTopo": "true",
-					"Layer.TRC.AvgMix": "0.5", // need this more for higher layers!
+					"Layer.TRC.AvgMix": "0.2", // need this more for higher layers!
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
 					"Layer.TRC.NoTopo": "true",
-					"Layer.TRC.AvgMix": "0.5",
+					"Layer.TRC.AvgMix": "0.2",
 				}},
 
 			// prjn classes, specifics
@@ -225,15 +225,30 @@ var ParamSets = params.Sets{
 					"Prjn.WtScale.Rel": "4",
 				}},
 
-			{Sel: "#V2ToV3", Desc: "weird BottomUpAbsScDn..",
+			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
 				Params: params.Params{
-					"Prjn.WtScale.Abs": "0.5", // todo: test if still needed
+					"Prjn.WtScale.Abs": "0.5",
 					"Prjn.WtScale.Rel": "2",
 				}},
-			{Sel: "#V2ToV4", Desc: "weird BottomUpAbsScDn..",
+			{Sel: "#V2ToV4", Desc: "otherwise V2 too strong",
 				Params: params.Params{
-					"Prjn.WtScale.Abs": "0.5", // todo: test if still needed
+					"Prjn.WtScale.Abs": "0.5",
 					"Prjn.WtScale.Rel": "2",
+				}},
+			{Sel: "#V3ToDP", Desc: "too weak full from topo",
+				Params: params.Params{
+					"Prjn.WtScale.Abs": "1.5",
+					"Prjn.WtScale.Rel": "0.667",
+				}},
+			{Sel: "#V4ToTEO", Desc: "too weak full from topo",
+				Params: params.Params{
+					"Prjn.WtScale.Abs": "1.5",
+					"Prjn.WtScale.Rel": "0.667",
+				}},
+			{Sel: "#TEOToTE", Desc: "too weak full from topo",
+				Params: params.Params{
+					"Prjn.WtScale.Abs": "1.5",
+					"Prjn.WtScale.Rel": "0.667",
 				}},
 
 			{Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
