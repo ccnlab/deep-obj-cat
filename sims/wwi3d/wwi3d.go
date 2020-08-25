@@ -80,6 +80,7 @@ type Sim struct {
 	TrnTrlLog        *etable.Table     `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table     `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
 	CatLayActs       *etable.Table     `view:"no-inline" desc:"super layer activations per category / object"`
+	RSA              RSA               `view:"no-inline" desc:"RSA data"`
 	TrnEpcLog        *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
 	TstEpcLog        *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
 	TstTrlLog        *etable.Table     `view:"no-inline" desc:"testing trial-level log data"`
@@ -186,6 +187,8 @@ func (ss *Sim) New() {
 
 // Defaults sets default values for params / prjns
 func (ss *Sim) Defaults() {
+	ss.RSA.Interval = 10
+
 	ss.Prjn4x4Skp2 = prjn.NewPoolTile()
 	ss.Prjn4x4Skp2.Size.Set(4, 4)
 	ss.Prjn4x4Skp2.Skip.Set(2, 2)
@@ -830,6 +833,12 @@ func (ss *Sim) RunEnd() {
 		fnm := ss.WeightsFileName()
 		fmt.Printf("Saving Weights to: %v\n", fnm)
 		ss.Net.SaveWtsJSON(gi.FileName(fnm))
+
+		if !ss.LIPOnly {
+			fnm := ss.LogFileName("catact")
+			fmt.Printf("Saving CatLayActs to: %v\n", fnm)
+			ss.CatLayActs.SaveCSV(gi.FileName(fnm), etable.Tab, etable.Headers)
+		}
 	}
 }
 
@@ -879,10 +888,10 @@ func (ss *Sim) InitStats() {
 
 // TrialStats computes the trial-level statistics.
 func (ss *Sim) TrialStats() {
-	for pi, pnm := range ss.PulvLays {
-		ly := ss.Net.LayerByName(pnm).(leabra.LeabraLayer).AsLeabra()
-		ss.PulvTrlCosDiff[pi] = float64(ly.CosDiff.Cos)
-		_, ss.PulvTrlAvgSSE[pi] = ly.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
+	for li, lnm := range ss.PulvLays {
+		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
+		ss.PulvTrlCosDiff[li] = float64(ly.CosDiff.Cos)
+		_, ss.PulvTrlAvgSSE[li] = ly.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
 	}
 }
 
@@ -1216,9 +1225,9 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	dt.SetCellString("Obj", row, ss.TrainEnv.CurCat)
 	dt.SetCellString("TrialName", row, ss.TrainEnv.String())
 
-	for pi, pnm := range ss.PulvLays {
-		dt.SetCellFloat(pnm+"_CosDiff", row, ss.PulvTrlCosDiff[pi])
-		dt.SetCellFloat(pnm+"_AvgSSE", row, ss.PulvTrlAvgSSE[pi])
+	for li, lnm := range ss.PulvLays {
+		dt.SetCellFloat(lnm+"_CosDiff", row, ss.PulvTrlCosDiff[li])
+		dt.SetCellFloat(lnm+"_AvgSSE", row, ss.PulvTrlAvgSSE[li])
 	}
 
 	ss.RecCatLayActs(ss.CatLayActs)
@@ -1259,9 +1268,9 @@ func (ss *Sim) ConfigTrnTrlLog(dt *etable.Table) {
 		{"Obj", etensor.STRING, nil, nil},
 		{"TrialName", etensor.STRING, nil, nil},
 	}
-	for _, pnm := range ss.PulvLays {
-		sch = append(sch, etable.Column{pnm + "_CosDiff", etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{pnm + "_AvgSSE", etensor.FLOAT64, nil, nil})
+	for _, lnm := range ss.PulvLays {
+		sch = append(sch, etable.Column{lnm + "_CosDiff", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_AvgSSE", etensor.FLOAT64, nil, nil})
 	}
 
 	dt.SetFromSchema(sch, 0)
@@ -1280,9 +1289,9 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("Obj", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("TrialName", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 
-	for _, pnm := range ss.PulvLays {
-		plt.SetColParams(pnm+"_CosDiff", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(pnm+"_AvgSSE", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+	for _, lnm := range ss.PulvLays {
+		plt.SetColParams(lnm+"_CosDiff", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(lnm+"_AvgSSE", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	}
 	return plt
 }
@@ -1422,6 +1431,10 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
 	nt := float64(trl.Rows)
 
+	if mpi.WorldRank() == 0 && (epc%ss.RSA.Interval) == 0 {
+		ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
+	}
+
 	if ss.LastEpcTime.IsZero() {
 		ss.EpcPerTrlMSec = 0
 	} else {
@@ -1434,31 +1447,36 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("Epoch", row, float64(epc))
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
 
-	for hi, hnm := range ss.HidLays {
-		hog, dead := ss.HogDead(hnm)
-		dt.SetCellFloat(fmt.Sprintf("%s_Dead", hnm), row, dead)
-		dt.SetCellFloat(fmt.Sprintf("%s_Hog", hnm), row, hog)
-		dt.SetCellFloat(fmt.Sprintf("%s_GeMaxM", hnm), row, ss.HidLaysGeMaxM[hi])
+	for li, lnm := range ss.HidLays {
+		hog, dead := ss.HogDead(lnm)
+		dt.SetCellFloat(fmt.Sprintf("%s_Dead", lnm), row, dead)
+		dt.SetCellFloat(fmt.Sprintf("%s_Hog", lnm), row, hog)
+		dt.SetCellFloat(fmt.Sprintf("%s_GeMaxM", lnm), row, ss.HidLaysGeMaxM[li])
+	}
+
+	for li, lnm := range ss.SuperLays {
+		dt.SetCellFloat(fmt.Sprintf("%s_V1Sim", lnm), row, ss.RSA.V1Sims[li])
+		dt.SetCellFloat(fmt.Sprintf("%s_CatDst", lnm), row, ss.RSA.CatDists[li])
 	}
 
 	tix := etable.NewIdxView(trl)
 	spl := split.GroupBy(tix, []string{"Tick"})
 	// np := len(ss.PulvLays)
-	for _, pnm := range ss.PulvLays {
-		_, err := split.AggTry(spl, pnm+"_CosDiff", agg.AggMean)
+	for _, lnm := range ss.PulvLays {
+		_, err := split.AggTry(spl, lnm+"_CosDiff", agg.AggMean)
 		if err != nil {
 			log.Println(err)
 		}
-		split.AggTry(spl, pnm+"_AvgSSE", agg.AggMean)
+		split.AggTry(spl, lnm+"_AvgSSE", agg.AggMean)
 	}
 	tags := spl.AggsToTable(etable.ColNameOnly)
-	for pi, pnm := range ss.PulvLays {
+	for li, lnm := range ss.PulvLays {
 		for tck := 0; tck < ss.MaxTicks; tck++ {
-			cnm := fmt.Sprintf("%s_CosDiff_%d", pnm, tck)
-			val := tags.Cols[1+2*pi].FloatVal1D(tck)
+			cnm := fmt.Sprintf("%s_CosDiff_%d", lnm, tck)
+			val := tags.Cols[1+2*li].FloatVal1D(tck)
 			dt.SetCellFloat(cnm, row, val)
-			cnm = fmt.Sprintf("%s_AvgSSE_%d", pnm, tck)
-			val = tags.Cols[2+2*pi].FloatVal1D(tck)
+			cnm = fmt.Sprintf("%s_AvgSSE_%d", lnm, tck)
+			val = tags.Cols[2+2*li].FloatVal1D(tck)
 			dt.SetCellFloat(cnm, row, val)
 		}
 	}
@@ -1493,15 +1511,21 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		{"Epoch", etensor.INT64, nil, nil},
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
 	}
-	for _, pnm := range ss.HidLays {
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_Dead", pnm), etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_Hog", pnm), etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_GeMaxM", pnm), etensor.FLOAT64, nil, nil})
+	for _, lnm := range ss.HidLays {
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_Dead", lnm), etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_Hog", lnm), etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_GeMaxM", lnm), etensor.FLOAT64, nil, nil})
+	}
+	for _, lnm := range ss.SuperLays {
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_V1Sim", lnm), etensor.FLOAT64, nil, nil})
+	}
+	for _, lnm := range ss.SuperLays {
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_CatDst", lnm), etensor.FLOAT64, nil, nil})
 	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
-		for _, pnm := range ss.PulvLays {
-			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", pnm, tck), etensor.FLOAT64, nil, nil})
-			sch = append(sch, etable.Column{fmt.Sprintf("%s_AvgSSE_%d", pnm, tck), etensor.FLOAT64, nil, nil})
+		for _, lnm := range ss.PulvLays {
+			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", lnm, tck), etensor.FLOAT64, nil, nil})
+			sch = append(sch, etable.Column{fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), etensor.FLOAT64, nil, nil})
 		}
 	}
 	dt.SetFromSchema(sch, 0)
@@ -1516,20 +1540,19 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("Epoch", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("PerTrlMSec", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 
-	for _, pnm := range ss.HidLays {
-		cnm := fmt.Sprintf("%s_Dead", pnm)
-		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-		cnm = fmt.Sprintf("%s_Hog", pnm)
-		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-		cnm = fmt.Sprintf("%s_GeMaxM", pnm)
-		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+	for _, lnm := range ss.HidLays {
+		plt.SetColParams(fmt.Sprintf("%s_Dead", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(fmt.Sprintf("%s_Hog", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(fmt.Sprintf("%s_GeMaxM", lnm), eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+	}
+	for _, lnm := range ss.SuperLays {
+		plt.SetColParams(fmt.Sprintf("%s_V1Sim", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(fmt.Sprintf("%s_CatDst", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
-		for _, pnm := range ss.PulvLays {
-			cnm := fmt.Sprintf("%s_CosDiff_%d", pnm, tck)
-			plt.SetColParams(cnm, eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
-			cnm = fmt.Sprintf("%s_AvgSSE_%d", pnm, tck)
-			plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		for _, lnm := range ss.PulvLays {
+			plt.SetColParams(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+			plt.SetColParams(fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 		}
 	}
 	return plt
