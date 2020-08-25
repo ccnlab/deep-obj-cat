@@ -5,8 +5,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
+	"io/ioutil"
 	"log"
 	"path/filepath"
 
@@ -31,6 +33,8 @@ type Obj3DSacEnv struct {
 	ObjVelPop popcode.TwoD    `desc:"2d population code for gaussian bump rendering of object velocity"`
 	V1Med     Vis             `desc:"v1 medium resolution filtering of image -- V1AllTsr has result"`
 	V1Hi      Vis             `desc:"v1 higher resolution filtering of image -- V1AllTsr has result"`
+	Objs      []string        `desc:"list of objects, as cat/objfile"`
+	Cats      []string        `desc:"list of categories"`
 	Run       env.Ctr         `view:"inline" desc:"current run of model as provided during Init"`
 	Epoch     env.Ctr         `view:"inline" desc:"arbitrary aggregation of trials, for stats etc"`
 	Trial     env.Ctr         `view:"inline" desc:"each object trajectory is one trial"`
@@ -117,6 +121,8 @@ func (ev *Obj3DSacEnv) OpenTable() error {
 	} else {
 		ev.Row.Max = ev.Table.Rows
 	}
+	OpenListJSON(&ev.Objs, filepath.Join(ev.Path, "objs.json"))
+	OpenListJSON(&ev.Cats, filepath.Join(ev.Path, "cats.json"))
 	return err
 }
 
@@ -263,3 +269,27 @@ func (ev *Obj3DSacEnv) Action(element string, input etensor.Tensor) {
 
 // Compile-time check that implements Env interface
 var _ env.Env = (*Obj3DSacEnv)(nil)
+
+// SaveListJSON saves flat string list to a JSON-formatted file.
+func SaveListJSON(list []string, filename string) error {
+	b, err := json.MarshalIndent(list, "", "  ")
+	if err != nil {
+		log.Println(err) // unlikely
+		return err
+	}
+	err = ioutil.WriteFile(string(filename), b, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	return err
+}
+
+// OpenListJSON opens flat string list from a JSON-formatted file.
+func OpenListJSON(list *[]string, filename string) error {
+	b, err := ioutil.ReadFile(string(filename))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return json.Unmarshal(b, list)
+}

@@ -6,6 +6,11 @@ package main
 
 import "github.com/emer/emergent/params"
 
+// todo:
+// * pool instead of one2one v4, IT CT prjns
+// * weaker ctxt
+// *
+
 // ParamSets is the default set of parameters -- Base is always applied, and others can be optionally
 // selected to apply on top of that
 var ParamSets = params.Sets{
@@ -16,12 +21,12 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Learn.AvgL.Gain":   "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
 					"Layer.Act.Gbar.L":        "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
-					"Layer.Inhib.Layer.FBTau": "3",   // smoother = faster?
-					"Layer.Inhib.Pool.FBTau":  "3",   // smoother = faster?
+					"Layer.Inhib.Layer.FBTau": "1.4", // smoother = faster? but worse?
+					"Layer.Inhib.Pool.FBTau":  "1.4", // smoother = faster?
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.AvgMix": "0.5",
+					"Layer.TRC.AvgMix": "0.1",
 				}},
 			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
 				Params: params.Params{
@@ -88,13 +93,23 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi": "1.8",
 					"Layer.Inhib.Pool.On":  "false",
 				}},
+			{Sel: "#V3P", Desc: "more AvgMix?",
+				Params: params.Params{
+					"Layer.TRC.AvgMix": "0.1",
+				}},
+			{Sel: "#V4P", Desc: "more AvgMix?",
+				Params: params.Params{
+					"Layer.TRC.AvgMix": "0.1",
+				}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
 					"Layer.TRC.NoTopo": "true",
+					"Layer.TRC.AvgMix": "0.5", // need this more for higher layers!
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
 					"Layer.TRC.NoTopo": "true",
+					"Layer.TRC.AvgMix": "0.5",
 				}},
 
 			// prjn classes, specifics

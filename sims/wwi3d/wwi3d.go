@@ -79,6 +79,7 @@ type Sim struct {
 	BinarizeV1       bool              `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
 	TrnTrlLog        *etable.Table     `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table     `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
+	CatLayActs       *etable.Table     `view:"no-inline" desc:"super layer activations per category / object"`
 	TrnEpcLog        *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
 	TstEpcLog        *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
 	TstTrlLog        *etable.Table     `view:"no-inline" desc:"testing trial-level log data"`
@@ -117,6 +118,8 @@ type Sim struct {
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
 	HidLays        []string  `interactive:"-" desc:"hidden layers: super and CT -- for hogging stats"`
+	HidLaysGeMaxM  []float64 `interactive:"-" desc:"trial-level GeMaxM (minus phase Ge max)"`
+	SuperLays      []string  `interactive:"-" desc:"superficial layers"`
 
 	// internal state - view:"-"
 	Win          *gi.Window                    `view:"-" desc:"main GUI window"`
@@ -164,6 +167,7 @@ func (ss *Sim) New() {
 	ss.BinarizeV1 = true
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
+	ss.CatLayActs = &etable.Table{}
 	ss.TrnEpcLog = &etable.Table{}
 	ss.TstEpcLog = &etable.Table{}
 	ss.TstTrlLog = &etable.Table{}
@@ -248,6 +252,7 @@ func (ss *Sim) Config() {
 	ss.ConfigEnv()
 	ss.ConfigNet(ss.Net)
 	ss.InitStats()
+	ss.ConfigCatLayActs(ss.CatLayActs)
 	ss.ConfigTrnTrlLog(ss.TrnTrlLog)
 	ss.ConfigTrnTrlLog(ss.TrnTrlLogAll)
 	ss.ConfigTrnEpcLog(ss.TrnEpcLog)
@@ -735,6 +740,9 @@ func (ss *Sim) AlphaCyc(train bool) {
 			}
 		}
 		ss.Net.QuarterFinal(&ss.Time)
+		if qtr == 2 {
+			ss.MinusStats()
+		}
 		ss.Time.QuarterInc()
 		if ss.ViewOn {
 			switch {
@@ -849,8 +857,12 @@ func (ss *Sim) InitStats() {
 	}
 	ss.PulvLays = []string{}
 	ss.HidLays = []string{}
+	ss.SuperLays = []string{"V1m"}
 	net := ss.Net
 	for _, ly := range net.Layers {
+		if ly.Type() == emer.Hidden {
+			ss.SuperLays = append(ss.SuperLays, ly.Name())
+		}
 		if ly.Type() == emer.Hidden || ly.Type() == deep.CT {
 			ss.HidLays = append(ss.HidLays, ly.Name())
 		}
@@ -861,6 +873,8 @@ func (ss *Sim) InitStats() {
 	np := len(ss.PulvLays)
 	ss.PulvTrlCosDiff = make([]float64, np)
 	ss.PulvTrlAvgSSE = make([]float64, np)
+	nh := len(ss.HidLays)
+	ss.HidLaysGeMaxM = make([]float64, nh)
 }
 
 // TrialStats computes the trial-level statistics.
@@ -869,6 +883,14 @@ func (ss *Sim) TrialStats() {
 		ly := ss.Net.LayerByName(pnm).(leabra.LeabraLayer).AsLeabra()
 		ss.PulvTrlCosDiff[pi] = float64(ly.CosDiff.Cos)
 		_, ss.PulvTrlAvgSSE[pi] = ly.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
+	}
+}
+
+// MinusStats computes the trial-level statistics at end of minus phase
+func (ss *Sim) MinusStats() {
+	for hi, hnm := range ss.HidLays {
+		ly := ss.Net.LayerByName(hnm).(leabra.LeabraLayer).AsLeabra()
+		ss.HidLaysGeMaxM[hi] = float64(ly.Pools[0].Inhib.Ge.Max)
 	}
 }
 
@@ -1199,6 +1221,8 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 		dt.SetCellFloat(pnm+"_AvgSSE", row, ss.PulvTrlAvgSSE[pi])
 	}
 
+	ss.RecCatLayActs(ss.CatLayActs)
+
 	if ss.LastTrlTime.IsZero() {
 		ss.LastTrlMSec = 0
 	} else {
@@ -1264,27 +1288,117 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 }
 
 //////////////////////////////////////////////
+//  CatLayActs
+
+func (ss *Sim) RecCatLayActs(dt *etable.Table) {
+	obj := ss.TrainEnv.CurObj
+	rows := dt.RowsByString("Obj", obj, etable.Equals, etable.UseCase)
+	if len(rows) != ss.MaxTicks {
+		log.Printf("RecCatLayActs: error: object not found: %s\n", obj)
+		return
+	}
+	row := rows[0] + ss.TrainEnv.Tick.Cur
+	avgDt := float32(0.1)
+	avgDtC := 1 - avgDt
+	for _, lnm := range ss.SuperLays {
+		vt := ss.ValsTsr(lnm)
+		ly := ss.Net.LayerByName(lnm)
+		ly.UnitValsTensor(vt, "ActM")
+		cv := dt.CellTensor(lnm, row).(*etensor.Float32)
+		for i := range vt.Values {
+			cv.Values[i] = avgDtC*cv.Values[i] + avgDt*vt.Values[i]
+		}
+	}
+}
+
+func (ss *Sim) ConfigCatLayActs(dt *etable.Table) {
+	dt.SetMetaData("name", "CatLayActs")
+	dt.SetMetaData("desc", "layer activations for each cat / obj")
+	dt.SetMetaData("read-only", "true")
+	dt.SetMetaData("precision", strconv.Itoa(LogPrec))
+
+	sch := etable.Schema{
+		{"Cat", etensor.STRING, nil, nil},
+		{"Obj", etensor.STRING, nil, nil},
+		{"Tick", etensor.INT64, nil, nil},
+	}
+	for _, lnm := range ss.SuperLays {
+		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
+		sch = append(sch, etable.Column{lnm, etensor.FLOAT32, ly.Shp.Shp, ly.Shp.Nms})
+	}
+
+	nobj := len(ss.TrainEnv.Objs)
+	dt.SetFromSchema(sch, nobj*ss.MaxTicks)
+	row := 0
+	for _, ob := range ss.TrainEnv.Objs {
+		co := strings.Split(ob, "/")
+		for t := 0; t < ss.MaxTicks; t++ {
+			dt.SetCellString("Cat", row, co[0])
+			dt.SetCellString("Obj", row, co[1])
+			dt.SetCellFloat("Tick", row, float64(t))
+			row++
+		}
+	}
+}
+
+//////////////////////////////////////////////
 //  TrnEpcLog
 
 // HogDead computes the proportion of units in given layer name with ActAvg over hog thr
 // and under dead threshold
 func (ss *Sim) HogDead(lnm string) (hog, dead float64) {
-	lvt := ss.ValsTsr(lnm)
 	ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
-	ly.UnitValsTensor(lvt, "ActAvg")
-	n := float64(lvt.Len())
-	if n == 0 {
-		return
-	}
-	for _, val := range lvt.Values {
-		if val > 0.3 {
-			hog += 1
-		} else if val < 0.01 {
-			dead += 1
+	n := 0
+	if ly.Is4D() {
+		npy := ly.Shp.Dim(0)
+		npx := ly.Shp.Dim(1)
+		nny := ly.Shp.Dim(2)
+		nnx := ly.Shp.Dim(3)
+		nn := nny * nnx
+		if npy == 8 { // exclude periphery
+			n = 16 * nn
+			for py := 2; py < 6; py++ {
+				for px := 2; px < 6; px++ {
+					pi := (py*npx + px) * nn
+					for ni := 0; ni < nn; ni++ {
+						nrn := &ly.Neurons[pi+ni]
+						if nrn.ActAvg > 0.3 {
+							hog += 1
+						} else if nrn.ActAvg < 0.01 {
+							dead += 1
+						}
+					}
+				}
+			}
+		} else if ly.Shp.Dim(0) == 4 && ly.Nm[:2] != "TE" {
+			n = 4 * nn
+			for py := 1; py < 3; py++ {
+				for px := 1; px < 3; px++ {
+					pi := (py*npx + px) * nn
+					for ni := 0; ni < nn; ni++ {
+						nrn := &ly.Neurons[pi+ni]
+						if nrn.ActAvg > 0.3 {
+							hog += 1
+						} else if nrn.ActAvg < 0.01 {
+							dead += 1
+						}
+					}
+				}
+			}
 		}
 	}
-	hog /= n
-	dead /= n
+	if n == 0 {
+		for ni := range ly.Neurons {
+			nrn := &ly.Neurons[ni]
+			if nrn.ActAvg > 0.3 {
+				hog += 1
+			} else if nrn.ActAvg < 0.01 {
+				dead += 1
+			}
+		}
+	}
+	hog /= float64(n)
+	dead /= float64(n)
 	return
 }
 
@@ -1320,10 +1434,11 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("Epoch", row, float64(epc))
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
 
-	for _, pnm := range ss.HidLays {
-		hog, dead := ss.HogDead(pnm)
-		dt.SetCellFloat(fmt.Sprintf("%s_Dead", pnm), row, dead)
-		dt.SetCellFloat(fmt.Sprintf("%s_Hog", pnm), row, hog)
+	for hi, hnm := range ss.HidLays {
+		hog, dead := ss.HogDead(hnm)
+		dt.SetCellFloat(fmt.Sprintf("%s_Dead", hnm), row, dead)
+		dt.SetCellFloat(fmt.Sprintf("%s_Hog", hnm), row, hog)
+		dt.SetCellFloat(fmt.Sprintf("%s_GeMaxM", hnm), row, ss.HidLaysGeMaxM[hi])
 	}
 
 	tix := etable.NewIdxView(trl)
@@ -1381,6 +1496,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	for _, pnm := range ss.HidLays {
 		sch = append(sch, etable.Column{fmt.Sprintf("%s_Dead", pnm), etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{fmt.Sprintf("%s_Hog", pnm), etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{fmt.Sprintf("%s_GeMaxM", pnm), etensor.FLOAT64, nil, nil})
 	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, pnm := range ss.PulvLays {
@@ -1405,6 +1521,8 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 		cnm = fmt.Sprintf("%s_Hog", pnm)
 		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		cnm = fmt.Sprintf("%s_GeMaxM", pnm)
+		plt.SetColParams(cnm, eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, pnm := range ss.PulvLays {
