@@ -6,14 +6,20 @@ This is (an updated version of) the model described in:
 
 * O’Reilly, R. C., Russin, J. L., Zolfaghar, M., & Rohrlich, J. (2020). Deep Predictive Learning in Neocortex and Pulvinar. ArXiv:2006.14800 [q-Bio]. http://arxiv.org/abs/2006.14800
 
+# Install
 
-# TODO:
+See [Emergent Wiki Install](https://github.com/emer/emergent/wiki/Install) page for installation instructions -- basically you need install Go (e.g., `brew install go` on mac), then do `go build` in this directory.
 
-* save weights and exit when done running -- right now seems to be just hanging?
+Then, you need to get `CU3D100_20obj_8tick4sac.tar` from this [google drive folder](https://drive.google.com/drive/folders/13Mi9aUlF1A3sx3JaofX-qzKlxGoViT86?usp=sharing), which has the 3D rendered movies that the network is trained on.  Install it as `images` in the directory where this code is.  For example:
 
-* pretrain lip
+```bash
+$ tar -xf CU3D100_20obj_8tick4sac.tar
+$ mv CU3D100_20obj_8tick4sac images
+```
 
-* reps record..
+(we usually have it in a centralized place and create a symbolic link, which works on the cluster too..)
 
-* grunti interface with run comparison..
+# Running
+
+Just run the wwi3d executable that is built with the `go build` command.  You can see how it processes processes input patterns, etc.  It takes about 1 day to train across 32 processors on our older cluster (use `go build -tags mpi` to build with mpi support), so it would take about 16 days without MPI.  Threading has decreasing benefits but is quite efficient for 2 threads, which is what it is configured for.
 

@@ -103,8 +103,8 @@ var ParamSets = params.Sets{
 			// 	}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true",
-					"Layer.TRC.AvgMix": "0.2", // need this more for higher layers!
+					"Layer.TRC.NoTopo": "false", // potentially good..
+					"Layer.TRC.AvgMix": "0.2",   // need this more for higher layers!
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
@@ -237,13 +237,13 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V3ToDP", Desc: "too weak full from topo",
 				Params: params.Params{
-					"Prjn.WtScale.Abs": "1.5",
-					"Prjn.WtScale.Rel": "0.667",
+					"Prjn.WtScale.Abs": "2",
+					"Prjn.WtScale.Rel": "0.5",
 				}},
 			{Sel: "#V4ToTEO", Desc: "too weak full from topo",
 				Params: params.Params{
-					"Prjn.WtScale.Abs": "1.5",
-					"Prjn.WtScale.Rel": "0.667",
+					"Prjn.WtScale.Abs": "2",
+					"Prjn.WtScale.Rel": "0.5",
 				}},
 			{Sel: "#TEOToTE", Desc: "too weak full from topo",
 				Params: params.Params{

@@ -549,7 +549,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v3ct, full, emer.Back).SetClass("BackMax")   // s -> ct
 
 	// to V4
-	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // todo: try pone2one too
+	// v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // todo: try pone2one too
 
 	net.ConnectLayers(teoct, v4ct, full, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(tect, v4ct, full, emer.Back).SetClass("BackStrong")
