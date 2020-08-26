@@ -484,6 +484,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
 	one2one := prjn.NewOneToOne()
+	_ = one2one
 
 	// basic ff cons
 	net.ConnectLayers(v1m, v2, ss.Prjn3x3Skp1, emer.Forward).SetClass("StdFF") // todo: uses V1V2 version of prjn?
@@ -556,13 +557,13 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct
 
 	// to TEO
-	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // todo: try pone2one too
+	// teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // todo: try pone2one too
 
 	net.ConnectCtxtToCT(teoct, teoct, pone2one)
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
 	// to TE
-	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // todo: try pone2one too
+	// tect.RecvPrjns().SendName("TE").SetPattern(one2one) // todo: try pone2one too
 
 	net.ConnectCtxtToCT(tect, tect, pone2one)
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
@@ -760,7 +761,9 @@ func (ss *Sim) AlphaCyc(train bool) {
 	}
 
 	if train {
-		ss.Net.DWt()
+		if ss.TrainEnv.Tick.Cur > 0 { // important: don't learn on first tick!
+			ss.Net.DWt()
+		}
 	}
 	if ss.ViewOn && viewUpdt == leabra.AlphaCycle {
 		ss.UpdateView(train)

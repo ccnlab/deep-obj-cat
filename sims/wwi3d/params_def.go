@@ -7,9 +7,10 @@ package main
 import "github.com/emer/emergent/params"
 
 // todo:
-// * pool instead of one2one v4, IT CT prjns
+// * pool instead of one2one v4, IT CT prjns -- seems better
+//    * v4 = better w/pool. maybe TE better w/out pool?  TEO with pool?
 // * weaker ctxt
-// *
+// * topo within layers
 
 // ParamSets is the default set of parameters -- Base is always applied, and others can be optionally
 // selected to apply on top of that
@@ -103,12 +104,12 @@ var ParamSets = params.Sets{
 			// 	}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "false", // potentially good..
-					"Layer.TRC.AvgMix": "0.2",   // need this more for higher layers!
+					"Layer.TRC.NoTopo": "false", // false is definitely better!
+					"Layer.TRC.AvgMix": "0.0",   // fine
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true",
+					"Layer.TRC.NoTopo": "true", // definitely needs true here..
 					"Layer.TRC.AvgMix": "0.2",
 				}},
 
