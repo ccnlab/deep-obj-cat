@@ -178,8 +178,8 @@ func (ss *Sim) New() {
 	ss.Params = ParamSets
 	ss.RndSeed = 1
 	ss.ViewOn = true
-	ss.TrainUpdt = leabra.Quarter
-	ss.TestUpdt = leabra.Quarter
+	ss.TrainUpdt = leabra.Phase
+	ss.TestUpdt = leabra.Phase
 	ss.LayStatNms = []string{"LIPP"}
 	ss.ActRFNms = []string{"V4:Image", "V4:Output", "IT:Image", "IT:Output"}
 	ss.Defaults()
@@ -273,7 +273,7 @@ func (ss *Sim) ConfigEnv() {
 		if ss.LIPOnly {
 			ss.MaxEpcs = 50
 		} else {
-			ss.MaxEpcs = 999
+			ss.MaxEpcs = 500 // 999
 		}
 		ss.NZeroStop = -1
 	}
@@ -484,6 +484,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
 	one2one := prjn.NewOneToOne()
+	sameu := prjn.NewPoolSameUnit()
+	sameu.SelfCon = false
 	_ = one2one
 
 	// basic ff cons
@@ -518,17 +520,19 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v2, lip, pone2one, emer.Forward).SetClass("FwdWeak")
 	net.ConnectLayers(v3, lip, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
-	net.ConnectLayers(v2ct, lipct, pone2one, emer.Forward).SetClass("FwdWeak1")
+	net.ConnectLayers(v2ct, lipct, pone2one, emer.Forward).SetClass("FwdWeak")
 	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
 	// to V2
 	// todo: V1*P -> V2 = .02, -> V2CT = .2 -- currently using .1 default
 	v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1)
 
-	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax") // key top-down attn
-	net.ConnectLayers(teoct, v2, full, emer.Back).SetClass("BackMed")   // todo: scheduled in orig -- big..
+	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP") // key top-down attn
+	net.ConnectLayers(teoct, v2, full, emer.Back).SetClass("BackMed")         // todo: scheduled in orig -- big..
 
-	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT")
+	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
+
+	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT FmLIP")
 	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
 	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
 	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak, but key
@@ -539,10 +543,12 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(teo, v3, full, emer.Back).SetClass("BackMed")
-	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed")
+	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
 	net.ConnectLayers(teoct, v3, full, emer.Back).SetClass("BackMed")
 
-	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
+
+	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP")
 	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(v4, v3ct, full, emer.Back).SetClass("BackStrong") // s -> ct, "full way better than 3x3" -- retry
@@ -550,23 +556,29 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v3ct, full, emer.Back).SetClass("BackMax")   // s -> ct
 
 	// to V4
-	// v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // todo: try pone2one too
+	// v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // pool1to1 seems good here
+
+	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
 	net.ConnectLayers(teoct, v4ct, full, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(tect, v4ct, full, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct
 
 	// to TEO
-	// teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // todo: try pone2one too
+	// teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // and pool good here too (topo)
 
 	net.ConnectCtxtToCT(teoct, teoct, pone2one)
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
+	net.ConnectLayers(teo, teo, sameu, emer.Lateral)
+
 	// to TE
-	// tect.RecvPrjns().SendName("TE").SetPattern(one2one) // todo: try pone2one too
+	// tect.RecvPrjns().SendName("TE").SetPattern(one2one) // not much diff overall.
 
 	net.ConnectCtxtToCT(tect, tect, pone2one)
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
+
+	net.ConnectLayers(te, te, sameu, emer.Lateral)
 
 	// 4 threads = about 500 msec / trl @8 mpi
 	/*

@@ -6,12 +6,6 @@ package main
 
 import "github.com/emer/emergent/params"
 
-// todo:
-// * pool instead of one2one v4, IT CT prjns -- seems better
-//    * v4 = better w/pool. maybe TE better w/out pool?  TEO with pool?
-// * weaker ctxt
-// * topo within layers
-
 // ParamSets is the default set of parameters -- Base is always applied, and others can be optionally
 // selected to apply on top of that
 var ParamSets = params.Sets{
@@ -122,16 +116,12 @@ var ParamSets = params.Sets{
 					"Prjn.Learn.WtBal.On":      "true", // essential
 					"Prjn.Learn.Lrate":         "0.04", // must set initial lrate here when using schedule!
 				}},
-			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-				}},
 			{Sel: ".Fixed", Desc: "fixed weights",
 				Params: params.Params{
 					"Prjn.Learn.Learn": "false",
 					"Prjn.WtInit.Mean": "0.8",
 					"Prjn.WtInit.Var":  "0",
-					"Prjn.WtInit.Sym":  "true",
+					"Prjn.WtInit.Sym":  "false",
 				}},
 
 			{Sel: ".StdFF", Desc: "standard feedforward",
@@ -140,9 +130,19 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
+					"Prjn.WtScale.Rel": "0.1", // .1 orig -- had a bug tho!! also trying .05
 				}},
 
+			{Sel: ".FmLIP", Desc: "no random weights here",
+				Params: params.Params{
+					"Prjn.WtInit.Mean": "0.5",
+					"Prjn.WtInit.Var":  "0",
+					"Prjn.WtInit.Sym":  "false",
+				}},
+			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.1",
+				}},
 			{Sel: ".StdFB", Desc: "standard feedback",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.1",
@@ -153,11 +153,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackStrong", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2",
+					"Prjn.WtScale.Rel": "0.1", // orig .2
 				}},
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5",
+					"Prjn.WtScale.Rel": "0.1", // orig .5
 				}},
 			{Sel: ".BackWeak05", Desc: "weak .05",
 				Params: params.Params{
@@ -165,28 +165,20 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackLIPCT", Desc: "strength = 1",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1.0",
+					"Prjn.WtScale.Rel": ".2", // orig 1 -- todo: try .5
 				}},
 
-			{Sel: ".FmPulvMed", Desc: "medium",
+			{Sel: ".FmPulv", Desc: "default for pulvinar",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
+					"Prjn.WtScale.Rel": "0.2", // .2 > .1 > .05
 				}},
-			{Sel: ".FmPulvStrong", Desc: "stronger",
+
+			{Sel: ".Lateral", Desc: "default for lateral",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2",
-				}},
-			{Sel: ".FmPulvWeak05", Desc: "weaker",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-			{Sel: ".FmPulvWeak02", Desc: "weaker",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.02",
-				}},
-			{Sel: ".FmPulvWeak01", Desc: "weaker",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.01",
+					"Prjn.WtInit.Sym":  "false",
+					"Prjn.WtScale.Rel": "0.05", // .1 seems pretty good but too early to tell yet
+					"Prjn.WtInit.Mean": "0.2",
+					"Prjn.WtInit.Var":  "0",
 				}},
 
 			{Sel: "#LIPToLIPCT", Desc: "default 1",
@@ -203,27 +195,27 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#DPToDPCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "3",
+					"Prjn.WtScale.Rel": "1", // 3 orig -- for all below: 1 maybe slightly better than 2
 				}},
 			{Sel: "#V4ToV4CT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
+					"Prjn.WtScale.Rel": "2", // 4 orig
 				}},
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
+					"Prjn.WtScale.Rel": "2", // 4 orig
 				}},
 			{Sel: "#TEOCTToTEOCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
+					"Prjn.WtScale.Rel": "2", // 4 orig
 				}},
 			{Sel: "#TEToTECT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
+					"Prjn.WtScale.Rel": "2", // 4 orig
 				}},
 			{Sel: "#TECTToTECT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4",
+					"Prjn.WtScale.Rel": "2", // 4 orig
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
