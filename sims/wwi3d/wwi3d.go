@@ -567,7 +567,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// to TEO
 	// teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // and pool good here too (topo)
 
-	net.ConnectCtxtToCT(teoct, teoct, pone2one)
+	// net.ConnectCtxtToCT(teoct, teoct, pone2one)
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
 	net.ConnectLayers(teo, teo, sameu, emer.Lateral)

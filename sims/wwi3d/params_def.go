@@ -130,7 +130,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1", // .1 orig -- had a bug tho!! also trying .05
+					"Prjn.WtScale.Rel": "0.05", // .1 orig -- had a bug tho!! also trying .05
 				}},
 
 			{Sel: ".FmLIP", Desc: "no random weights here",
@@ -141,23 +141,23 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
+					"Prjn.WtScale.Rel": "0.05",
 				}},
 			{Sel: ".StdFB", Desc: "standard feedback",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
+					"Prjn.WtScale.Rel": "0.05",
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
+					"Prjn.WtScale.Rel": "0.05",
 				}},
 			{Sel: ".BackStrong", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1", // orig .2
+					"Prjn.WtScale.Rel": "0.2", // orig .2
 				}},
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1", // orig .5
+					"Prjn.WtScale.Rel": "0.2", // orig .5
 				}},
 			{Sel: ".BackWeak05", Desc: "weak .05",
 				Params: params.Params{
@@ -165,7 +165,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackLIPCT", Desc: "strength = 1",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": ".2", // orig 1 -- todo: try .5
+					"Prjn.WtScale.Rel": ".2", // .2 now; orig 1 -- todo: try .5, .1 once others are nailed down..
 				}},
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
@@ -176,7 +176,7 @@ var ParamSets = params.Sets{
 			{Sel: ".Lateral", Desc: "default for lateral",
 				Params: params.Params{
 					"Prjn.WtInit.Sym":  "false",
-					"Prjn.WtScale.Rel": "0.05", // .1 seems pretty good but too early to tell yet
+					"Prjn.WtScale.Rel": "0.05", // .05 > .1  -- similar, but .05 has less TEO hog
 					"Prjn.WtInit.Mean": "0.2",
 					"Prjn.WtInit.Var":  "0",
 				}},
@@ -199,23 +199,23 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V4ToV4CT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 4 orig
+					"Prjn.WtScale.Rel": "1", // 4 orig
 				}},
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 4 orig
+					"Prjn.WtScale.Rel": "1", // 4 orig
 				}},
 			{Sel: "#TEOCTToTEOCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 4 orig
+					"Prjn.WtScale.Rel": "1", // 4 orig
 				}},
 			{Sel: "#TEToTECT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 4 orig
+					"Prjn.WtScale.Rel": "1", // 4 orig
 				}},
 			{Sel: "#TECTToTECT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 4 orig
+					"Prjn.WtScale.Rel": "1", // 4 orig
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
