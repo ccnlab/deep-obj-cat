@@ -34,6 +34,7 @@ import (
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
 	"github.com/emer/etable/etview" // include to get gui views
+	"github.com/emer/etable/metric"
 	"github.com/emer/etable/split"
 	"github.com/emer/leabra/deep"
 	"github.com/emer/leabra/leabra"
@@ -114,12 +115,14 @@ type Sim struct {
 
 	// statistics: note use float64 as that is best for etable.Table
 	PulvLays       []string  `interactive:"-" desc:"pulvinar layers -- for stats"`
-	PulvTrlCosDiff []float64 `interactive:"-" desc:"trial-level cos diff for pulvs"`
-	PulvTrlAvgSSE  []float64 `interactive:"-" desc:"trial-level AvgSSE for pulvs"`
+	PulvCosDiff    []float64 `interactive:"-" desc:"trial stats cos diff for pulvs"`
+	PulvAvgSSE     []float64 `interactive:"-" desc:"trial stats AvgSSE for pulvs"`
+	PulvTrlCosDiff []float64 `interactive:"-" desc:"trial stats trial cos diff for pulvs"`
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
 	HidLays        []string  `interactive:"-" desc:"hidden layers: super and CT -- for hogging stats"`
-	HidLaysGeMaxM  []float64 `interactive:"-" desc:"trial-level GeMaxM (minus phase Ge max)"`
+	HidGeMaxM      []float64 `interactive:"-" desc:"trial-level GeMaxM (minus phase Ge max)"`
+	HidTrlCosDiff  []float64 `interactive:"-" desc:"trial-level cosine differnces"`
 	SuperLays      []string  `interactive:"-" desc:"superficial layers"`
 
 	// internal state - view:"-"
@@ -329,8 +332,10 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 		return
 	}
 
-	// sr := net.SizeReport()
-	// mpi.Printf("%s", sr)
+	if !ss.NoGui {
+		sr := net.SizeReport()
+		mpi.Printf("%s", sr)
+	}
 
 	//	ar := net.ThreadAlloc(4) // must be done after build
 	ar := net.ThreadReport() // hand tuning now..
@@ -407,24 +412,24 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v2p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..4 = v1m, 5..9 = v1h
 
 	v3, v3ct, v3p := net.AddDeep4D("V3", 4, 4, 10, 10)
-	v3p.Shape().SetShape([]int{4, 4, 14, 10}, nil, nil)
-	v3p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V2") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
+	v3p.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
+	v3p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
 
 	dp, dpct, dpp := net.AddDeep4D("DP", 1, 1, 10, 10)
 	dpp.Shape().SetShape([]int{1, 1, 10, 10}, nil, nil)
 	dpp.(*deep.TRCLayer).Drivers.Add("V3") // just does V3..
 
 	v4, v4ct, v4p := net.AddDeep4D("V4", 4, 4, 10, 10)
-	v4p.Shape().SetShape([]int{4, 4, 14, 10}, nil, nil)
-	v4p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V2") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
+	v4p.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
+	v4p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
 
 	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 10, 10)
-	teop.Shape().SetShape([]int{4, 4, 24, 10}, nil, nil)
-	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V2", "V4") // todo: massive!
+	teop.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
+	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4")
 
 	te, tect, tep := net.AddDeep4D("TE", 4, 4, 10, 10)
-	tep.Shape().SetShape([]int{4, 4, 20, 10}, nil, nil)
-	tep.(*deep.TRCLayer).Drivers.Add("TEO", "V4")
+	tep.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
+	tep.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4") // todo: "TEO"
 
 	v2.SetClass("V2")
 	v2ct.SetClass("V2")
@@ -524,61 +529,104 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
 	// to V2
-	// todo: V1*P -> V2 = .02, -> V2CT = .2 -- currently using .1 default
 	v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1)
 
-	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP") // key top-down attn
-	net.ConnectLayers(teoct, v2, full, emer.Back).SetClass("BackMed")         // todo: scheduled in orig -- big..
+	// todo: try this LIP -> BackLIPCT
+	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
+	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
+
+	// todo: teo -> v2?
 
 	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT FmLIP")
 	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
 	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
-	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak, but key
-	net.ConnectLayers(teo, v2ct, full, emer.Back).SetClass("BackMax")               // s -> ct, todo: big, necc??
+
+	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
+
+	// todo: retest again..
+	// net.ConnectLayers(teoct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // testing
+
+	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- yep needed!
+	// net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // not needed!
 
 	// to V3
 	v3ct.RecvPrjns().SendName("V3").SetPattern(full)
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
-	net.ConnectLayers(teo, v3, full, emer.Back).SetClass("BackMed")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
-	net.ConnectLayers(teoct, v3, full, emer.Back).SetClass("BackMed")
+
+	net.ConnectLayers(teo, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMed") // 3x3 seems fine here
+	net.ConnectLayers(teoct, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMed")
 
 	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP")
 	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
-	net.ConnectLayers(v4, v3ct, full, emer.Back).SetClass("BackStrong") // s -> ct, "full way better than 3x3" -- retry
-	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong") // s -> ct, "full way better than 3x3" -- retry
-	net.ConnectLayers(teo, v3ct, full, emer.Back).SetClass("BackMax")   // s -> ct
+
+	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong")           // s -> ct, needed..
+	net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // s -> ct, 3x3 ok -- this is essential for v3 cosdiff
+
+	net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv") // note: was missing, test!
+	// net.ConnectLayers(v4ct, v3p, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv")
+
+	// net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMax")   // not needed
+
+	// to DP
+	net.ConnectLayers(v2, dp, full, emer.Forward)                  // note: was missing, test!
+	net.ConnectLayers(v3p, dp, full, emer.Back).SetClass("FmPulv") // note: was missing, test!
+
+	net.ConnectLayers(teo, dp, full, emer.Back).SetClass("BackMed") // note: was missing, test!
+
+	net.ConnectLayers(teoct, dpct, full, emer.Back).SetClass("BackMed") // note: was missing, test!
+	net.ConnectLayers(v3p, dpct, full, emer.Back).SetClass("FmPulv")    // note: was missing, test!
 
 	// to V4
-	// v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // pool1to1 seems good here
+	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // pool1to1 seems good here
+
+	// todo: TEOCT -> V4?  TE -> V4?
 
 	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
 	net.ConnectLayers(teoct, v4ct, full, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(tect, v4ct, full, emer.Back).SetClass("BackStrong")
-	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct
+
+	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct -- helps with V1Sim and TE hog!
+
+	// todo: test these
+	net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv")
 
 	// to TEO
-	// teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // and pool good here too (topo)
+	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // and pool good here too (topo)
 
-	// net.ConnectCtxtToCT(teoct, teoct, pone2one)
+	net.ConnectCtxtToCT(teoct, teoct, pone2one)
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
-	net.ConnectLayers(teo, teo, sameu, emer.Lateral)
+	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv") // recip
+	net.ConnectLayers(tep, teoct, full, emer.Back).SetClass("FmPulv") // recip
+
+	net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv")
+	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv")
+
+	// net.ConnectLayers(teo, teo, sameu, emer.Lateral)
 
 	// to TE
-	// tect.RecvPrjns().SendName("TE").SetPattern(one2one) // not much diff overall.
+	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // actually critical!
 
-	net.ConnectCtxtToCT(tect, tect, pone2one)
+	net.ConnectCtxtToCT(tect, tect, pone2one) // reduces TECT hogging but impairs V1Sim a bit
+
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
 
-	net.ConnectLayers(te, te, sameu, emer.Lateral)
+	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv")
+
+	net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv")  // recip
+	net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv") // recip
+
+	// net.ConnectLayers(te, te, sameu, emer.Lateral)
 
 	// 4 threads = about 500 msec / trl @8 mpi
 	/*
@@ -895,18 +943,48 @@ func (ss *Sim) InitStats() {
 		}
 	}
 	np := len(ss.PulvLays)
+	ss.PulvCosDiff = make([]float64, np)
+	ss.PulvAvgSSE = make([]float64, np)
 	ss.PulvTrlCosDiff = make([]float64, np)
-	ss.PulvTrlAvgSSE = make([]float64, np)
 	nh := len(ss.HidLays)
-	ss.HidLaysGeMaxM = make([]float64, nh)
+	ss.HidGeMaxM = make([]float64, nh)
+	ss.HidTrlCosDiff = make([]float64, nh)
+
+	ss.RSA.Init(ss.SuperLays)
+	ss.RSA.SetCats(ss.TrainEnv.Objs)
 }
 
 // TrialStats computes the trial-level statistics.
 func (ss *Sim) TrialStats() {
 	for li, lnm := range ss.PulvLays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
-		ss.PulvTrlCosDiff[li] = float64(ly.CosDiff.Cos)
-		_, ss.PulvTrlAvgSSE[li] = ly.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
+		ss.PulvCosDiff[li] = float64(ly.CosDiff.Cos)
+		_, ss.PulvAvgSSE[li] = ly.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
+	}
+	ss.TrialCosDiff()
+}
+
+func (ss *Sim) TrialCosDiffLay(lnm string, varnm string) float64 {
+	vtp := ss.ValsTsr(lnm + "TrlCosDiffP")
+	vtc := ss.ValsTsr(lnm + "TrlCosDiffC")
+	ly := ss.Net.LayerByName(lnm)
+	ly.UnitValsTensor(vtc, varnm)
+	cosdif := 0.0
+	if len(vtp.Values) == len(vtc.Values) {
+		cosdif = float64(metric.Correlation32(vtp.Values, vtc.Values))
+	} else {
+		vtp.CopyShapeFrom(vtc)
+	}
+	copy(vtp.Values, vtc.Values)
+	return cosdif
+}
+
+func (ss *Sim) TrialCosDiff() {
+	for li, lnm := range ss.HidLays {
+		ss.HidTrlCosDiff[li] = ss.TrialCosDiffLay(lnm, "ActM")
+	}
+	for li, lnm := range ss.PulvLays {
+		ss.PulvTrlCosDiff[li] = ss.TrialCosDiffLay(lnm, "ActP") // driver more interesting here
 	}
 }
 
@@ -914,7 +992,7 @@ func (ss *Sim) TrialStats() {
 func (ss *Sim) MinusStats() {
 	for hi, hnm := range ss.HidLays {
 		ly := ss.Net.LayerByName(hnm).(leabra.LeabraLayer).AsLeabra()
-		ss.HidLaysGeMaxM[hi] = float64(ly.Pools[0].Inhib.Ge.Max)
+		ss.HidGeMaxM[hi] = float64(ly.Pools[0].Inhib.Ge.Max)
 	}
 }
 
@@ -1241,8 +1319,12 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	dt.SetCellString("TrialName", row, ss.TrainEnv.String())
 
 	for li, lnm := range ss.PulvLays {
-		dt.SetCellFloat(lnm+"_CosDiff", row, ss.PulvTrlCosDiff[li])
-		dt.SetCellFloat(lnm+"_AvgSSE", row, ss.PulvTrlAvgSSE[li])
+		dt.SetCellFloat(lnm+"_CosDiff", row, ss.PulvCosDiff[li])
+		dt.SetCellFloat(lnm+"_TrlCosDiff", row, ss.PulvTrlCosDiff[li])
+		dt.SetCellFloat(lnm+"_AvgSSE", row, ss.PulvAvgSSE[li])
+	}
+	for li, lnm := range ss.HidLays {
+		dt.SetCellFloat(lnm+"_TrlCosDiff", row, ss.HidTrlCosDiff[li])
 	}
 
 	ss.RecCatLayActs(ss.CatLayActs)
@@ -1285,7 +1367,11 @@ func (ss *Sim) ConfigTrnTrlLog(dt *etable.Table) {
 	}
 	for _, lnm := range ss.PulvLays {
 		sch = append(sch, etable.Column{lnm + "_CosDiff", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_AvgSSE", etensor.FLOAT64, nil, nil})
+	}
+	for _, lnm := range ss.HidLays {
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
 	}
 
 	dt.SetFromSchema(sch, 0)
@@ -1306,7 +1392,11 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 
 	for _, lnm := range ss.PulvLays {
 		plt.SetColParams(lnm+"_CosDiff", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(lnm+"_TrlCosDiff", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 		plt.SetColParams(lnm+"_AvgSSE", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+	}
+	for _, lnm := range ss.HidLays {
+		plt.SetColParams(lnm+"_TrlCosDiff", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	}
 	return plt
 }
@@ -1325,12 +1415,10 @@ func (ss *Sim) RecCatLayActs(dt *etable.Table) {
 	avgDt := float32(0.1)
 	avgDtC := 1 - avgDt
 	for _, lnm := range ss.SuperLays {
-		vt := ss.ValsTsr(lnm)
-		ly := ss.Net.LayerByName(lnm)
-		ly.UnitValsTensor(vt, "ActM")
+		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		cv := dt.CellTensor(lnm, row).(*etensor.Float32)
-		for i := range vt.Values {
-			cv.Values[i] = avgDtC*cv.Values[i] + avgDt*vt.Values[i]
+		for i := range ly.Neurons {
+			cv.Values[i] = avgDtC*cv.Values[i] + avgDt*ly.Neurons[i].ActM
 		}
 	}
 }
@@ -1450,10 +1538,16 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	if mpi.WorldRank() == 0 {
 		if (epc % ss.RSA.Interval) == 0 {
 			ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
+			if !ss.LIPOnly {
+				fnm := ss.LogFileName("TEsim")
+				fmt.Printf("Saving TEsim to: %v\n", fnm)
+				sm := ss.RSA.Sims["TE"]
+				etensor.SaveCSV(sm.Mat, gi.FileName(fnm), etable.Tab.Rune())
+			}
 		}
 		for li, lnm := range ss.SuperLays {
-			dt.SetCellFloat(fmt.Sprintf("%s_V1Sim", lnm), row, ss.RSA.V1Sims[li])
-			dt.SetCellFloat(fmt.Sprintf("%s_CatDst", lnm), row, ss.RSA.CatDists[li])
+			dt.SetCellFloat(lnm+"_V1Sim", row, ss.RSA.V1Sims[li])
+			dt.SetCellFloat(lnm+"_CatDst", row, ss.RSA.CatDists[li])
 		}
 	}
 
@@ -1471,13 +1565,31 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 
 	for li, lnm := range ss.HidLays {
 		hog, dead := ss.HogDead(lnm)
-		dt.SetCellFloat(fmt.Sprintf("%s_Dead", lnm), row, dead)
-		dt.SetCellFloat(fmt.Sprintf("%s_Hog", lnm), row, hog)
-		dt.SetCellFloat(fmt.Sprintf("%s_GeMaxM", lnm), row, ss.HidLaysGeMaxM[li])
+		dt.SetCellFloat(lnm+"_Dead", row, dead)
+		dt.SetCellFloat(lnm+"_Hog", row, hog)
+		dt.SetCellFloat(lnm+"_GeMaxM", row, ss.HidGeMaxM[li])
 	}
 
 	tix := etable.NewIdxView(trl)
 	spl := split.GroupBy(tix, []string{"Tick"})
+
+	// average trial cos diff
+	t2tix := etable.NewIdxView(trl)
+	t2tix.Filter(func(et *etable.Table, row int) bool {
+		tck := int(et.CellFloat("Tick", row))
+		return tck >= 2
+	})
+	t0tix := etable.NewIdxView(trl)
+	t0tix.Filter(func(et *etable.Table, row int) bool {
+		tck := int(et.CellFloat("Tick", row))
+		return tck == 0
+	})
+	t1tix := etable.NewIdxView(trl)
+	t1tix.Filter(func(et *etable.Table, row int) bool {
+		tck := int(et.CellFloat("Tick", row))
+		return tck == 1
+	})
+
 	// np := len(ss.PulvLays)
 	for _, lnm := range ss.PulvLays {
 		_, err := split.AggTry(spl, lnm+"_CosDiff", agg.AggMean)
@@ -1487,6 +1599,31 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 		split.AggTry(spl, lnm+"_AvgSSE", agg.AggMean)
 	}
 	tags := spl.AggsToTable(etable.ColNameOnly)
+	for li, lnm := range ss.PulvLays {
+		for tck := 0; tck < ss.MaxTicks; tck++ {
+			val := tags.Cols[1+2*li].FloatVal1D(tck)
+			dt.SetCellFloat(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), row, val)
+			// val = tags.Cols[2+2*li].FloatVal1D(tck)
+			// dt.SetCellFloat(fmt.Sprintf("%s_AvgSSE_%d", lnm, tck), row, val)
+		}
+		cdif := agg.Agg(t2tix, lnm+"_TrlCosDiff", agg.AggMean)
+		dt.SetCellFloat(lnm+"_TrlCosDiff", row, cdif[0])
+		c0dif := agg.Agg(t0tix, lnm+"_TrlCosDiff", agg.AggMean)
+		dt.SetCellFloat(lnm+"_TrlCosDiff0", row, c0dif[0])
+	}
+
+	for _, lnm := range ss.HidLays {
+		cdif := agg.Agg(t2tix, lnm+"_TrlCosDiff", agg.AggMean)
+		dt.SetCellFloat(lnm+"_TrlCosDiff", row, cdif[0])
+		if strings.HasSuffix(lnm, "CT") { // ct layer has overhang of 1 trial
+			c0dif := agg.Agg(t1tix, lnm+"_TrlCosDiff", agg.AggMean)
+			dt.SetCellFloat(lnm+"_TrlCosDiff0", row, c0dif[0])
+		} else {
+			c0dif := agg.Agg(t0tix, lnm+"_TrlCosDiff", agg.AggMean)
+			dt.SetCellFloat(lnm+"_TrlCosDiff0", row, c0dif[0])
+		}
+	}
+
 	for li, lnm := range ss.PulvLays {
 		for tck := 0; tck < ss.MaxTicks; tck++ {
 			val := tags.Cols[1+2*li].FloatVal1D(tck)
@@ -1527,15 +1664,21 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
 	}
 	for _, lnm := range ss.HidLays {
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_Dead", lnm), etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_Hog", lnm), etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_GeMaxM", lnm), etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_Dead", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_Hog", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_GeMaxM", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
+	}
+	for _, lnm := range ss.PulvLays {
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
 	}
 	for _, lnm := range ss.SuperLays {
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_V1Sim", lnm), etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_V1Sim", etensor.FLOAT64, nil, nil})
 	}
 	for _, lnm := range ss.SuperLays {
-		sch = append(sch, etable.Column{fmt.Sprintf("%s_CatDst", lnm), etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_CatDst", etensor.FLOAT64, nil, nil})
 	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
@@ -1556,13 +1699,19 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("PerTrlMSec", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 
 	for _, lnm := range ss.HidLays {
-		plt.SetColParams(fmt.Sprintf("%s_Dead", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(fmt.Sprintf("%s_Hog", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(fmt.Sprintf("%s_GeMaxM", lnm), eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		plt.SetColParams(lnm+"_Dead", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(lnm+"_Hog", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(lnm+"_GeMaxM", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		plt.SetColParams(lnm+"_TrlCosDiff", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		plt.SetColParams(lnm+"_TrlCosDiff0", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+	}
+	for _, lnm := range ss.PulvLays {
+		plt.SetColParams(lnm+"_TrlCosDiff", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		plt.SetColParams(lnm+"_TrlCosDiff0", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 	}
 	for _, lnm := range ss.SuperLays {
-		plt.SetColParams(fmt.Sprintf("%s_V1Sim", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(fmt.Sprintf("%s_CatDst", lnm), eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(lnm+"_V1Sim", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(lnm+"_CatDst", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	}
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
@@ -1571,6 +1720,18 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 		}
 	}
 	return plt
+}
+
+// OpenCatActs Open a catact file with layer activity by category,
+// and then run the RSA analysis on it -- see RSA for results
+func (ss *Sim) OpenCatActs(fname gi.FileName) {
+	ss.CatLayActs.OpenCSV(fname, etable.Tab)
+	ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
+}
+
+// OpenSimMat Open a TEsim TE similarity matrix in standard object order
+func (ss *Sim) OpenSimMat(fname gi.FileName) {
+	ss.RSA.OpenSimMat("TE", fname)
 }
 
 //////////////////////////////////////////////
@@ -1934,6 +2095,16 @@ func (ss *Sim) ConfigGui() *gi.Window {
 			ss.RunPlot.Update()
 		})
 
+	tbar.AddAction(gi.ActOpts{Label: "Open SimMat", Icon: "file-open", Tooltip: "Open a TEsim RSA similarity matrix (in standard object order of rows, not sorted by anything"}, win.This(),
+		func(recv, send ki.Ki, sig int64, data interface{}) {
+			giv.CallMethod(ss, "OpenSimMat", vp)
+		})
+
+	tbar.AddAction(gi.ActOpts{Label: "Open CatActs", Icon: "file-open", Tooltip: "Open a catact file with layer activity by category, and then run the RSA analysis on it -- see RSA for results"}, win.This(),
+		func(recv, send ki.Ki, sig int64, data interface{}) {
+			giv.CallMethod(ss, "OpenCatActs", vp)
+		})
+
 	tbar.AddSeparator("misc")
 
 	tbar.AddAction(gi.ActOpts{Label: "New Seed", Icon: "new", Tooltip: "Generate a new initial random seed to get different results.  By default, Init re-establishes the same initial seed every time."}, win.This(),
@@ -2023,12 +2194,21 @@ func (ss *Sim) ConfigGui() *gi.Window {
 // These props register Save methods so they can be used
 var SimProps = ki.Props{
 	"CallMethods": ki.PropSlice{
-		{"SaveWts", ki.Props{
-			"desc": "save network weights to file",
-			"icon": "file-save",
+		{"OpenSimMat", ki.Props{
+			"desc": "Open a TEsim TE similarity matrix in standard object order",
+			"icon": "file-open",
 			"Args": ki.PropSlice{
 				{"File Name", ki.Props{
-					"ext": ".wts,.wts.gz",
+					"ext": ".tsv",
+				}},
+			},
+		}},
+		{"OpenCatActs", ki.Props{
+			"desc": "Open a catact file with layer activity by category, and then run the RSA analysis on it -- see RSA for results",
+			"icon": "file-open",
+			"Args": ki.PropSlice{
+				{"File Name", ki.Props{
+					"ext": ".tsv",
 				}},
 			},
 		}},

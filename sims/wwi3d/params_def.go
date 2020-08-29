@@ -63,12 +63,15 @@ var ParamSets = params.Sets{
 			{Sel: ".TEO", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Layer.Gi":    "1.8",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
 					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
+					"Layer.Inhib.Layer.On":    "true",
+					"Layer.Inhib.Layer.Gi":    "1.8", // no benefits to reducing
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
@@ -88,18 +91,18 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi": "1.8",
 					"Layer.Inhib.Pool.On":  "false",
 				}},
-			// {Sel: "#V3P", Desc: "more AvgMix?",
-			// 	Params: params.Params{
-			// 		"Layer.TRC.AvgMix": "0.1",
-			// 	}},
-			// {Sel: "#V4P", Desc: "more AvgMix?",
-			// 	Params: params.Params{
-			// 		"Layer.TRC.AvgMix": "0.1",
-			// 	}},
+			{Sel: "#V3P", Desc: "more AvgMix?",
+				Params: params.Params{
+					"Layer.TRC.AvgMix": "0.2",
+				}},
+			{Sel: "#V4P", Desc: "more AvgMix?",
+				Params: params.Params{
+					"Layer.TRC.AvgMix": "0.2",
+				}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "false", // false is definitely better!
-					"Layer.TRC.AvgMix": "0.0",   // fine
+					"Layer.TRC.NoTopo": "true", // false is definitely better (reverified)!
+					"Layer.TRC.AvgMix": "0.2",  // fine
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
@@ -153,11 +156,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackStrong", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2", // orig .2
+					"Prjn.WtScale.Rel": "0.1", // .1 > orig .2 > .05 -- not sep fm BackMax -- .1 = better TE_V1Sim, V2P cosdiff
 				}},
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2", // orig .5
+					"Prjn.WtScale.Rel": "0.1", // .1 > .2, orig .5 -- see BackStrong
 				}},
 			{Sel: ".BackWeak05", Desc: "weak .05",
 				Params: params.Params{
@@ -165,7 +168,16 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackLIPCT", Desc: "strength = 1",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": ".2", // .2 now; orig 1 -- todo: try .5, .1 once others are nailed down..
+					"Prjn.WtScale.Rel": ".5", // .5 or .2 hard to tell -- maybe .5 better..
+				}},
+
+			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.1",
+				}},
+			{Sel: ".FwdToPulv", Desc: "feedforward to pulvinar directly",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.1",
 				}},
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
@@ -177,7 +189,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtInit.Sym":  "false",
 					"Prjn.WtScale.Rel": "0.05", // .05 > .1  -- similar, but .05 has less TEO hog
-					"Prjn.WtInit.Mean": "0.2",
+					"Prjn.WtInit.Mean": "0.5",
 					"Prjn.WtInit.Var":  "0",
 				}},
 
@@ -199,23 +211,23 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V4ToV4CT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 			{Sel: "#TEOCTToTEOCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 			{Sel: "#TEToTECT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 			{Sel: "#TECTToTECT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",

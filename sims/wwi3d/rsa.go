@@ -6,11 +6,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
 	"github.com/emer/etable/metric"
 	"github.com/emer/etable/simat"
+	"github.com/goki/gi/gi"
 )
 
 // LbaCats5 is best-fitting 5-category leabra ("Centroid")
@@ -40,19 +43,54 @@ var LbaCats5 = map[string]string{
 // RSA handles representational similarity analysis
 type RSA struct {
 	Interval int                      `desc:"how often to run RSA analyses over epochs"`
+	Cats     []string                 `desc:"category names for each row of simmat / activation table -- call SetCats"`
 	Sims     map[string]*simat.SimMat `desc:"similarity matricies for each layer"`
 	V1Sims   []float64                `desc:"similarity for each layer relative to V1"`
 	CatDists []float64                `desc:"AvgContrastDist for each layer under LbaCats5 centroid meta categories"`
+	Cat5Sims map[string]*simat.SimMat `desc:"similarity matricies for each layer, organized into LbaCats5 and sorted"`
+}
+
+// Init initializes maps etc if not done yet
+func (rs *RSA) Init(lays []string) {
+	if rs.Sims != nil {
+		return
+	}
+	nc := len(lays)
+	rs.Sims = make(map[string]*simat.SimMat, nc)
+	rs.Cat5Sims = make(map[string]*simat.SimMat, nc)
+	rs.V1Sims = make([]float64, nc)
+	rs.CatDists = make([]float64, nc)
+}
+
+// SetCats sets the categories from given list of category/object_file names
+func (rs *RSA) SetCats(objs []string) {
+	rs.Cats = make([]string, 0, 20*20)
+	for _, ob := range objs {
+		cat := strings.Split(ob, "/")[0]
+		rs.Cats = append(rs.Cats, cat)
+	}
+}
+
+func (rs *RSA) SimByName(cn string) *simat.SimMat {
+	sm, ok := rs.Sims[cn]
+	if !ok || sm == nil {
+		sm = &simat.SimMat{}
+		rs.Sims[cn] = sm
+	}
+	return sm
+}
+
+func (rs *RSA) Cat5SimByName(cn string) *simat.SimMat {
+	sm, ok := rs.Cat5Sims[cn]
+	if !ok || sm == nil {
+		sm = &simat.SimMat{}
+		rs.Cat5Sims[cn] = sm
+	}
+	return sm
 }
 
 // StatsFmActs computes RSA stats from given acts table, for given columns (layer names)
-func (rs *RSA) StatsFmActs(acts *etable.Table, cols []string) {
-	nc := len(cols)
-	if rs.Sims == nil {
-		rs.Sims = make(map[string]*simat.SimMat, nc)
-		rs.V1Sims = make([]float64, nc)
-		rs.CatDists = make([]float64, nc)
-	}
+func (rs *RSA) StatsFmActs(acts *etable.Table, lays []string) {
 	tick := 2 // use this tick for analyses..
 	tix := etable.NewIdxView(acts)
 	tix.Filter(func(et *etable.Table, row int) bool {
@@ -60,26 +98,17 @@ func (rs *RSA) StatsFmActs(acts *etable.Table, cols []string) {
 		return tck == tick
 	})
 
-	cats := make([]string, tix.Len())
-	for i, row := range tix.Idxs {
-		cats[i] = acts.CellString("Cat", row)
-	}
-
-	for _, cn := range cols {
-		sm, ok := rs.Sims[cn]
-		if !ok || sm == nil {
-			sm = &simat.SimMat{}
-		}
+	for _, cn := range lays {
+		sm := rs.SimByName(cn)
 		rs.SimMatFmActs(sm, tix, cn)
-		rs.Sims[cn] = sm
 	}
 
 	v1sm := rs.Sims["V1m"]
 	v1sm64 := v1sm.Mat.(*etensor.Float64)
-	for i, cn := range cols {
-		osm := rs.Sims[cn]
+	for i, cn := range lays {
+		osm := rs.SimByName(cn)
 
-		rs.CatDists[i] = rs.AvgContrastDist(osm, cats, LbaCats5)
+		rs.CatDists[i] = -rs.AvgContrastDist(osm, rs.Cats, LbaCats5)
 
 		if v1sm == osm {
 			rs.V1Sims[i] = 1
@@ -88,24 +117,56 @@ func (rs *RSA) StatsFmActs(acts *etable.Table, cols []string) {
 		osm64 := osm.Mat.(*etensor.Float64)
 		rs.V1Sims[i] = metric.Correlation64(osm64.Values, v1sm64.Values)
 	}
+	cat5s := []string{"TE"}
+	for _, cn := range cat5s {
+		sm := rs.SimByName(cn)
+		sm5 := rs.Cat5SimByName(cn)
+		rs.CatSortSimMat(sm, sm5, rs.Cats, LbaCats5, true, cn+"_LbaCat")
+	}
+}
+
+// ConfigSimMat sets meta data
+func (rs *RSA) ConfigSimMat(sm *simat.SimMat) {
+	smat := sm.Mat.(*etensor.Float64)
+	smat.SetMetaData("max", "2")
+	smat.SetMetaData("min", "0")
+	smat.SetMetaData("colormap", "Viridis")
+	smat.SetMetaData("grid-fill", "1")
+	smat.SetMetaData("dim-extra", "0.5")
 }
 
 // SimMatFmActs computes the given SimMat from given acts table (IdxView),
 // for given column name.
 func (rs *RSA) SimMatFmActs(sm *simat.SimMat, acts *etable.IdxView, colnm string) {
 	sm.Init()
-	smat := sm.Mat.(*etensor.Float64)
-	smat.SetMetaData("max", "1.1")
-	smat.SetMetaData("min", "0")
-	smat.SetMetaData("colormap", "Viridis")
-	smat.SetMetaData("grid-fill", "1")
-	smat.SetMetaData("dim-extra", "0.5")
+	rs.ConfigSimMat(sm)
 
-	sm.TableCol(acts, colnm, "Cat", true, metric.Correlation64)
+	sm.TableCol(acts, colnm, "Cat", true, metric.InvCorrelation64)
+}
+
+// OpenSimMat opens a saved sim mat for given layer name,
+// using given cat strings per row of sim mat
+func (rs *RSA) OpenSimMat(laynm string, fname gi.FileName) {
+	sm := rs.SimByName(laynm)
+	no := len(rs.Cats)
+	sm.Init()
+	rs.ConfigSimMat(sm)
+	smat := sm.Mat.(*etensor.Float64)
+	smat.SetShape([]int{no, no}, nil, nil)
+	err := etensor.OpenCSV(smat, fname, etable.Tab.Rune())
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	sm.Rows = simat.BlankRepeat(rs.Cats)
+	sm.Cols = sm.Rows
+	sm5 := rs.Cat5SimByName(laynm)
+	rs.CatSortSimMat(sm, sm5, rs.Cats, LbaCats5, true, laynm+"_LbaCat")
 }
 
 // CatSortSimMat takes an input sim matrix and categorizes the items according to given cats
-// and then sorts items within that according to their average within - between cat similarity
+// and then sorts items within that according to their average within - between cat similarity.
+// contrast = use within - between metric, otherwise just within
 func (rs *RSA) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string, catmap map[string]string, contrast bool, name string) {
 	no := len(insm.Rows)
 	sch := etable.Schema{
@@ -161,6 +222,7 @@ func (rs *RSA) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string
 	osm.Init()
 	osm.Mat.CopyShapeFrom(insm.Mat)
 	osm.Mat.CopyMetaData(insm.Mat)
+	rs.ConfigSimMat(osm)
 	omatv := osm.Mat.(*etensor.Float64).Values
 	bcols := make([]string, no)
 	last := ""

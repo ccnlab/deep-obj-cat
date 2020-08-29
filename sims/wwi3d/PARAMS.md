@@ -6,17 +6,20 @@ This is the parameter search notes for wwi3d.
 
 # Cur best
 
-* all .05 (back, lat, fwdweak), ctxt = 1
 
-* TE hog / dead: ctxt = 2te/oSelf NOT clearly better!
+# back further
 
-* ore000065: ctxt=1noself, FmPulv=.2, back .05 all, lipct .2 -- minimal hogging in supers, CT still hoggy, but some getting better.  TEO starts out hoggy but gets better.  TE_V1sim very strong.
+* BackLIPCT = .5 (78) vs. .2 (77) -- main diff is on V2CT hogging -- .5 reduces.., and ALSO has decent TE_V1Sim benefit -- go back to .5..
 
-* but actually 62 maybe better with ctxt2.
+* BackMax = .1 (80) vs. .05 (77) -- minor inc on V2CT hogging, but better TE_V1Sim, and much better V2P cosdiff
+
+* BackMax = .2 (83) vs. .1 (82): .2 = worse TE Dead, worse TE_V1Sim, slightly better V2P cosdiff
+
+* ctxt te self 1 (82) vs noself (80): TE self = lower TE hog, and lower dead, but *worse* TE_V1Sim (smallish)
 
 # ctxt, back, lat, fwdweak (60-75)
 
-In general, hog++ == dead-- -- hog is more important.
+In TE/O, hog++ == dead-- -- hog is more important.
 
 Best overall: 76 = sulat.05 fwdweak.05, ctxt=2te/oSelf, back .05 all, lipct .2
 
@@ -26,9 +29,9 @@ But, ctxt=1 is better!
 
 Summary: 
 
-* 73 v 74 = lat.1 vs. lat.05, fwdweak .05: lat.05 = less TE hog, otherwise very similar
-* 74 v 75 = fwdweak .05 vs. .1: not much diff -- 74 slightly better for V4 dead
-* 74 v 76; 71 vs 70: back .1 vs. .05: V2CT hog/dead better with back = .05, V1Sim better, V2p cosdiff worse tho
+* back .1 vs. .05: 74 v 76; 71 vs 70: V2CT hog/dead better with back = .05, V1Sim better, V2p cosdiff worse tho
+* lat.1 vs. lat.05: 73 v 74 (fwdweak .05): lat.05 = less TE hog, otherwise very similar
+* fwdweak .05 vs. .1: 74 v 75: not much diff -- 74 slightly better for V4 dead
 
 * 71 = ctxt1, 72 = ctxt2, 73 = ctxt2+self: 71 = best V1sim, least TE, TEO dead = best; TEOP cosdif = slightly worse
 
