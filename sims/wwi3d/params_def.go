@@ -101,12 +101,12 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true", // false is definitely better (reverified)!
-					"Layer.TRC.AvgMix": "0.2",  // fine
+					"Layer.TRC.NoTopo": "false", // retesting
+					"Layer.TRC.AvgMix": "0.2",   // fine
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true", // definitely needs true here..
+					"Layer.TRC.NoTopo": "true", // retesting
 					"Layer.TRC.AvgMix": "0.2",
 				}},
 
