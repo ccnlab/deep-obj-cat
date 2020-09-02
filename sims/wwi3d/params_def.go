@@ -95,20 +95,6 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.TRC.AvgMix": "0.0", // no real diff vs. .5
 				}},
-			/*
-				{Sel: "#V3P", Desc: "more AvgMix?",
-					Params: params.Params{
-						"Layer.TRC.AvgMix": "0.5",
-					}},
-				{Sel: "#V4P", Desc: "more AvgMix?",
-					Params: params.Params{
-						"Layer.TRC.AvgMix": "0.5",
-					}},
-				{Sel: "#DPP", Desc: "more AvgMix?",
-					Params: params.Params{
-						"Layer.TRC.AvgMix": "0.5",
-					}},
-			*/
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
 					"Layer.TRC.NoTopo": "true", // now best
@@ -174,6 +160,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.05",
 				}},
+			{Sel: ".BackWeak02", Desc: "weak .02",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.02",
+				}},
 			{Sel: ".BackLIPCT", Desc: "strength = 1",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": ".1", // .1 == .05 > .2 > .5 in V2ct hogging, no diff else
@@ -226,9 +216,13 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1",
 				}},
-			{Sel: "#V2ToV2CT", Desc: "V2 has weaker -- todo: untested!",
+			{Sel: "#V2ToV2CT", Desc: "standard",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // todo: was .5 orig!
+					"Prjn.WtScale.Rel": "1", // .5 orig!
+				}},
+			{Sel: "#V2CTToV2CT", Desc: "standard",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "1",
 				}},
 			{Sel: "#V3ToV3CT", Desc: "V3 default",
 				Params: params.Params{
@@ -242,11 +236,15 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
+			{Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "1", // 1 = less TEO hogging; 4 orig
+				}},
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
-			{Sel: "#TEOCTToTEOCT", Desc: "stronger",
+			{Sel: "#TEOCTToTEOCT", Desc: "reg but beneficial",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1", // 1 = less TEO hogging; 4 orig
 				}},
@@ -254,7 +252,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
-			{Sel: "#TECTToTECT", Desc: "stronger",
+			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1", // 1 = less TE hogging; 4 orig
 				}},

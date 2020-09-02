@@ -1,10 +1,21 @@
 This is the parameter search notes for wwi3d.
 
+
 # TODO
 
 * go back and add V4CT self p1to1 scale 1 -- some indication of benefit in reps, cosdif?
 
-* try ctxt1to1init .2, .3 -- weaker drivers at start.
+# Summary as of Job 159
+
+Key changes:
+
+* CTCtxt prjns all 1to1 -- sig helps with hogging, no worse at cosdiff pred err.
+    
+    + CT self prjns pool1to1 scale = 1 seem beneficial at higher layers -- trying elsewhere
+
+* weaker top-down prjns to CT layers reduces hogging
+
+* TRC AvgMix = .5 for higher, more pooled layers (V3+); V2P fine with 0 or .2 -- no real diff
 
 # Jobs 140..: original ~8instance non-plus 20obj, more V2CT, V3CT de-hogging
 
@@ -12,9 +23,11 @@ This is the parameter search notes for wwi3d.
 
 * LIPCT -> V2CT = .1 reduces V2CT hogging significantly.
 
-* trying reduced top-down to V2CT, V3CT
+* trying reduced top-down to V2CT, V3CT -- beneficial at .05
 
-* V3 FmPulv = .05 reduces hogging, but V2 needs .1
+* V3 FmPulv = .05 reduces hogging, but also sig impairs cosiff -- stay at .1; V2 needs .1
+
+* try ctxt1to1init .2, .3 -- weaker drivers at start -- not better, some things worse.
 
 
 # Jobs 108..139: fixing CT hogging, adding lots of missing DP connections

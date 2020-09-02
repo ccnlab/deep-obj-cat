@@ -538,6 +538,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v2ct.RecvPrjns().SendName("V2").SetPattern(one2one) // better hogging?
 	v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1")
 
+	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one)
+
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
 
