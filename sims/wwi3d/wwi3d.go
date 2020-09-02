@@ -81,6 +81,7 @@ type Sim struct {
 	TrnTrlLog        *etable.Table     `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table     `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
 	CatLayActs       *etable.Table     `view:"no-inline" desc:"super layer activations per category / object"`
+	CatLayActsDest   *etable.Table     `view:"no-inline" desc:"MPI dest super layer activations per category / object"`
 	RSA              RSA               `view:"no-inline" desc:"RSA data"`
 	TrnEpcLog        *etable.Table     `view:"no-inline" desc:"training epoch-level log data"`
 	TstEpcLog        *etable.Table     `view:"no-inline" desc:"testing epoch-level log data"`
@@ -172,6 +173,7 @@ func (ss *Sim) New() {
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
 	ss.CatLayActs = &etable.Table{}
+	ss.CatLayActsDest = &etable.Table{}
 	ss.TrnEpcLog = &etable.Table{}
 	ss.TstEpcLog = &etable.Table{}
 	ss.TstTrlLog = &etable.Table{}
@@ -259,6 +261,9 @@ func (ss *Sim) Config() {
 	ss.ConfigNet(ss.Net)
 	ss.InitStats()
 	ss.ConfigCatLayActs(ss.CatLayActs)
+	if ss.UseMPI {
+		ss.ConfigCatLayActs(ss.CatLayActsDest)
+	}
 	ss.ConfigTrnTrlLog(ss.TrnTrlLog)
 	ss.ConfigTrnTrlLog(ss.TrnTrlLogAll)
 	ss.ConfigTrnEpcLog(ss.TrnEpcLog)
@@ -276,7 +281,7 @@ func (ss *Sim) ConfigEnv() {
 		if ss.LIPOnly {
 			ss.MaxEpcs = 50
 		} else {
-			ss.MaxEpcs = 500 // 999
+			ss.MaxEpcs = 999 // 500
 		}
 		ss.NZeroStop = -1
 	}
@@ -416,8 +421,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v3p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
 
 	dp, dpct, dpp := net.AddDeep4D("DP", 1, 1, 10, 10)
-	dpp.Shape().SetShape([]int{1, 1, 10, 10}, nil, nil)
-	dpp.(*deep.TRCLayer).Drivers.Add("V3") // just does V3..
+	dpp.Shape().SetShape([]int{1, 1, 4, 10}, nil, nil)
+	dpp.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , should be "V3" -- orig had note about V3p->DP bad..
 
 	v4, v4ct, v4p := net.AddDeep4D("V4", 4, 4, 10, 10)
 	v4p.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
@@ -529,9 +534,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
 	// to V2
-	v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1)
+	// v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1) // try one2one
+	v2ct.RecvPrjns().SendName("V2").SetPattern(one2one) // better hogging?
+	v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1")
 
-	// todo: try this LIP -> BackLIPCT
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
 
@@ -540,8 +546,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT FmLIP")
-	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
-	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax")
+	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax, .05 reduces hogging
+	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax
 
 	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
 	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
@@ -549,11 +555,15 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// todo: retest again..
 	// net.ConnectLayers(teoct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // testing
 
-	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- yep needed!
-	// net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // not needed!
+	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax")  // s -> ct leak -- yep needed!
+	net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- improves cosdif, reduces hogging, 4x4skp2 better than full!
 
 	// to V3
-	v3ct.RecvPrjns().SendName("V3").SetPattern(full)
+	// v3ct.RecvPrjns().SendName("V3").SetPattern(full)
+	v3ct.RecvPrjns().SendName("V3").SetPattern(one2one)
+	v3ct.RecvPrjns().SendName("V3").SetClass("ToCT1to1")
+
+	// net.ConnectCtxtToCT(v3ct, v3ct, pone2one) // worse hogging, cosdiff
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
@@ -564,8 +574,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP")
-	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")
-	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackWeak05")           // was BackStrong
+	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackWeak05") // was BackStrong
 
 	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong")           // s -> ct, needed..
 	net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // s -> ct, 3x3 ok -- this is essential for v3 cosdiff
@@ -576,6 +586,11 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMax")   // not needed
 
 	// to DP
+	dpct.RecvPrjns().SendName("DP").SetPattern(one2one) // one2one better
+	dpct.RecvPrjns().SendName("DP").SetClass("ToCT1to1")
+
+	// net.ConnectCtxtToCT(dpct, dpct, full) // worse hogging, cosdiff
+
 	net.ConnectLayers(v2, dp, full, emer.Forward)                  // note: was missing, test!
 	net.ConnectLayers(v3p, dp, full, emer.Back).SetClass("FmPulv") // note: was missing, test!
 
@@ -585,7 +600,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3p, dpct, full, emer.Back).SetClass("FmPulv")    // note: was missing, test!
 
 	// to V4
-	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // pool1to1 seems good here
+	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // one2one better
+	v4ct.RecvPrjns().SendName("V4").SetClass("ToCT1to1")
+
+	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one)
 
 	// todo: TEOCT -> V4?  TE -> V4?
 
@@ -601,9 +619,11 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv")
 
 	// to TEO
-	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // and pool good here too (topo)
+	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // important
+	teoct.RecvPrjns().SendName("TEO").SetClass("ToCT1to1")
 
 	net.ConnectCtxtToCT(teoct, teoct, pone2one)
+
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
 	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv") // recip
@@ -616,6 +636,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to TE
 	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // actually critical!
+	tect.RecvPrjns().SendName("TE").SetClass("ToCT1to1")
 
 	net.ConnectCtxtToCT(tect, tect, pone2one) // reduces TECT hogging but impairs V1Sim a bit
 
@@ -1423,6 +1444,25 @@ func (ss *Sim) RecCatLayActs(dt *etable.Table) {
 	}
 }
 
+// ShareCatLayActs shares CatLayActs table across processors, for MPI mode
+func (ss *Sim) ShareCatLayActs() {
+	if !ss.UseMPI {
+		return
+	}
+	np := float32(1) / float32(mpi.WorldSize())
+	empi.ReduceTable(ss.CatLayActsDest, ss.CatLayActs, ss.Comm, mpi.OpSum)
+	for ci, dcoli := range ss.CatLayActs.Cols {
+		if dcoli.DataType() != etensor.FLOAT32 {
+			continue
+		}
+		dcol := dcoli.(*etensor.Float32)
+		scol := ss.CatLayActsDest.Cols[ci].(*etensor.Float32)
+		for i := range dcol.Values {
+			dcol.Values[i] = np * scol.Values[i]
+		}
+	}
+}
+
 func (ss *Sim) ConfigCatLayActs(dt *etable.Table) {
 	dt.SetMetaData("name", "CatLayActs")
 	dt.SetMetaData("desc", "layer activations for each cat / obj")
@@ -1530,6 +1570,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	if ss.UseMPI {
 		empi.GatherTableRows(ss.TrnTrlLogAll, ss.TrnTrlLog, ss.Comm)
 		trl = ss.TrnTrlLogAll
+		ss.ShareCatLayActs()
 	}
 
 	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
@@ -2322,7 +2363,7 @@ func (ss *Sim) MPIFinalize() {
 
 // CollectDWts collects the weight changes from all synapses into AllDWts
 func (ss *Sim) CollectDWts(net *leabra.Network) {
-	made := net.CollectDWts(&ss.AllDWts, 91824128) // plug in number from printout below, to avoid realloc
+	made := net.CollectDWts(&ss.AllDWts, 78163328) // plug in number from printout below, to avoid realloc
 	if made {
 		mpi.Printf("MPI: AllDWts len: %d\n", len(ss.AllDWts)) // put this number in above make
 	}

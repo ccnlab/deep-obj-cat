@@ -2,12 +2,59 @@ This is the parameter search notes for wwi3d.
 
 # TODO
 
-* figuring out: ctxt .1 or .2; te/o self?  FwdWeak .1 vs. .05; Lat .1 vs .05; 
+* go back and add V4CT self p1to1 scale 1 -- some indication of benefit in reps, cosdif?
 
-# Cur best
+* try ctxt1to1init .2, .3 -- weaker drivers at start.
+
+# Jobs 140..: original ~8instance non-plus 20obj, more V2CT, V3CT de-hogging
+
+* Now only V2CT, V3CT remain majorly hoggy -- all others good(ish)..
+
+* LIPCT -> V2CT = .1 reduces V2CT hogging significantly.
+
+* trying reduced top-down to V2CT, V3CT
+
+* V3 FmPulv = .05 reduces hogging, but V2 needs .1
 
 
-# back further
+# Jobs 108..139: fixing CT hogging, adding lots of missing DP connections
+
+* All super layers now mostly hog-free, but all CT layers exhibit significant hogging..
+
+* all Pulv layers ONLY using V1 drivers for time being -- these are key de-hoggers and allow some degree of comparison across layers for predictive accuracy.
+
+* added other inputs directly into pulv to help with prediction, as in cemer version
+
+* projections into DP were missing.  as of 128 DPP also just using V1 drivers -- now doing something -- V3 alone was NOT good, and comment in cemer version said it was bad there too..
+
+    + but getting DPP learning has no effect on anything else!
+
+* TEO/TE both benefit from NoTopo
+
+* one-to-one ctxt prjns and 4 rel strength (as in orig model) -- key for TEO / V4 hog reduction and prediction, but kinda weird!
+
+* AvgMax .5 vs .2 in V3+: drives sig better CosDiff pred in TEO, TE, better (lower) TE_V1sim but *worse* CatDist -- fits less well with lba5 cats..
+
+* AvgMax .5 in V2 impairs CosDif (128,129), but slightly improves V2CT hogging
+
+* TEO -> V2CT improves V2 CosDif (128)
+
+## 1to1 ctxt prjns
+
+* 1to1 super -> CT renders CT as just a delayed copy of Super: main learning is then in the pooled CT -> pulv prjn, and in whatever super can do to help, but CT doesn't provide any extra mojo.
+
+    + maybe giving CT too much rope just hangs it?  anatomically, it is more deep <-> deep and super -> CT more microcolumn?
+
+    + test whether pooled CT <-> CT are doing something in TE/O -- and add to V4 / V2
+
+* V3, DP self ctxt p1to1 1sc = worse V3CT hogging, worse cosdiff, 
+
+* TE/O CT hogging takes much longer to onset than in V3 etc
+
+* TE/O self off or 1 = much less hogging.
+
+
+# Jobs 77..83: back further
 
 * BackLIPCT = .5 (78) vs. .2 (77) -- main diff is on V2CT hogging -- .5 reduces.., and ALSO has decent TE_V1Sim benefit -- go back to .5..
 
@@ -17,7 +64,7 @@ This is the parameter search notes for wwi3d.
 
 * ctxt te self 1 (82) vs noself (80): TE self = lower TE hog, and lower dead, but *worse* TE_V1Sim (smallish)
 
-# ctxt, back, lat, fwdweak (60-75)
+# Jobs 60..75: ctxt, back, lat, fwdweak
 
 In TE/O, hog++ == dead-- -- hog is more important.
 
