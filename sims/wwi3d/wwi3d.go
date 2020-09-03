@@ -535,10 +535,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to V2
 	// v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1) // try one2one
-	v2ct.RecvPrjns().SendName("V2").SetPattern(one2one) // better hogging?
-	v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1")
+	v2ct.RecvPrjns().SendName("V2").SetPattern(one2one)  // better hogging?
+	v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1") // 1 == .5
 
-	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one)
+	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
 
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
@@ -548,9 +548,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT FmLIP")
-	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax, .05 reduces hogging
-	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax
+	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax, .05 reduces hogging; .02 minor less dead / hog
+	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax; .02 minor less dead / hog
 
+	// small benefit for V2P cosdiff and hogging:
 	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
 	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
 
@@ -576,13 +577,13 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP")
-	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackWeak05")           // was BackStrong
-	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackWeak05") // was BackStrong
+	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackWeak05")           // was BackStrong; .02 worse dead, hog
+	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackWeak05") // was BackStrong; .02 worse dead, hog
 
 	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong")           // s -> ct, needed..
 	net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // s -> ct, 3x3 ok -- this is essential for v3 cosdiff
 
-	net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv") // note: was missing, test!
+	net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv") // beneficial for hog, cosdiff
 	// net.ConnectLayers(v4ct, v3p, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv")
 
 	// net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMax")   // not needed
@@ -616,8 +617,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct -- helps with V1Sim and TE hog!
 
-	// todo: test these
-	net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv") // important
 	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv")
 
 	// to TEO
@@ -631,8 +631,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv") // recip
 	net.ConnectLayers(tep, teoct, full, emer.Back).SetClass("FmPulv") // recip
 
-	net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv")
-	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // beneficial
+	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv")   // beneficial
 
 	// net.ConnectLayers(teo, teo, sameu, emer.Lateral)
 

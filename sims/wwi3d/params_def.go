@@ -53,7 +53,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".DP", Desc: "no pool inhib, initial activity",
 				Params: params.Params{
@@ -66,7 +66,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi":    "1.8",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
@@ -75,7 +75,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: "#LIPCT", Desc: "higher inhib",
 				Params: params.Params{
@@ -109,7 +109,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.Learn.Norm.On":       "true",
 					"Prjn.Learn.Momentum.On":   "true",
-					"Prjn.Learn.Momentum.MTau": "20",   // has repeatedly been beneficial
+					"Prjn.Learn.Momentum.MTau": "10",   // now 10 much better than 20!
 					"Prjn.Learn.WtBal.On":      "true", // essential
 					"Prjn.Learn.Lrate":         "0.04", // must set initial lrate here when using schedule!
 				}},
@@ -198,7 +198,7 @@ var ParamSets = params.Sets{
 			{Sel: ".Lateral", Desc: "default for lateral",
 				Params: params.Params{
 					"Prjn.WtInit.Sym":  "false",
-					"Prjn.WtScale.Rel": "0.05", // .05 > .1  -- similar, but .05 has less TEO hog
+					"Prjn.WtScale.Rel": "0.02", // .02 > .05 > .1  -- similar, but .05 has less TEO hog
 					"Prjn.WtInit.Mean": "0.5",
 					"Prjn.WtInit.Var":  "0",
 				}},
@@ -218,7 +218,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V2ToV2CT", Desc: "standard",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // .5 orig!
+					"Prjn.WtScale.Rel": "1", // .5 orig: slightly worse hogging, no bene
 				}},
 			{Sel: "#V2CTToV2CT", Desc: "standard",
 				Params: params.Params{

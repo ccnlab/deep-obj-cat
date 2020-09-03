@@ -1,9 +1,12 @@
 This is the parameter search notes for wwi3d.
 
-
 # TODO
 
-* go back and add V4CT self p1to1 scale 1 -- some indication of benefit in reps, cosdif?
+* Add weaker surround projection from same CT -> P
+
+* load pretrained LIP
+
+* non CTCtxt for self prjn in self
 
 # Summary as of Job 159
 
