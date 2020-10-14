@@ -539,6 +539,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1") // 1 == .5
 
 	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
+	net.ConnectLayers(v2ct, v2ct, pone2one, emer.Forward)
 
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
@@ -567,6 +568,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v3ct.RecvPrjns().SendName("V3").SetClass("ToCT1to1")
 
 	// net.ConnectCtxtToCT(v3ct, v3ct, pone2one) // worse hogging, cosdiff
+	net.ConnectLayers(v3ct, v3ct, pone2one, emer.Forward)
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
@@ -607,6 +609,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v4ct.RecvPrjns().SendName("V4").SetClass("ToCT1to1")
 
 	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one)
+	net.ConnectLayers(v4ct, v4ct, pone2one, emer.Forward)
 
 	// todo: TEOCT -> V4?  TE -> V4?
 
@@ -624,7 +627,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // important
 	teoct.RecvPrjns().SendName("TEO").SetClass("ToCT1to1")
 
-	net.ConnectCtxtToCT(teoct, teoct, pone2one)
+	// net.ConnectCtxtToCT(teoct, teoct, pone2one)
+	net.ConnectLayers(teoct, teoct, pone2one, emer.Forward)
 
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
@@ -640,7 +644,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // actually critical!
 	tect.RecvPrjns().SendName("TE").SetClass("ToCT1to1")
 
-	net.ConnectCtxtToCT(tect, tect, pone2one) // reduces TECT hogging but impairs V1Sim a bit
+	// net.ConnectCtxtToCT(tect, tect, pone2one) // reduces TECT hogging but impairs V1Sim a bit
+	net.ConnectLayers(tect, tect, pone2one, emer.Forward)
 
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
 
@@ -739,7 +744,7 @@ func (ss *Sim) InitWts(net *deep.Network) {
 	net.InitWts()
 
 	// if !ss.LIPOnly {
-	// 	mpi.Printf("loading lip_pretrained.wts.gz...\")
+	// 	mpi.Printf("loading lip_pretrained.wts.gz...\n")
 	// 	net.OpenWtsJSON(gi.FileName("lip_pretrained.wts.gz"))
 	// }
 

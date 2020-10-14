@@ -1,4 +1,4 @@
-module github.com/emer/envs
+module github.com/ccnlab/deep-obj-cat/sims/wwi3d
 
 go 1.13
 
