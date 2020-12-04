@@ -729,7 +729,7 @@ func (ss *Sim) InitWts(net *deep.Network) {
 		return
 	}
 
-	net.InitScalesFmPoolTile() // sets all!
+	net.InitTopoScales() // sets all!
 
 	// these are not set automatically b/c prjn is Full, not PoolTile
 	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
@@ -1457,7 +1457,7 @@ func (ss *Sim) ShareCatLayActs() {
 		return
 	}
 	np := float32(1) / float32(mpi.WorldSize())
-	empi.ReduceTable(ss.CatLayActsDest, ss.CatLayActs, ss.Comm, mpi.OpSum)
+	empi.GatherTableRows(ss.CatLayActsDest, ss.CatLayActs, ss.Comm)
 	for ci, dcoli := range ss.CatLayActs.Cols {
 		if dcoli.DataType() != etensor.FLOAT32 {
 			continue
