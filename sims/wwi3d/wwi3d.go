@@ -1445,7 +1445,7 @@ func (ss *Sim) ShareCatLayActs() {
 		return
 	}
 	np := float32(1) / float32(mpi.WorldSize())
-	empi.ReduceTable(ss.CatLayActsDest, ss.CatLayActs, ss.Comm, mpi.OpSum)
+	empi.GatherTableRows(ss.CatLayActsDest, ss.CatLayActs, ss.Comm)
 	for ci, dcoli := range ss.CatLayActs.Cols {
 		if dcoli.DataType() != etensor.FLOAT32 {
 			continue
