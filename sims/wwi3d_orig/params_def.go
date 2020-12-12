@@ -14,10 +14,11 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Learn.AvgL.Gain":   "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
-					"Layer.Act.Gbar.L":        "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
-					"Layer.Inhib.Layer.FBTau": "1.4", // smoother = faster? but worse?
-					"Layer.Inhib.Pool.FBTau":  "1.4", // smoother = faster?
+					"Layer.Learn.AvgL.Gain":       "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
+					"Layer.Act.Gbar.L":            "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
+					"Layer.Inhib.Layer.FBTau":     "1.4", // smoother = faster? but worse?
+					"Layer.Inhib.Pool.FBTau":      "1.4", // smoother = faster?
+					"Layer.Inhib.ActAvg.UseFirst": "false",
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
@@ -125,6 +126,11 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1.0",
 				}},
+			{Sel: ".FwdAbs5Rel2", Desc: "reduced abs, compensatory 2x rel -- too strongly activated otherwise",
+				Params: params.Params{
+					"Prjn.WtScale.Abs": "0.5",
+					"Prjn.WtScale.Rel": "2.0",
+				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.05", // .1 orig -- had a bug tho!! also trying .05
@@ -146,15 +152,15 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
+					"Prjn.WtScale.Rel": "0.1", // orig .1 -- todo try .05 in new
 				}},
 			{Sel: ".BackStrong", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1", // .1 > orig .2 > .05 -- not sep fm BackMax -- .1 = better TE_V1Sim, V2P cosdiff
+					"Prjn.WtScale.Rel": "0.2", // orig .2 -- todo try .1
 				}},
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1", // .1 > .2, orig .5 -- see BackStrong
+					"Prjn.WtScale.Rel": "0.5", // orig .5 -- reduced in new to .1 -- todo
 				}},
 			{Sel: ".BackWeak05", Desc: "weak .05",
 				Params: params.Params{
@@ -166,12 +172,20 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackLIPCT", Desc: "strength = 1",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": ".1", // .1 == .05 > .2 > .5 in V2ct hogging, no diff else
+					"Prjn.WtScale.Rel": "1", // 1 orig; todo try .1 == .05 > .2 > .5 in V2ct hogging, no diff else
 				}},
 
 			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.1",
+				}},
+			{Sel: ".BackToPulv2", Desc: "top-down to pulvinar directly",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.2",
+				}},
+			{Sel: ".BackToPulv5", Desc: "top-down to pulvinar directly",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.5",
 				}},
 			{Sel: ".FwdToPulv", Desc: "feedforward to pulvinar directly",
 				Params: params.Params{
@@ -180,7 +194,19 @@ var ParamSets = params.Sets{
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2", // .2 > .1 > .05
+					"Prjn.WtScale.Rel": "0.1",
+				}},
+			{Sel: ".FmPulv2", Desc: "strong",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.2",
+				}},
+			{Sel: ".FmPulv05", Desc: "weak",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.05",
+				}},
+			{Sel: ".FmPulv02", Desc: "weak",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.02",
 				}},
 			{Sel: "#V2PToV2CT", Desc: "trying pulvinar prjns better",
 				Params: params.Params{
@@ -246,7 +272,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TEOCTToTEOCT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 = less TEO hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 			{Sel: "#TEToTECT", Desc: "stronger",
 				Params: params.Params{
@@ -254,7 +280,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 = less TE hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",

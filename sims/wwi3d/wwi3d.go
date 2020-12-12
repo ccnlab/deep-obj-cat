@@ -730,6 +730,17 @@ func (ss *Sim) InitWts(net *deep.Network) {
 	}
 
 	net.InitTopoScales() //  sets all wt scales
+
+	// these are not set automatically b/c prjn is Full, not PoolTile
+	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "SacPlan", "LIP", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIP", ss.PrjnSigTopo)
+
+	ss.SetTopoScales(net, "LIP", "LIPCT", ss.Prjn3x3Skp1)
+	ss.SetTopoScales(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
+
 	net.InitWts()
 	if !ss.LIPOnly {
 		mpi.Printf("loading lip_pretrained.wts.gz...\n")

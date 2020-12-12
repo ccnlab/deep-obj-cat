@@ -95,6 +95,7 @@ type Sim struct {
 	Tag              string            `desc:"extra tag string to add to any file names output from sim (e.g., weights files, log files, params for run)"`
 	Prjn4x4Skp2      *prjn.PoolTile    `view:"Standard feedforward topographic projection, recv = 1/2 send size"`
 	Prjn4x4Skp2Recip *prjn.PoolTile    `view:"Reciprocal"`
+	Prjn8x8Skp4Recip *prjn.PoolTile    `view:"Reciprocal"`
 	Prjn2x2Skp2      *prjn.PoolTile    `view:"sparser skip 2 -- no overlap"`
 	Prjn2x2Skp2Recip *prjn.PoolTile    `view:"Reciprocal"`
 	Prjn3x3Skp1      *prjn.PoolTile    `view:"Standard same-to-same size topographic projection"`
@@ -211,6 +212,13 @@ func (ss *Sim) Defaults() {
 	ss.Prjn4x4Skp2Recip.Start.Set(-1, -1)
 	ss.Prjn4x4Skp2Recip.TopoRange.Min = 0.8 // note: none of these make a very big diff
 	ss.Prjn4x4Skp2Recip.Recip = true
+
+	ss.Prjn8x8Skp4Recip = prjn.NewPoolTile()
+	ss.Prjn8x8Skp4Recip.Size.Set(8, 8)
+	ss.Prjn8x8Skp4Recip.Skip.Set(4, 4)
+	ss.Prjn8x8Skp4Recip.Start.Set(-2, -2)
+	ss.Prjn8x8Skp4Recip.TopoRange.Min = 0.8 // note: none of these make a very big diff
+	ss.Prjn8x8Skp4Recip.Recip = true
 
 	ss.Prjn2x2Skp2 = prjn.NewPoolTile()
 	ss.Prjn2x2Skp2.Size.Set(2, 2)
@@ -412,33 +420,33 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 
 // ConfigNetRest configures the rest of the network
 func (ss *Sim) ConfigNetRest(net *deep.Network) {
-	v2, v2ct, v2p := net.AddDeep4D("V2", 8, 8, 10, 10)
-	v2p.Shape().SetShape([]int{8, 8, 10, 4}, nil, nil)
-	v2p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..4 = v1m, 5..9 = v1h
+	v2, v2ct, v1p := net.AddDeep4D("V2", 8, 8, 10, 10)
+	v1p.SetName("V1p")
+	v1p.SetClass("V1")
+	v1p.Shape().SetShape([]int{8, 8, 5, 4}, nil, nil)
+	v1p.(*deep.TRCLayer).Drivers.Add("V1m")
+
+	v1hp := deep.AddTRCLayer4D(net.AsLeabra(), "V1hp", 16, 16, 5, 4)
+	v1hp.Drivers.Add("V1h")
+	v1hp.SetClass("V1")
 
 	v3, v3ct, v3p := net.AddDeep4D("V3", 4, 4, 10, 10)
-	v3p.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
-	v3p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
+	v3p.(*deep.TRCLayer).Drivers.Add("V3")
 
 	dp, dpct, dpp := net.AddDeep4D("DP", 1, 1, 10, 10)
-	dpp.Shape().SetShape([]int{1, 1, 4, 10}, nil, nil)
-	dpp.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , should be "V3" -- orig had note about V3p->DP bad..
+	dpp.(*deep.TRCLayer).Drivers.Add("DP")
 
 	v4, v4ct, v4p := net.AddDeep4D("V4", 4, 4, 10, 10)
-	v4p.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
-	v4p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
+	v4p.(*deep.TRCLayer).Drivers.Add("V4")
 
 	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 10, 10)
-	teop.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
-	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4")
+	teop.(*deep.TRCLayer).Drivers.Add("TEO")
 
 	te, tect, tep := net.AddDeep4D("TE", 4, 4, 10, 10)
-	tep.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
-	tep.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4") // todo: "TEO"
+	tep.(*deep.TRCLayer).Drivers.Add("TE")
 
 	v2.SetClass("V2")
 	v2ct.SetClass("V2")
-	v2p.SetClass("V2")
 
 	v3.SetClass("V3")
 	v3ct.SetClass("V3")
@@ -463,12 +471,14 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v1m := net.LayerByName("V1m")
 	v1h := net.LayerByName("V1h")
 	lip := net.LayerByName("LIP")
+	lipp := net.LayerByName("LIPP")
 	lipct := net.LayerByName("LIPCT")
 	eyepos := net.LayerByName("EyePos")
 
 	v2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v2.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
-	v2p.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v1m.Name(), XAlign: relpos.Left, Space: 10})
+	v1p.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v1m.Name(), XAlign: relpos.Left, Space: 10})
+	v1hp.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1h.Name(), YAlign: relpos.Front, Space: 2})
 	v2ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v2.Name(), XAlign: relpos.Left, Space: 10})
 
 	v3.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v2.Name(), YAlign: relpos.Front, Space: 2})
@@ -508,7 +518,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v4v2.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	v2v3, v3v2 := net.BidirConnectLayers(v2, v3, ss.Prjn4x4Skp2)
-	v2v3.SetClass("StdFF")
+	v2v3.SetClass("FwdAbs5Rel2")
 	v3v2.SetClass("BackMax") // super strong feedback
 	v3v2.SetPattern(ss.Prjn4x4Skp2Recip)
 
@@ -517,7 +527,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	dpv3.SetClass("BackStrong")
 
 	v4teo, teov4 := net.BidirConnectLayers(v4, teo, full)
-	v4teo.SetClass("StdFF")
+	v4teo.SetClass("FwdAbs5Rel2")
 	teov4.SetClass("StdFB")
 
 	teote, teteo := net.BidirConnectLayers(teo, te, full)
@@ -534,38 +544,45 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
 	// to V2
-	// v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1) // try one2one
-	v2ct.RecvPrjns().SendName("V2").SetPattern(one2one)  // better hogging?
-	v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1") // 1 == .5
+	v2.RecvPrjns().SendName("V1p").SetClass("FmPulv02")
+	net.ConnectLayers(v1hp, v2, ss.Prjn2x2Skp2, emer.Forward).SetClass("FmPulv02")
+
+	v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1) // try one2one
+	// v2ct.RecvPrjns().SendName("V2").SetPattern(one2one)  // better hogging?
+	v2ct.RecvPrjns().SendName("V2").SetClass("FmPulv2")
+	net.ConnectLayers(v1hp, v2ct, ss.Prjn4x4Skp2, emer.Forward).SetClass("FmPulv2")
 
 	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
 	// net.ConnectLayers(v2ct, v2ct, pone2one, emer.Forward) // not beneficial
 
-	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
-	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
+	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP") // key top-down attn
+	// net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- todo try
+	net.ConnectLayers(teoct, v2, full, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
 
 	// todo: teo -> v2?
 
-	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
+	// net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT FmLIP")
-	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax, .05 reduces hogging; .02 minor less dead / hog
-	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax; .02 minor less dead / hog
+	net.ConnectLayers(lipp, v2ct, ss.Prjn3x3Skp1, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // todo: try  weaker
+	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // was BackMax todo: try weaker
 
 	// small benefit for V2P cosdiff and hogging:
-	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
-	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
+	// net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
+	// net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
 
 	// todo: retest again..
 	// net.ConnectLayers(teoct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // testing
 
-	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax")  // s -> ct leak -- yep needed!
-	net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- improves cosdif, reduces hogging, 4x4skp2 better than full!
+	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- yep needed!
+	net.ConnectLayers(teo, v2ct, full, emer.Back).SetClass("BackMax")               // todo: try 4x4s2 below:
+	// net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- improves cosdif, reduces hogging, 4x4skp2 better than full!
 
 	// to V3
-	// v3ct.RecvPrjns().SendName("V3").SetPattern(full)
-	v3ct.RecvPrjns().SendName("V3").SetPattern(one2one)
-	v3ct.RecvPrjns().SendName("V3").SetClass("ToCT1to1")
+	v3ct.RecvPrjns().SendName("V3").SetPattern(full)
+	// v3ct.RecvPrjns().SendName("V3").SetPattern(one2one) // todo try
+	v3ct.RecvPrjns().SendName("V3").SetClass("V3ToV3CT")
 
 	// net.ConnectCtxtToCT(v3ct, v3ct, pone2one) // worse hogging, cosdiff
 	// net.ConnectLayers(v3ct, v3ct, pone2one, emer.Forward) // non-contextual projections, not good
@@ -573,88 +590,154 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
 
-	net.ConnectLayers(teo, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMed") // 3x3 seems fine here
-	net.ConnectLayers(teoct, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMed")
+	net.ConnectLayers(teo, v3, full, emer.Back).SetClass("BackMed") // todo: try 3x3skp1
+	net.ConnectLayers(teoct, v3, full, emer.Back).SetClass("BackMed")
+	// net.ConnectLayers(teo, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMed") // 3x3 seems fine here
+	// net.ConnectLayers(teoct, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMed")
 
-	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
+	v3.RecvPrjns().SendName(v3p.Name()).SetOff(true) // todo: test
+	net.ConnectLayers(v1p, v3, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
+	// net.ConnectLayers(v1hp, v3, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(dpp, v3, full, emer.Back).SetClass("FmPulv05") // todo: remove?
+
+	// net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP")
-	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackWeak05")           // was BackStrong; .02 worse dead, hog
-	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackWeak05") // was BackStrong; .02 worse dead, hog
+	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")           // todo try .05
+	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // todo try .05
 
-	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong")           // s -> ct, needed..
-	net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // s -> ct, 3x3 ok -- this is essential for v3 cosdiff
+	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong") // s -> ct, needed..
+	net.ConnectLayers(v4, v3ct, full, emer.Back).SetClass("BackStrong") // todo try 3x3
+	// net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // s -> ct, 3x3 ok -- this is essential for v3 cosdiff
+	net.ConnectLayers(teo, v3ct, full, emer.Back).SetClass("BackMax") // todo: try off
 
-	net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv") // beneficial for hog, cosdiff
-	// net.ConnectLayers(v4ct, v3p, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv")
-
-	// net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMax")   // not needed
+	v3ct.RecvPrjns().SendName(v3p.Name()).SetOff(true) // todo: test
+	net.ConnectLayers(v1p, v3ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
+	// net.ConnectLayers(v1hp, v3ct, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(dpp, v3ct, full, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("FmPulv2")
 
 	// to DP
 	dpct.RecvPrjns().SendName("DP").SetPattern(one2one) // one2one better
-	dpct.RecvPrjns().SendName("DP").SetClass("ToCT1to1")
+	dpct.RecvPrjns().SendName("DP").SetClass("DPToDPCT")
 
 	// net.ConnectCtxtToCT(dpct, dpct, full) // worse hogging, cosdiff
 
-	net.ConnectLayers(v2, dp, full, emer.Forward)                  // note: was missing, test!
-	net.ConnectLayers(v3p, dp, full, emer.Back).SetClass("FmPulv") // note: was missing, test!
+	net.ConnectLayers(v2, dp, full, emer.Forward)
+	net.ConnectLayers(teo, dp, full, emer.Back).SetClass("BackMed")
 
-	net.ConnectLayers(teo, dp, full, emer.Back).SetClass("BackMed") // note: was missing, test!
+	net.ConnectLayers(v1p, dp, full, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(v1hp, dp, full, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(v3p, dp, full, emer.Back).SetClass("FmPulv")
+	net.ConnectLayers(teop, dp, full, emer.Back).SetClass("FmPulv") // todo: test
 
-	net.ConnectLayers(teoct, dpct, full, emer.Back).SetClass("BackMed") // note: was missing, test!
-	net.ConnectLayers(v3p, dpct, full, emer.Back).SetClass("FmPulv")    // note: was missing, test!
+	net.ConnectLayers(teoct, dpct, full, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(v3p, dpct, full, emer.Back).SetClass("FmPulv")
+
+	net.ConnectLayers(v1p, dpct, full, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(v1hp, dpct, full, emer.Back).SetClass("FmPulv2")
+	dpct.RecvPrjns().SendName(dpp.Name()).SetClass("FmPulv05")
 
 	// to V4
 	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // one2one better
-	v4ct.RecvPrjns().SendName("V4").SetClass("ToCT1to1")
+	v4ct.RecvPrjns().SendName("V4").SetClass("V4ToV4CT")
 
-	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one)
-	// net.ConnectLayers(v4ct, v4ct, pone2one, emer.Forward) // non contextual, not beneficial
+	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one) // V4 self not needed
 
-	// todo: TEOCT -> V4?  TE -> V4?
+	v4.RecvPrjns().SendName(v4p.Name()).SetOff(true) // todo: test
+	net.ConnectLayers(v1p, v4, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
+	// net.ConnectLayers(v1hp, v4, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("FmPulv2")
 
-	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
+	// net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
 	net.ConnectLayers(teoct, v4ct, full, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(tect, v4ct, full, emer.Back).SetClass("BackStrong")
 
 	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct -- helps with V1Sim and TE hog!
 
-	net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv") // important
-	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv")
+	v4ct.RecvPrjns().SendName(v4p.Name()).SetOff(true) // todo: test
+	net.ConnectLayers(v1p, v4ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
+	// net.ConnectLayers(v1hp, v4ct, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("FmPulv2")
+	v4ct.RecvPrjns().SendName(v4p.Name()).SetClass("FmPulv05")
 
 	// to TEO
 	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // important
-	teoct.RecvPrjns().SendName("TEO").SetClass("ToCT1to1")
+	teoct.RecvPrjns().SendName("TEO").SetClass("TEOToTEOCT")
+	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("TEOCToTEOCT") // this is beneficial for sure
 
-	net.ConnectCtxtToCT(teoct, teoct, pone2one) // this is beneficial for sure
-	// net.ConnectLayers(teoct, teoct, pone2one, emer.Forward) // non-context, not beneficial
+	teo.RecvPrjns().SendName(teop.Name()).SetOff(true) // todo: test
+	net.ConnectLayers(v1p, teo, full, emer.Back).SetClass("FmPulv")
+	net.ConnectLayers(v1hp, teo, full, emer.Back).SetClass("FmPulv")
 
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
-	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv") // recip
-	net.ConnectLayers(tep, teoct, full, emer.Back).SetClass("FmPulv") // recip
+	teoct.RecvPrjns().SendName(teop.Name()).SetClass("FmPulv05")
+	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv2")  // recip
+	net.ConnectLayers(tep, teoct, full, emer.Back).SetClass("FmPulv05") // recip
 
-	net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // beneficial
-	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv")   // beneficial
+	// note: has TEOP
+	net.ConnectLayers(v1p, teoct, full, emer.Back).SetClass("FmPulv")
+	net.ConnectLayers(v1hp, teoct, full, emer.Back).SetClass("FmPulv")
 
 	// net.ConnectLayers(teo, teo, sameu, emer.Lateral)
 
 	// to TE
 	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // actually critical!
-	tect.RecvPrjns().SendName("TE").SetClass("ToCT1to1")
+	tect.RecvPrjns().SendName("TE").SetClass("TEToTECT")
+	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("TECTToTECT")
 
-	net.ConnectCtxtToCT(tect, tect, pone2one) // reduces TECT hogging but impairs V1Sim a bit
-	// net.ConnectLayers(tect, tect, pone2one, emer.Forward) // non-context, not beneficial
+	te.RecvPrjns().SendName(tep.Name()).SetOff(true) // todo: test
+	net.ConnectLayers(v1p, te, full, emer.Back).SetClass("FmPulv")
+	net.ConnectLayers(v1hp, te, full, emer.Back).SetClass("FmPulv")
 
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
 
-	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv")
+	tect.RecvPrjns().SendName(tep.Name()).SetClass("FmPulv05")
+	net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv2")  // recip
+	net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv2") // recip
 
-	net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv")  // recip
-	net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv") // recip
+	// note: has TEP
+	net.ConnectLayers(v1p, tect, full, emer.Back).SetClass("FmPulv")
+	net.ConnectLayers(v1hp, tect, full, emer.Back).SetClass("FmPulv")
 
 	// net.ConnectLayers(te, te, sameu, emer.Lateral)
+
+	// Pulvinar connections
+	v1p.RecvPrjns().SendName(v2ct.Name()).SetClass("BackToPulv1") // gp1to1
+	net.ConnectLayers(v3ct, v1p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
+	net.ConnectLayers(v4ct, v1p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
+	net.ConnectLayers(teoct, v1p, full, emer.Back).SetClass("BackToPulv")
+
+	net.ConnectLayers(v2ct, v1hp, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackToPulv")
+	// net.ConnectLayers(v3ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
+	// net.ConnectLayers(v4ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
+	net.ConnectLayers(teoct, v1hp, full, emer.Back).SetClass("BackToPulv")
+
+	// note: v3ct -> v3p is automatic, with one-to-one -- not in standard one!
+	v3p.RecvPrjns().SendName(v3ct.Name()).SetOff(true)
+	net.ConnectLayers(v2ct, v3p, ss.Prjn4x4Skp2, emer.Back).SetClass("BackToPulv5") // actually FF
+	net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv2")
+	net.ConnectLayers(teoct, v3p, full, emer.Back).SetClass("BackToPulv") // was uniform rnd but p = 1
+
+	dpp.RecvPrjns().SendName(dpct.Name()).SetPattern(full)
+	dpp.RecvPrjns().SendName(dpct.Name()).SetClass("BackToPulv2")
+	net.ConnectLayers(v2ct, dpp, full, emer.Back).SetClass("BackToPulv2")  // actually FF
+	net.ConnectLayers(v3ct, dpp, full, emer.Back).SetClass("BackToPulv5")  // actually FF
+	net.ConnectLayers(teoct, dpp, full, emer.Back).SetClass("BackToPulv2") // was uniform rnd but p = 1
+
+	v4p.RecvPrjns().SendName(v4ct.Name()).SetClass("BackToPulv2")                   // gp1to1
+	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Back).SetClass("BackToPulv5") // actually FF
+	net.ConnectLayers(v3ct, v4p, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv5") // actually FF
+	net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv2")          // was uniform rnd but p = 1
+
+	teop.RecvPrjns().SendName(teoct.Name()).SetClass("BackToPulv2")        // gp1to1
+	net.ConnectLayers(v3ct, teop, full, emer.Back).SetClass("BackToPulv2") // actually FF
+	net.ConnectLayers(v4ct, teop, full, emer.Back).SetClass("BackToPulv5") // actually FF
+	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv5") // was uniform rnd but p = 1
+
+	tep.RecvPrjns().SendName(tect.Name()).SetClass("BackToPulv2")          // gp1to1
+	net.ConnectLayers(v4ct, tep, full, emer.Back).SetClass("BackToPulv5")  // actually FF
+	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("BackToPulv2") // was uniform rnd but p = 1
 
 	// 4 threads = about 500 msec / trl @8 mpi
 	/*
@@ -689,7 +772,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	//	2 threads = about 600 msec / trl @8 mpi
 	v2.SetThread(0)
 	v2ct.SetThread(0)
-	v2p.SetThread(0)
+	// v2p.SetThread(0)
 
 	dp.SetThread(0)
 	dpct.SetThread(0)
@@ -729,7 +812,18 @@ func (ss *Sim) InitWts(net *deep.Network) {
 		return
 	}
 
-	net.InitTopoScales() //  sets all wt scales
+	// net.InitTopoScales() //  sets all wt scales
+
+	// these are not set automatically b/c prjn is Full, not PoolTile
+	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "SacPlan", "LIP", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIP", ss.PrjnSigTopo)
+
+	ss.SetTopoScales(net, "LIP", "LIPCT", ss.Prjn3x3Skp1)
+	ss.SetTopoScales(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
+	ss.SetTopoScales(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
+	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
+
 	net.InitWts()
 	if false && !ss.LIPOnly {
 		mpi.Printf("loading lip_pretrained.wts.gz...\n")
@@ -1991,6 +2085,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	nv := tv.AddNewTab(netview.KiT_NetView, "NetView").(*netview.NetView)
 	nv.Params.Defaults()
 	nv.Params.LayNmSize = 0.03
+	nv.Params.MaxRecs = 104
 	nv.Var = "Act"
 	nv.SetNet(ss.Net)
 	ss.NetView = nv

@@ -6,7 +6,7 @@ require (
 	github.com/emer/emergent v1.1.14
 	github.com/emer/empi v1.0.9
 	github.com/emer/etable v1.0.18
-	github.com/emer/leabra v1.1.17
+	github.com/emer/leabra v1.1.18
 	github.com/emer/vision v1.1.6
 	github.com/goki/gi v1.1.2
 	github.com/goki/ki v1.0.6
