@@ -254,7 +254,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 1 = less TE hogging; 4 orig
+					"Prjn.WtScale.Rel": "1", // 1 = less TE hogging; 4 orig
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
