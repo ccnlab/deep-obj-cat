@@ -14,11 +14,11 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Learn.AvgL.Gain":       "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
-					"Layer.Act.Gbar.L":            "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
-					"Layer.Inhib.Layer.FBTau":     "1.4", // smoother = faster? but worse?
-					"Layer.Inhib.Pool.FBTau":      "1.4", // smoother = faster?
-					"Layer.Inhib.ActAvg.UseFirst": "false",
+					"Layer.Learn.AvgL.Gain":       "3.0",   // key param -- 3 > 2.5 > 3.5 except IT!
+					"Layer.Act.Gbar.L":            "0.1",   // todo: orig has 0.2 -- don't see any exploration notes..
+					"Layer.Inhib.Layer.FBTau":     "1.4",   // smoother = faster? but worse?
+					"Layer.Inhib.Pool.FBTau":      "1.4",   // smoother = faster?
+					"Layer.Inhib.ActAvg.UseFirst": "false", // true is default
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
@@ -121,10 +121,22 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Var":  "0",
 					"Prjn.WtInit.Sym":  "false",
 				}},
+			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "1",
+				}},
+			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.05",
+				}},
 
 			{Sel: ".StdFF", Desc: "standard feedforward",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1.0",
+				}},
+			{Sel: ".StdFB", Desc: "standard feedback",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.05",
 				}},
 			{Sel: ".FwdAbs5Rel2", Desc: "reduced abs, compensatory 2x rel -- too strongly activated otherwise",
 				Params: params.Params{
@@ -133,7 +145,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05", // .1 orig -- had a bug tho!! also trying .05
+					"Prjn.WtScale.Rel": "0.1", // .1 orig
 				}},
 
 			{Sel: ".FmLIP", Desc: "no random weights here",
@@ -141,14 +153,6 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Mean": "0.5",
 					"Prjn.WtInit.Var":  "0",
 					"Prjn.WtInit.Sym":  "false",
-				}},
-			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-			{Sel: ".StdFB", Desc: "standard feedback",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{
@@ -216,10 +220,6 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": ".1", // .05 > .1 for hog but worse for cosdif; .1 > .2 for hog, minor for cosdiff
 				}},
-			{Sel: "#V4PToV4CT", Desc: "weaker pulvinar prjns better",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": ".2", // was .2
-				}},
 
 			{Sel: ".Lateral", Desc: "default for lateral",
 				Params: params.Params{
@@ -229,10 +229,6 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Var":  "0",
 				}},
 
-			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
-				}},
 			{Sel: ".ToCT1to1", Desc: "1to1 has no weight var... fixed?",
 				Params: params.Params{
 					"Prjn.WtInit.Mean": "0.5",
@@ -244,7 +240,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V2ToV2CT", Desc: "standard",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // .5 orig: slightly worse hogging, no bene
+					"Prjn.WtScale.Rel": "0.5", // .5 orig: slightly worse hogging, no bene
 				}},
 			{Sel: "#V2CTToV2CT", Desc: "standard",
 				Params: params.Params{
@@ -281,42 +277,6 @@ var ParamSets = params.Sets{
 			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "4", // 4 orig
-				}},
-
-			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
-				Params: params.Params{
-					"Prjn.WtScale.Abs": "0.5",
-					"Prjn.WtScale.Rel": "2",
-				}},
-			{Sel: "#V2ToV4", Desc: "otherwise V2 too strong",
-				Params: params.Params{
-					"Prjn.WtScale.Abs": "0.5",
-					"Prjn.WtScale.Rel": "2",
-				}},
-			{Sel: "#V3ToDP", Desc: "too weak full from topo",
-				Params: params.Params{
-					"Prjn.WtScale.Abs": "2",
-					"Prjn.WtScale.Rel": "0.5",
-				}},
-			{Sel: "#V4ToTEO", Desc: "too weak full from topo",
-				Params: params.Params{
-					"Prjn.WtScale.Abs": "2",
-					"Prjn.WtScale.Rel": "0.5",
-				}},
-			{Sel: "#TEOToTE", Desc: "too weak full from topo",
-				Params: params.Params{
-					"Prjn.WtScale.Abs": "1.5",
-					"Prjn.WtScale.Rel": "0.667",
-				}},
-
-			{Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-
-			{Sel: "#MTPosToLIP", Desc: "fixed weights",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5",
 				}},
 		},
 	}},

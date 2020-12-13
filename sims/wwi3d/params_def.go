@@ -113,6 +113,10 @@ var ParamSets = params.Sets{
 					"Prjn.Learn.WtBal.On":      "true", // essential
 					"Prjn.Learn.Lrate":         "0.04", // must set initial lrate here when using schedule!
 				}},
+			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "1",
+				}},
 			{Sel: ".Fixed", Desc: "fixed weights",
 				Params: params.Params{
 					"Prjn.Learn.Learn": "false",
@@ -120,10 +124,18 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Var":  "0",
 					"Prjn.WtInit.Sym":  "false",
 				}},
+			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.05",
+				}},
 
 			{Sel: ".StdFF", Desc: "standard feedforward",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1.0",
+				}},
+			{Sel: ".StdFB", Desc: "standard feedback",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.05",
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
@@ -135,14 +147,6 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Mean": "0.5",
 					"Prjn.WtInit.Var":  "0",
 					"Prjn.WtInit.Sym":  "false",
-				}},
-			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-			{Sel: ".StdFB", Desc: "standard feedback",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{
@@ -182,6 +186,14 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.2", // .2 > .1 > .05
 				}},
+			{Sel: ".FmPulv2", Desc: "strong pulvinar",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.2",
+				}},
+			{Sel: ".FmPulv05", Desc: "weak pulvinar",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.05",
+				}},
 			{Sel: "#V2PToV2CT", Desc: "trying pulvinar prjns better",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": ".1", // .1 > .2 > .05 for cosdiff, not hog (.05 bad)
@@ -203,10 +215,6 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Var":  "0",
 				}},
 
-			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
-				}},
 			{Sel: ".ToCT1to1", Desc: "1to1 has no weight var... fixed?",
 				Params: params.Params{
 					"Prjn.WtInit.Mean": "0.5",
