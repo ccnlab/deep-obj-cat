@@ -3,6 +3,7 @@ module github.com/ccnlab/deep-obj-cat/sims/wwi3d_orig
 go 1.13
 
 require (
+	github.com/anthonynsimon/bild v0.13.0
 	github.com/emer/emergent v1.1.14
 	github.com/emer/empi v1.0.9
 	github.com/emer/etable v1.0.18
