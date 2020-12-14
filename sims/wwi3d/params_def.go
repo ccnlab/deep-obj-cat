@@ -18,7 +18,7 @@ var ParamSets = params.Sets{
 					"Layer.Act.Gbar.L":        "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
 					"Layer.Inhib.Layer.FBTau": "1.4", // smoother = faster? but worse?
 					"Layer.Inhib.Pool.FBTau":  "1.4", // smoother = faster?
-					"Layer.Act.Init.Decay":    "0",
+					"Layer.Act.Init.Decay":    "0",   // this used to be default for deep, no longer
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
