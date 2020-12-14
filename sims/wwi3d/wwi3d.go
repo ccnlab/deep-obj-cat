@@ -394,8 +394,8 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
 
 	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)
-	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulvStrong")
-	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulvStrong")
+	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
+	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
 	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
 	net.ConnectLayers(eyepos, lip, full, emer.Forward)  // InitWts sets ss.PrjnGaussTopo

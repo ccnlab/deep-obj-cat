@@ -170,7 +170,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = false
+	ss.LIPOnly = true // false
 	ss.BinarizeV1 = true
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -388,6 +388,9 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	lip.SetClass("LIP")
 	lipct.SetClass("LIP")
 	lipp.SetClass("LIP")
+	sacplan.SetClass("PopIn")
+	sac.SetClass("PopIn")
+	objvel.SetClass("PopIn")
 
 	v1h.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1m.Name(), YAlign: relpos.Front, Space: 2})
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
@@ -406,11 +409,11 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	var pj emer.Prjn
 
 	net.ConnectLayers(v1m, mtpos, pone2one, emer.Forward).SetClass("Fixed")
-	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
+	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward) // has .5 wtscale in Params
 
 	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)
-	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulvStrong")
-	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulvStrong")
+	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
+	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
 	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
 	net.ConnectLayers(eyepos, lip, full, emer.Forward)  // InitWts sets ss.PrjnGaussTopo
@@ -836,7 +839,7 @@ func (ss *Sim) InitWts(net *deep.Network) {
 	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
 
 	net.InitWts()
-	if false && !ss.LIPOnly {
+	if !ss.LIPOnly {
 		mpi.Printf("loading lip_pretrained.wts.gz...\n")
 		net.OpenWtsJSON(gi.FileName("lip_pretrained.wts.gz"))
 	}

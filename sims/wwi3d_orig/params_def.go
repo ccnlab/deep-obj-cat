@@ -14,11 +14,12 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Learn.AvgL.Gain":       "3.0",   // key param -- 3 > 2.5 > 3.5 except IT!
-					"Layer.Act.Gbar.L":            "0.1",   // todo: orig has 0.2 -- don't see any exploration notes..
-					"Layer.Inhib.Layer.FBTau":     "1.4",   // smoother = faster? but worse?
-					"Layer.Inhib.Pool.FBTau":      "1.4",   // smoother = faster?
-					"Layer.Inhib.ActAvg.UseFirst": "false", // true is default
+					"Layer.Learn.AvgL.Gain":       "3.0",  // key param -- 3 > 2.5 > 3.5 except IT!
+					"Layer.Act.Gbar.L":            "0.2",  // 0.2
+					"Layer.Inhib.Layer.FBTau":     "1.4",  // smoother = faster? but worse?
+					"Layer.Inhib.Pool.FBTau":      "1.4",  // smoother = faster?
+					"Layer.Inhib.ActAvg.UseFirst": "true", // true is default
+					"Layer.Act.Init.Decay":        "0",
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
@@ -36,6 +37,14 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.5",
 					"Layer.Inhib.ActAvg.Init": "0.1",
+				}},
+			{Sel: ".PopIn", Desc: "pop-code input",
+				Params: params.Params{
+					"Layer.Inhib.ActAvg.Init": "0.1",
+				}},
+			{Sel: "#EyePos", Desc: "eyeposition input",
+				Params: params.Params{
+					"Layer.Inhib.ActAvg.Init": "0.025",
 				}},
 			{Sel: ".V2", Desc: "pool inhib, initial activity",
 				Params: params.Params{
@@ -148,11 +157,11 @@ var ParamSets = params.Sets{
 					"Prjn.WtScale.Rel": "0.1", // .1 orig
 				}},
 
-			{Sel: ".FmLIP", Desc: "no random weights here",
+			{Sel: ".FmLIP", Desc: "In new model: no random weights here",
 				Params: params.Params{
 					"Prjn.WtInit.Mean": "0.5",
-					"Prjn.WtInit.Var":  "0",
-					"Prjn.WtInit.Sym":  "false",
+					"Prjn.WtInit.Var":  "0.05", // new has 0
+					"Prjn.WtInit.Sym":  "true", // new has false
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{
@@ -277,6 +286,11 @@ var ParamSets = params.Sets{
 			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "4", // 4 orig
+				}},
+			{Sel: "#MTPosToLIP", Desc: "lower variance",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.5",
+					"Prjn.WtInit.Var":  "0.05",
 				}},
 		},
 	}},
