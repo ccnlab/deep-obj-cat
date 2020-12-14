@@ -170,7 +170,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true // false
+	ss.LIPOnly = false
 	ss.BinarizeV1 = true
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -567,7 +567,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
 	// net.ConnectLayers(v2ct, v2ct, pone2one, emer.Forward) // not beneficial
 
-	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP") // key top-down attn
+	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax") // not FmLIP key top-down attn
 	// net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- todo try
 	net.ConnectLayers(teoct, v2, full, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
 
@@ -575,7 +575,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
-	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT FmLIP")
+	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT") // not FmLIP
 	net.ConnectLayers(lipp, v2ct, pone2one, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // todo: try  weaker
 	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // was BackMax todo: try weaker
@@ -600,7 +600,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(v3ct, v3ct, pone2one, emer.Forward) // non-contextual projections, not good
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
-	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
+	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed") // not FmLIP
 
 	net.ConnectLayers(teo, v3, full, emer.Back).SetClass("BackMed") // todo: try 3x3skp1
 	net.ConnectLayers(teoct, v3, full, emer.Back).SetClass("BackMed")
@@ -609,14 +609,14 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v3.RecvPrjns().SendName(v3p.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, v3, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
-	net.ConnectLayers(v1hp, v3, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
+	// net.ConnectLayers(v1hp, v3, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(dpp, v3, full, emer.Back).SetClass("FmPulv05") // todo: remove?
 
 	// net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
-	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP")
-	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")           // todo try .05
-	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // todo try .05
+	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong") //  not FmLIP
+	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")            // todo try .05
+	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")  // todo try .05
 
 	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong") // s -> ct, needed..
 	net.ConnectLayers(v4, v3ct, full, emer.Back).SetClass("BackStrong") // todo try 3x3
@@ -625,7 +625,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v3ct.RecvPrjns().SendName(v3p.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, v3ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
-	net.ConnectLayers(v1hp, v3ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
+	// net.ConnectLayers(v1hp, v3ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(dpp, v3ct, full, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("FmPulv2")
 
@@ -670,7 +670,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct -- helps with V1Sim and TE hog!
 
 	net.ConnectLayers(v1mp, v4ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
-	net.ConnectLayers(v1hp, v4ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
+	// net.ConnectLayers(v1hp, v4ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
 	v4ct.RecvPrjns().SendName(v4p.Name()).SetClass("FmPulv05")
 
 	// to TEO
@@ -1549,7 +1549,7 @@ func (ss *Sim) RecCatLayActs(dt *etable.Table) {
 
 // ShareCatLayActs shares CatLayActs table across processors, for MPI mode
 func (ss *Sim) ShareCatLayActs() {
-	if !ss.UseMPI {
+	if ss.LIPOnly || !ss.UseMPI {
 		return
 	}
 	np := float32(1) / float32(mpi.WorldSize())
@@ -1679,7 +1679,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
 	nt := float64(trl.Rows)
 
-	if mpi.WorldRank() == 0 {
+	if !ss.LIPOnly && mpi.WorldRank() == 0 {
 		if (epc % ss.RSA.Interval) == 0 {
 			ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
 			if !ss.LIPOnly {

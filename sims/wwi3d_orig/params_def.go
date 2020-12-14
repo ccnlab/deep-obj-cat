@@ -107,11 +107,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true", // now best
+					"Layer.TRC.NoTopo": "false", // new = true", // now best
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true", // now best
+					"Layer.TRC.NoTopo": "false", // new = true", // now best
 				}},
 
 			// prjn classes, specifics
