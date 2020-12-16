@@ -2342,6 +2342,7 @@ func (ss *Sim) CmdArgs() {
 	}
 	mpi.Printf("Running %d Runs\n", ss.MaxRuns)
 	ss.Train()
+	ss.MPIFinalize()
 }
 
 ////////////////////////////////////////////////////////////////////

@@ -170,7 +170,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true // false
+	ss.LIPOnly = false
 	ss.BinarizeV1 = true
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -609,7 +609,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v3.RecvPrjns().SendName(v3p.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, v3, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
-	// net.ConnectLayers(v1hp, v3, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(v1hp, v3, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(dpp, v3, full, emer.Back).SetClass("FmPulv05") // todo: remove?
 
 	// net.ConnectLayers(v3, v3, sameu, emer.Lateral)
@@ -625,7 +625,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v3ct.RecvPrjns().SendName(v3p.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, v3ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
-	// net.ConnectLayers(v1hp, v3ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(v1hp, v3ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(dpp, v3ct, full, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("FmPulv2")
 
@@ -670,7 +670,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v4ct, full, emer.Back).SetClass("BackStrong") // s -> ct -- helps with V1Sim and TE hog!
 
 	net.ConnectLayers(v1mp, v4ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
-	// net.ConnectLayers(v1hp, v4ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
+	net.ConnectLayers(v1hp, v4ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
 	v4ct.RecvPrjns().SendName(v4p.Name()).SetClass("FmPulv05")
 
 	// to TEO
@@ -826,7 +826,7 @@ func (ss *Sim) InitWts(net *deep.Network) {
 		return
 	}
 
-	// net.InitTopoScales() //  sets all wt scales
+	net.InitTopoScales() //  sets all wt scales
 
 	// these are not set automatically b/c prjn is Full, not PoolTile
 	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
@@ -1020,7 +1020,7 @@ func (ss *Sim) RunEnd() {
 		fnm := ss.WeightsFileName()
 		fmt.Printf("Saving Weights to: %v\n", fnm)
 		ss.Net.SaveWtsJSON(gi.FileName(fnm))
-		fmt.Printf("Weights saved..\n", fnm)
+		fmt.Printf("Weights saved..\n")
 
 		if !ss.LIPOnly {
 			fnm := ss.LogFileName("catact")
@@ -2441,6 +2441,7 @@ func (ss *Sim) CmdArgs() {
 	}
 	mpi.Printf("Running %d Runs\n", ss.MaxRuns)
 	ss.Train()
+	ss.MPIFinalize()
 }
 
 ////////////////////////////////////////////////////////////////////
