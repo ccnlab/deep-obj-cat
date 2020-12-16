@@ -119,7 +119,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.Learn.Norm.On":       "true",
 					"Prjn.Learn.Momentum.On":   "true",
-					"Prjn.Learn.Momentum.MTau": "10",   // now 10 much better than 20!
+					"Prjn.Learn.Momentum.MTau": "20",   // 20 orig -- now 10 much better than 20!
 					"Prjn.Learn.WtBal.On":      "true", // essential
 					"Prjn.Learn.Lrate":         "0.04", // must set initial lrate here when using schedule!
 				}},
@@ -132,7 +132,9 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
+					"Prjn.WtScale.Rel":       "1",
+					"Prjn.Learn.Norm.On":     "false", // critical to be off!
+					"Prjn.Learn.Momentum.On": "false",
 				}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
@@ -160,8 +162,8 @@ var ParamSets = params.Sets{
 			{Sel: ".FmLIP", Desc: "In new model: no random weights here",
 				Params: params.Params{
 					"Prjn.WtInit.Mean": "0.5",
-					"Prjn.WtInit.Var":  "0.05", // new has 0
-					"Prjn.WtInit.Sym":  "true", // new has false
+					"Prjn.WtInit.Var":  "0.05",  // new has 0
+					"Prjn.WtInit.Sym":  "false", // some have false -- go with this
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{

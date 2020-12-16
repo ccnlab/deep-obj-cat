@@ -170,7 +170,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = false
+	ss.LIPOnly = true // false
 	ss.BinarizeV1 = true
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -412,8 +412,8 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward) // has .5 wtscale in Params
 
 	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)
-	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
-	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
+	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv2 FmLIP")
+	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv2 FmLIP")
 	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
 	net.ConnectLayers(eyepos, lip, full, emer.Forward)  // InitWts sets ss.PrjnGaussTopo
@@ -1016,10 +1016,11 @@ func (ss *Sim) TrainTrial() {
 // RunEnd is called at the end of a run -- save weights, record final log, etc here
 func (ss *Sim) RunEnd() {
 	ss.LogRun(ss.RunLog)
-	if ss.SaveWts {
+	if ss.SaveWts { // note: SaveWts is false for all nodes except first one
 		fnm := ss.WeightsFileName()
 		fmt.Printf("Saving Weights to: %v\n", fnm)
 		ss.Net.SaveWtsJSON(gi.FileName(fnm))
+		fmt.Printf("Weights saved..\n", fnm)
 
 		if !ss.LIPOnly {
 			fnm := ss.LogFileName("catact")
