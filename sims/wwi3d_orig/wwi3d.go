@@ -430,15 +430,16 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 
 // ConfigNetRest configures the rest of the network
 func (ss *Sim) ConfigNetRest(net *deep.Network) {
-	v2, v2ct, v1mp := net.AddDeep4D("V2", 8, 8, 10, 10)
-	v1mp.SetName("V1mP")
-	v1mp.SetClass("V1")
-	v1mp.Shape().SetShape([]int{8, 8, 5, 4}, nil, nil)
-	v1mp.(*deep.TRCLayer).Drivers.Add("V1m")
-
+	// note: important for pulvinar to be created first, for weight symmetry init
 	v1hp := deep.AddTRCLayer4D(net.AsLeabra(), "V1hP", 16, 16, 5, 4)
-	v1hp.Drivers.Add("V1h")
 	v1hp.SetClass("V1")
+	v1hp.Drivers.Add("V1h")
+
+	v1mp := deep.AddTRCLayer4D(net.AsLeabra(), "V1mP", 8, 8, 5, 4)
+	v1mp.SetClass("V1")
+	v1mp.Drivers.Add("V1m")
+
+	v2, v2ct := deep.AddDeepNoTRC4D(net.AsLeabra(), "V2", 8, 8, 10, 10)
 
 	v3, v3ct, v3p := net.AddDeep4D("V3", 4, 4, 10, 10)
 	v3p.(*deep.TRCLayer).Drivers.Add("V3")
@@ -554,14 +555,14 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
 	// to V2
-	v2.RecvPrjns().SendName("V1mP").SetClass("FmPulv02")
+	net.ConnectLayers(v1mp, v2, pone2one, emer.Forward).SetClass("FmPulv02")
 	net.ConnectLayers(v1hp, v2, ss.Prjn2x2Skp2, emer.Forward).SetClass("FmPulv02")
 
 	v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1) // try one2one
 	// v2ct.RecvPrjns().SendName("V2").SetPattern(one2one)  // better hogging?
 	v2ct.RecvPrjns().SendName("V2").SetClass("V2ToV2CT")
-	v2ct.RecvPrjns().SendName("V1mP").SetPattern(ss.Prjn3x3Skp1)
-	v2ct.RecvPrjns().SendName("V1mP").SetClass("FmPulv2")
+
+	net.ConnectLayers(v1mp, v2ct, ss.Prjn3x3Skp1, emer.Forward).SetClass("FmPulv2")
 	net.ConnectLayers(v1hp, v2ct, ss.Prjn4x4Skp2, emer.Forward).SetClass("FmPulv2")
 
 	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
@@ -716,7 +717,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(te, te, sameu, emer.Lateral)
 
 	// Pulvinar connections
-	v1mp.RecvPrjns().SendName(v2ct.Name()).SetClass("BackToPulv1") // gp1to1
+	net.ConnectLayers(v2ct, v1mp, pone2one, emer.Back).SetClass("BackToPulv1")
 	net.ConnectLayers(v3ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(v4ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(teoct, v1mp, full, emer.Back).SetClass("BackToPulv")
@@ -1554,7 +1555,7 @@ func (ss *Sim) ShareCatLayActs() {
 		return
 	}
 	np := float32(1) / float32(mpi.WorldSize())
-	empi.GatherTableRows(ss.CatLayActsDest, ss.CatLayActs, ss.Comm)
+	empi.ReduceTable(ss.CatLayActsDest, ss.CatLayActs, ss.Comm, mpi.OpSum)
 	for ci, dcoli := range ss.CatLayActs.Cols {
 		if dcoli.DataType() != etensor.FLOAT32 {
 			continue

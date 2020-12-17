@@ -1452,11 +1452,11 @@ func (ss *Sim) RecCatLayActs(dt *etable.Table) {
 
 // ShareCatLayActs shares CatLayActs table across processors, for MPI mode
 func (ss *Sim) ShareCatLayActs() {
-	if !ss.UseMPI {
+	if ss.LIPOnly || !ss.UseMPI {
 		return
 	}
 	np := float32(1) / float32(mpi.WorldSize())
-	empi.GatherTableRows(ss.CatLayActsDest, ss.CatLayActs, ss.Comm)
+	empi.ReduceTable(ss.CatLayActsDest, ss.CatLayActs, ss.Comm, mpi.OpSum)
 	for ci, dcoli := range ss.CatLayActs.Cols {
 		if dcoli.DataType() != etensor.FLOAT32 {
 			continue

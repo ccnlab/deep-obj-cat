@@ -27,8 +27,9 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
 				Params: params.Params{
+					"Layer.Inhib.Layer.Gi":    "3.0",
 					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "3",
+					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.03",
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
