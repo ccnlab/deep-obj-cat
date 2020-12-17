@@ -373,6 +373,9 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	lip.SetClass("LIP")
 	lipct.SetClass("LIP")
 	lipp.SetClass("LIP")
+	sacplan.SetClass("PopIn")
+	sac.SetClass("PopIn")
+	objvel.SetClass("PopIn")
 
 	v1h.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1m.Name(), YAlign: relpos.Front, Space: 2})
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
@@ -394,8 +397,8 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
 
 	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)
-	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
-	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv2")
+	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv2 FmLIP")
+	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv2 FmLIP")
 	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
 	net.ConnectLayers(eyepos, lip, full, emer.Forward)  // InitWts sets ss.PrjnGaussTopo
@@ -504,7 +507,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v2v4, v4v2 := net.BidirConnectLayers(v2, v4, ss.Prjn4x4Skp2)
 	v2v4.SetClass("StdFF")
-	v4v2.SetClass("StdFB")
+	v4v2.SetClass("StdFB") // BackMed in new
 	v4v2.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	v2v3, v3v2 := net.BidirConnectLayers(v2, v3, ss.Prjn4x4Skp2)
@@ -535,8 +538,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to V2
 	// v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1) // try one2one
-	v2ct.RecvPrjns().SendName("V2").SetPattern(one2one)  // better hogging?
-	v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1") // 1 == .5
+	// v2ct.RecvPrjns().SendName("V2").SetPattern(one2one)  // better hogging?
+	// v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1") // 1 == .5
 
 	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
 	// net.ConnectLayers(v2ct, v2ct, pone2one, emer.Forward) // not beneficial
@@ -548,7 +551,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
-	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackLIPCT FmLIP")
+	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackMax FmLIP")
 	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax, .05 reduces hogging; .02 minor less dead / hog
 	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax; .02 minor less dead / hog
 
@@ -564,8 +567,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to V3
 	// v3ct.RecvPrjns().SendName("V3").SetPattern(full)
-	v3ct.RecvPrjns().SendName("V3").SetPattern(one2one)
-	v3ct.RecvPrjns().SendName("V3").SetClass("ToCT1to1")
+	// v3ct.RecvPrjns().SendName("V3").SetPattern(one2one) // orig: full
+	// v3ct.RecvPrjns().SendName("V3").SetClass("ToCT1to1")
 
 	// net.ConnectCtxtToCT(v3ct, v3ct, pone2one) // worse hogging, cosdiff
 	// net.ConnectLayers(v3ct, v3ct, pone2one, emer.Forward) // non-contextual projections, not good
@@ -579,8 +582,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v3ct, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP")
-	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackWeak05")           // was BackStrong; .02 worse dead, hog
-	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackWeak05") // was BackStrong; .02 worse dead, hog
+	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("BackStrong")           // was BackWeak05 orig=BackStrong; .02 worse dead, hog
+	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // was BackWeak05 orig=BackStrong; .02 worse dead, hog
 
 	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("BackStrong")           // s -> ct, needed..
 	net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // s -> ct, 3x3 ok -- this is essential for v3 cosdiff
@@ -591,8 +594,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMax")   // not needed
 
 	// to DP
-	dpct.RecvPrjns().SendName("DP").SetPattern(one2one) // one2one better
-	dpct.RecvPrjns().SendName("DP").SetClass("ToCT1to1")
+	// dpct.RecvPrjns().SendName("DP").SetPattern(one2one) // one2one better
+	// dpct.RecvPrjns().SendName("DP").SetClass("ToCT1to1")
 
 	// net.ConnectCtxtToCT(dpct, dpct, full) // worse hogging, cosdiff
 
@@ -923,6 +926,7 @@ func (ss *Sim) RunEnd() {
 		fnm := ss.WeightsFileName()
 		fmt.Printf("Saving Weights to: %v\n", fnm)
 		ss.Net.SaveWtsJSON(gi.FileName(fnm))
+		fmt.Printf("Weights saved..\n")
 
 		if !ss.LIPOnly {
 			fnm := ss.LogFileName("catact")
@@ -1582,7 +1586,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
 	nt := float64(trl.Rows)
 
-	if mpi.WorldRank() == 0 {
+	if !ss.LIPOnly && mpi.WorldRank() == 0 {
 		if (epc % ss.RSA.Interval) == 0 {
 			ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
 			if !ss.LIPOnly {
@@ -2002,6 +2006,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	nv := tv.AddNewTab(netview.KiT_NetView, "NetView").(*netview.NetView)
 	nv.Params.Defaults()
 	nv.Params.LayNmSize = 0.03
+	nv.Params.MaxRecs = 104
 	nv.Var = "Act"
 	nv.SetNet(ss.Net)
 	ss.NetView = nv

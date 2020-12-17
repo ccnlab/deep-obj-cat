@@ -38,6 +38,14 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.Gi":     "1.5",
 					"Layer.Inhib.ActAvg.Init": "0.1",
 				}},
+			{Sel: ".PopIn", Desc: "pop-code input",
+				Params: params.Params{
+					"Layer.Inhib.ActAvg.Init": "0.1",
+				}},
+			{Sel: "#EyePos", Desc: "eyeposition input",
+				Params: params.Params{
+					"Layer.Inhib.ActAvg.Init": "0.025",
+				}},
 			{Sel: ".V2", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":     "true",
@@ -147,7 +155,7 @@ var ParamSets = params.Sets{
 			{Sel: ".FmLIP", Desc: "no random weights here",
 				Params: params.Params{
 					"Prjn.WtInit.Mean": "0.5",
-					"Prjn.WtInit.Var":  "0",
+					"Prjn.WtInit.Var":  "0.05", // was 0 -- trying .05
 					"Prjn.WtInit.Sym":  "false",
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
@@ -156,11 +164,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackStrong", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1", // .1 > orig .2 > .05 -- not sep fm BackMax -- .1 = better TE_V1Sim, V2P cosdiff
+					"Prjn.WtScale.Rel": "0.2", // .1 > orig .2 > .05 -- not sep fm BackMax -- .1 = better TE_V1Sim, V2P cosdiff
 				}},
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1", // .1 > .2, orig .5 -- see BackStrong
+					"Prjn.WtScale.Rel": "0.5", // .1 > .2, orig .5 -- see BackStrong
 				}},
 			{Sel: ".BackWeak05", Desc: "weak .05",
 				Params: params.Params{
@@ -169,10 +177,6 @@ var ParamSets = params.Sets{
 			{Sel: ".BackWeak02", Desc: "weak .02",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.02",
-				}},
-			{Sel: ".BackLIPCT", Desc: "strength = 1",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": ".1", // .1 == .05 > .2 > .5 in V2ct hogging, no diff else
 				}},
 
 			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
@@ -248,7 +252,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 = less TEO hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 1 = less TEO hogging; 4 orig
 				}},
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
@@ -256,7 +260,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TEOCTToTEOCT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 = less TEO hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 1 = less TEO hogging; 4 orig
 				}},
 			{Sel: "#TEToTECT", Desc: "stronger",
 				Params: params.Params{
@@ -264,7 +268,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 = less TE hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 1 = less TE hogging; 4 orig
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",

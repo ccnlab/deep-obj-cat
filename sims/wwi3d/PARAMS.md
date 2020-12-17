@@ -4,9 +4,14 @@ This is the parameter search notes for wwi3d.
 
 * Add weaker surround projection from same CT -> P
 
-* load pretrained LIP
+* Add back higher drivers at some point!
 
-* non CTCtxt for self prjn in self
+
+# Summary up to 180 pre major TRC, CT bug fixes
+
+* load pretrained LIP -- beneficial
+
+* non CTCtxt for self prjn in self -- not good
 
 # Summary as of Job 159
 

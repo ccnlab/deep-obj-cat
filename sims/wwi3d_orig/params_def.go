@@ -124,18 +124,18 @@ var ParamSets = params.Sets{
 					"Prjn.Learn.WtBal.On":      "true", // essential
 					"Prjn.Learn.Lrate":         "0.04", // must set initial lrate here when using schedule!
 				}},
+			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
+				Params: params.Params{
+					"Prjn.WtScale.Rel":       "1",
+					"Prjn.Learn.Norm.On":     "false", // critical to be off!
+					"Prjn.Learn.Momentum.On": "false",
+				}},
 			{Sel: ".Fixed", Desc: "fixed weights",
 				Params: params.Params{
 					"Prjn.Learn.Learn": "false",
 					"Prjn.WtInit.Mean": "0.8",
 					"Prjn.WtInit.Var":  "0",
 					"Prjn.WtInit.Sym":  "false",
-				}},
-			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
-				Params: params.Params{
-					"Prjn.WtScale.Rel":       "1",
-					"Prjn.Learn.Norm.On":     "false", // critical to be off!
-					"Prjn.Learn.Momentum.On": "false",
 				}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{

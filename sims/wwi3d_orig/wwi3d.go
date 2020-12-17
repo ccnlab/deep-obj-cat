@@ -654,7 +654,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to V4
 	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // one2one better
-	v4ct.RecvPrjns().SendName("V4").SetClass("V4ToV4CT")
+	// v4ct.RecvPrjns().SendName("V4").SetClass("V4ToV4CT")
 
 	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one) // V4 self not needed
 
@@ -676,8 +676,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to TEO
 	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // important
-	teoct.RecvPrjns().SendName("TEO").SetClass("TEOToTEOCT")
-	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("TEOCToTEOCT") // this is beneficial for sure
+	// teoct.RecvPrjns().SendName("TEO").SetClass("TEOToTEOCT")
+	net.ConnectCtxtToCT(teoct, teoct, pone2one) // this is beneficial for sure
 
 	teo.RecvPrjns().SendName(teop.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, teo, full, emer.Back).SetClass("FmPulv")
@@ -698,7 +698,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// to TE
 	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // actually critical!
 	tect.RecvPrjns().SendName("TE").SetClass("TEToTECT")
-	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("TECTToTECT")
+	// net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("TECTToTECT")
 
 	te.RecvPrjns().SendName(tep.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, te, full, emer.Back).SetClass("FmPulv")
