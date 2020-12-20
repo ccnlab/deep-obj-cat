@@ -61,10 +61,12 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".V4", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
+					"Layer.Inhib.Layer.On":    "true",
+					"Layer.Inhib.Layer.Gi":    "1.8",
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".DP", Desc: "no pool inhib, initial activity",
 				Params: params.Params{
@@ -73,11 +75,12 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".TEO", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Layer.On":    "true",
 					"Layer.Inhib.Layer.Gi":    "1.8",
+					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
@@ -86,7 +89,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: "#LIPCT", Desc: "higher inhib",
 				Params: params.Params{
@@ -252,7 +255,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V2ToV2CT", Desc: "standard",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5", // .5 orig: slightly worse hogging, no bene
+					"Prjn.WtScale.Rel": "0.5", // .5 orig
 				}},
 			{Sel: "#V2CTToV2CT", Desc: "standard",
 				Params: params.Params{
@@ -270,7 +273,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
-			{Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
+			{Sel: "#V4CTToV4CT", Desc: "lesioned in orig",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1", // 1 = less TEO hogging; 4 orig
 				}},

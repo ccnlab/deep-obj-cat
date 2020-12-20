@@ -63,7 +63,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".DP", Desc: "no pool inhib, initial activity",
 				Params: params.Params{
@@ -72,11 +72,12 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".TEO", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Layer.On":    "true",
 					"Layer.Inhib.Layer.Gi":    "1.8",
+					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
@@ -85,7 +86,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
 					"Layer.Inhib.ActAvg.Init": "0.15",
-					"Layer.Learn.AvgL.Gain":   "3", // key param -- 3 > 2.5 > 3.5 except V4/IT!
+					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: "#LIPCT", Desc: "higher inhib",
 				Params: params.Params{
@@ -149,7 +150,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05", // .1 orig -- had a bug tho!! also trying .05
+					"Prjn.WtScale.Rel": "0.1", // .1 orig -- had a bug tho!! also trying .05
 				}},
 
 			{Sel: ".FmLIP", Desc: "no random weights here",
@@ -160,7 +161,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackMed", Desc: "medium / default",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
+					"Prjn.WtScale.Rel": "0.1",
 				}},
 			{Sel: ".BackStrong", Desc: "stronger",
 				Params: params.Params{
@@ -190,7 +191,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2", // .2 > .1 > .05
+					"Prjn.WtScale.Rel": "0.2", // .2 > .1 > .05 still true
 				}},
 			{Sel: ".FmPulv2", Desc: "strong pulvinar",
 				Params: params.Params{
@@ -221,10 +222,9 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Var":  "0",
 				}},
 
-			{Sel: ".ToCT1to1", Desc: "1to1 has no weight var... fixed?",
+			{Sel: ".CTFmSuper", Desc: "CT from main super -- fixed one2one",
 				Params: params.Params{
-					"Prjn.WtInit.Mean": "0.5",
-					"Prjn.WtInit.Var":  "0",
+					"Prjn.WtInit.Mean": "0.5", // todo: test more but looking best
 				}},
 			{Sel: "#LIPToLIPCT", Desc: "default 1",
 				Params: params.Params{
@@ -252,15 +252,16 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 1 = less TEO hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 = sig better TEcat
 				}},
+			// TODO: all CTFmSuper should be 1, not 4 in principle!
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "4", // 4 orig
 				}},
 			{Sel: "#TEOCTToTEOCT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 1 = less TEO hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 = sig better TEcat
 				}},
 			{Sel: "#TEToTECT", Desc: "stronger",
 				Params: params.Params{
@@ -268,7 +269,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 1 = less TE hogging; 4 orig
+					"Prjn.WtScale.Rel": "4", // 4 = sig better TEcat
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",

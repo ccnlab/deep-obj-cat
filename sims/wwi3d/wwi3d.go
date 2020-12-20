@@ -537,12 +537,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
 	// to V2
-	// v2ct.RecvPrjns().SendName("V2").SetPattern(ss.Prjn3x3Skp1) // try one2one
-	// v2ct.RecvPrjns().SendName("V2").SetPattern(one2one)  // better hogging?
-	// v2ct.RecvPrjns().SendName("V2").SetClass("ToCT1to1") // 1 == .5
-
 	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
-	// net.ConnectLayers(v2ct, v2ct, pone2one, emer.Forward) // not beneficial
 
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
@@ -552,8 +547,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
 	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("BackMax FmLIP")
-	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax, .05 reduces hogging; .02 minor less dead / hog
-	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackWeak05") // was BackMax; .02 minor less dead / hog
+	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // was BackWeak05 .05 reduces hogging; .02 minor less dead / hog
+	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // was BackWeak05 .02 minor less dead / hog
 
 	// small benefit for V2P cosdiff and hogging:
 	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
@@ -566,12 +561,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- improves cosdif, reduces hogging, 4x4skp2 better than full!
 
 	// to V3
-	// v3ct.RecvPrjns().SendName("V3").SetPattern(full)
-	// v3ct.RecvPrjns().SendName("V3").SetPattern(one2one) // orig: full
-	// v3ct.RecvPrjns().SendName("V3").SetClass("ToCT1to1")
-
 	// net.ConnectCtxtToCT(v3ct, v3ct, pone2one) // worse hogging, cosdiff
-	// net.ConnectLayers(v3ct, v3ct, pone2one, emer.Forward) // non-contextual projections, not good
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
@@ -594,11 +584,6 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMax")   // not needed
 
 	// to DP
-	// dpct.RecvPrjns().SendName("DP").SetPattern(one2one) // one2one better
-	// dpct.RecvPrjns().SendName("DP").SetClass("ToCT1to1")
-
-	// net.ConnectCtxtToCT(dpct, dpct, full) // worse hogging, cosdiff
-
 	net.ConnectLayers(v2, dp, full, emer.Forward)                  // note: was missing, test!
 	net.ConnectLayers(v3p, dp, full, emer.Back).SetClass("FmPulv") // note: was missing, test!
 
@@ -608,11 +593,9 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3p, dpct, full, emer.Back).SetClass("FmPulv")    // note: was missing, test!
 
 	// to V4
-	v4ct.RecvPrjns().SendName("V4").SetPattern(one2one) // one2one better
-	v4ct.RecvPrjns().SendName("V4").SetClass("ToCT1to1")
 
+	// todo: try self here!
 	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one)
-	// net.ConnectLayers(v4ct, v4ct, pone2one, emer.Forward) // non contextual, not beneficial
 
 	// todo: TEOCT -> V4?  TE -> V4?
 
@@ -627,11 +610,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv")
 
 	// to TEO
-	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // important
-	teoct.RecvPrjns().SendName("TEO").SetClass("ToCT1to1")
-
-	net.ConnectCtxtToCT(teoct, teoct, pone2one) // this is beneficial for sure
-	// net.ConnectLayers(teoct, teoct, pone2one, emer.Forward) // non-context, not beneficial
+	net.ConnectCtxtToCT(teoct, teoct, pone2one)
 
 	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
 
@@ -644,11 +623,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(teo, teo, sameu, emer.Lateral)
 
 	// to TE
-	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // actually critical!
-	tect.RecvPrjns().SendName("TE").SetClass("ToCT1to1")
-
-	net.ConnectCtxtToCT(tect, tect, pone2one) // reduces TECT hogging but impairs V1Sim a bit
-	// net.ConnectLayers(tect, tect, pone2one, emer.Forward) // non-context, not beneficial
+	net.ConnectCtxtToCT(tect, tect, pone2one)
 
 	net.ConnectLayers(teoct, tect, full, emer.Forward).SetClass("FwdWeak")
 
@@ -1589,17 +1564,17 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	if !ss.LIPOnly && mpi.WorldRank() == 0 {
 		if (epc % ss.RSA.Interval) == 0 {
 			ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
-			if !ss.LIPOnly {
-				fnm := ss.LogFileName("TEsim")
-				fmt.Printf("Saving TEsim to: %v\n", fnm)
-				sm := ss.RSA.Sims["TE"]
-				etensor.SaveCSV(sm.Mat, gi.FileName(fnm), etable.Tab.Rune())
-			}
+			fnm := ss.LogFileName("TEsim")
+			fmt.Printf("Saving TEsim to: %v\n", fnm)
+			sm := ss.RSA.Sims["TE"]
+			etensor.SaveCSV(sm.Mat, gi.FileName(fnm), etable.Tab.Rune())
 		}
 		for li, lnm := range ss.SuperLays {
 			dt.SetCellFloat(lnm+"_V1Sim", row, ss.RSA.V1Sims[li])
 			dt.SetCellFloat(lnm+"_CatDst", row, ss.RSA.CatDists[li])
 		}
+		dt.SetCellFloat("TE_PermDst", row, ss.RSA.PermDists["TE"])
+		dt.SetCellFloat("TE_PermNCat", row, float64(ss.RSA.PermNCats["TE"]))
 	}
 
 	if ss.LastEpcTime.IsZero() {
@@ -1731,6 +1706,8 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	for _, lnm := range ss.SuperLays {
 		sch = append(sch, etable.Column{lnm + "_CatDst", etensor.FLOAT64, nil, nil})
 	}
+	sch = append(sch, etable.Column{"TE_PermDst", etensor.FLOAT64, nil, nil})
+	sch = append(sch, etable.Column{"TE_PermNCat", etensor.FLOAT64, nil, nil})
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", lnm, tck), etensor.FLOAT64, nil, nil})
