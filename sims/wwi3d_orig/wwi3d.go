@@ -1684,17 +1684,17 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	if !ss.LIPOnly && mpi.WorldRank() == 0 {
 		if (epc % ss.RSA.Interval) == 0 {
 			ss.RSA.StatsFmActs(ss.CatLayActs, ss.SuperLays)
-			if !ss.LIPOnly {
-				fnm := ss.LogFileName("TEsim")
-				fmt.Printf("Saving TEsim to: %v\n", fnm)
-				sm := ss.RSA.Sims["TE"]
-				etensor.SaveCSV(sm.Mat, gi.FileName(fnm), etable.Tab.Rune())
-			}
+			fnm := ss.LogFileName("TEsim")
+			fmt.Printf("Saving TEsim to: %v\n", fnm)
+			sm := ss.RSA.Sims["TE"]
+			etensor.SaveCSV(sm.Mat, gi.FileName(fnm), etable.Tab.Rune())
 		}
 		for li, lnm := range ss.SuperLays {
 			dt.SetCellFloat(lnm+"_V1Sim", row, ss.RSA.V1Sims[li])
 			dt.SetCellFloat(lnm+"_CatDst", row, ss.RSA.CatDists[li])
 		}
+		dt.SetCellFloat("TE_PermDst", row, ss.RSA.PermDists["TE"])
+		dt.SetCellFloat("TE_PermNCat", row, float64(ss.RSA.PermNCats["TE"]))
 	}
 
 	if ss.LastEpcTime.IsZero() {
@@ -1826,6 +1826,8 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	for _, lnm := range ss.SuperLays {
 		sch = append(sch, etable.Column{lnm + "_CatDst", etensor.FLOAT64, nil, nil})
 	}
+	sch = append(sch, etable.Column{"TE_PermDst", etensor.FLOAT64, nil, nil})
+	sch = append(sch, etable.Column{"TE_PermNCat", etensor.FLOAT64, nil, nil})
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", lnm, tck), etensor.FLOAT64, nil, nil})

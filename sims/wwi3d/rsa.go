@@ -163,20 +163,27 @@ func (rs *RSA) StatsFmActs(acts *etable.Table, lays []string) {
 	}
 	cat5s := []string{"TE"}
 	for _, cn := range cat5s {
-		sm := rs.SimByName(cn)
-		sm5 := rs.Cat5SimByName(cn)
-		obj := rs.CatSortSimMat(sm, sm5, rs.Cats, LbaCats5, true, cn+"_LbaCat")
-		obj5 := rs.Cat5ObjByName(cn)
-		copy(*obj5, obj)
-		pnm := cn + "perm"
-		pcats, ncat, pdist := rs.PermuteCatTest(sm, rs.Cats, LbaCats5, pnm)
-		sm5p := rs.Cat5SimByName(pnm)
-		objp := rs.CatSortSimMat(sm, sm5p, rs.Cats, pcats, true, pnm)
-		obj5p := rs.Cat5ObjByName(pnm)
-		copy(*obj5p, objp)
-		rs.PermNCats[cn] = ncat
-		rs.PermDists[cn] = pdist
+		rs.StatsSortPermuteCat5(cn)
 	}
+}
+
+func (rs *RSA) StatsSortPermuteCat5(laynm string) {
+	sm := rs.SimByName(laynm)
+	if len(sm.Rows) == 0 {
+		return
+	}
+	sm5 := rs.Cat5SimByName(laynm)
+	obj := rs.CatSortSimMat(sm, sm5, rs.Cats, LbaCats5, true, laynm+"_LbaCat")
+	obj5 := rs.Cat5ObjByName(laynm)
+	copy(*obj5, obj)
+	pnm := laynm + "perm"
+	pcats, ncat, pdist := rs.PermuteCatTest(sm, rs.Cats, LbaCats5, pnm)
+	sm5p := rs.Cat5SimByName(pnm)
+	objp := rs.CatSortSimMat(sm, sm5p, rs.Cats, pcats, true, pnm)
+	obj5p := rs.Cat5ObjByName(pnm)
+	copy(*obj5p, objp)
+	rs.PermNCats[laynm] = ncat
+	rs.PermDists[laynm] = pdist
 }
 
 // ConfigSimMat sets meta data
@@ -214,8 +221,7 @@ func (rs *RSA) OpenSimMat(laynm string, fname gi.FileName) {
 	}
 	sm.Rows = simat.BlankRepeat(rs.Cats)
 	sm.Cols = sm.Rows
-	sm5 := rs.Cat5SimByName(laynm)
-	rs.CatSortSimMat(sm, sm5, rs.Cats, LbaCats5, true, laynm+"_LbaCat")
+	rs.StatsSortPermuteCat5(laynm)
 }
 
 // CatSortSimMat takes an input sim matrix and categorizes the items according to given cats

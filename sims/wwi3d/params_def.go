@@ -108,11 +108,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#TEOP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true", // now best
+					"Layer.TRC.NoTopo": "true", // true def
 				}},
 			{Sel: "#TEP", Desc: "no topo",
 				Params: params.Params{
-					"Layer.TRC.NoTopo": "true", // now best
+					"Layer.TRC.NoTopo": "true", // true def
 				}},
 
 			// prjn classes, specifics
@@ -224,7 +224,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".CTFmSuper", Desc: "CT from main super -- fixed one2one",
 				Params: params.Params{
-					"Prjn.WtInit.Mean": "0.5", // todo: test more but looking best
+					"Prjn.WtInit.Mean": "0.8", // 0.8 > 0.5 with lower S -> CT rel (2 instead of 4)
 				}},
 			{Sel: "#LIPToLIPCT", Desc: "default 1",
 				Params: params.Params{
@@ -244,32 +244,31 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#DPToDPCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "3", // 3 orig
+					"Prjn.WtScale.Rel": "2", // 2 > 3 orig
 				}},
 			{Sel: "#V4ToV4CT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 4 orig
+					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
 				}},
 			{Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 4 = sig better TEcat
+					"Prjn.WtScale.Rel": "0.5", // 0.5 similar to .2, 1 sig more clustery
 				}},
-			// TODO: all CTFmSuper should be 1, not 4 in principle!
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 4 orig
+					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
 				}},
 			{Sel: "#TEOCTToTEOCT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 4 = sig better TEcat
+					"Prjn.WtScale.Rel": "1", // 1 > 4 orig for 5 cat TE
 				}},
 			{Sel: "#TEToTECT", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 4 orig
+					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
 				}},
 			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "4", // 4 = sig better TEcat
+					"Prjn.WtScale.Rel": "1", // 1 > 4 orig for 5 cat
 				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",

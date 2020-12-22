@@ -6,6 +6,18 @@ This is the parameter search notes for wwi3d.
 
 * Add back higher drivers at some point!
 
+* top-down CT to CT should be current or Ctxt??
+
+# Summary up to 200 after CTFmSuper one-to-one, no learn throughout
+
+* WtInit.Mean = 0.8 > 0.5 with lower Rel = 2 instead of 4
+
+* TE, TEO CT <-> CT = 4 (try 3)
+
+* V4 CT <-> CT trying 0.2 .. 1
+
+* then try lower (V2, V3) selfs -- standard should be self with pool connectivity
+
 
 # Summary up to 180 pre major TRC, CT bug fixes
 

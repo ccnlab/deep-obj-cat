@@ -595,7 +595,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// to V4
 
 	// todo: try self here!
-	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one)
+	net.ConnectCtxtToCT(v4ct, v4ct, pone2one)
 
 	// todo: TEOCT -> V4?  TE -> V4?
 
