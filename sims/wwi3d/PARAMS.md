@@ -8,13 +8,15 @@ This is the parameter search notes for wwi3d.
 
 * top-down CT to CT should be current or Ctxt??
 
-# Summary up to 200 after CTFmSuper one-to-one, no learn throughout
+# Summary up to 220 after CTFmSuper one-to-one, no learn throughout
 
 * WtInit.Mean = 0.8 > 0.5 with lower Rel = 2 instead of 4
 
-* TE, TEO CT <-> CT = 4 (try 3)
+* TE, TEO = 2x2 instead of 4x4 == same perf basically and much faster
 
-* V4 CT <-> CT trying 0.2 .. 1
+* TE, TEO CT <-> CT = 1 instead of 4
+
+* V4 CT <-> CT = 0.5 is fine
 
 * then try lower (V2, V3) selfs -- standard should be self with pool connectivity
 

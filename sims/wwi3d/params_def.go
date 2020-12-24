@@ -14,11 +14,12 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Learn.AvgL.Gain":   "3.0", // key param -- 3 > 2.5 > 3.5 except IT!
-					"Layer.Act.Gbar.L":        "0.1", // todo: orig has 0.2 -- don't see any exploration notes..
-					"Layer.Inhib.Layer.FBTau": "1.4", // smoother = faster? but worse?
-					"Layer.Inhib.Pool.FBTau":  "1.4", // smoother = faster?
-					"Layer.Act.Init.Decay":    "0",   // this used to be default for deep, no longer
+					"Layer.Learn.AvgL.Gain":       "3.0",  // key param -- 3 > 2.5 > 3.5 except IT!
+					"Layer.Act.Gbar.L":            "0.1",  // todo: orig has 0.2 -- don't see any exploration notes..
+					"Layer.Inhib.Layer.FBTau":     "1.4",  // smoother = faster? but worse?
+					"Layer.Inhib.Pool.FBTau":      "1.4",  // smoother = faster?
+					"Layer.Act.Init.Decay":        "0",    // used deep default, now must set
+					"Layer.Inhib.ActAvg.UseFirst": "true", // doesn't fix weird V3 effect, works better overall
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
@@ -146,7 +147,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".StdFB", Desc: "standard feedback",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
+					"Prjn.WtScale.Rel": "0.1",
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
@@ -217,7 +218,7 @@ var ParamSets = params.Sets{
 			{Sel: ".Lateral", Desc: "default for lateral",
 				Params: params.Params{
 					"Prjn.WtInit.Sym":  "false",
-					"Prjn.WtScale.Rel": "0.02", // .02 > .05 > .1  -- similar, but .05 has less TEO hog
+					"Prjn.WtScale.Rel": "0.02", // .02 > .05 == .01 > .1  -- very minor diffs on TE cat
 					"Prjn.WtInit.Mean": "0.5",
 					"Prjn.WtInit.Var":  "0",
 				}},
@@ -297,10 +298,10 @@ var ParamSets = params.Sets{
 					"Prjn.WtScale.Rel": "0.667",
 				}},
 
-			{Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
+			// {Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
+			// 	Params: params.Params{
+			// 		"Prjn.WtScale.Rel": "0.1", // todo: try stronger
+			// 	}},
 
 			{Sel: "#MTPosToLIP", Desc: "fixed weights",
 				Params: params.Params{

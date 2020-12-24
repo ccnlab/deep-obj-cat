@@ -676,8 +676,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to TEO
 	teoct.RecvPrjns().SendName("TEO").SetPattern(one2one) // important
-	// teoct.RecvPrjns().SendName("TEO").SetClass("TEOToTEOCT")
-	net.ConnectCtxtToCT(teoct, teoct, pone2one) // this is beneficial for sure
+	net.ConnectCtxtToCT(teoct, teoct, pone2one)           // this is beneficial for sure
 
 	teo.RecvPrjns().SendName(teop.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, teo, full, emer.Back).SetClass("FmPulv")
@@ -697,8 +696,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// to TE
 	tect.RecvPrjns().SendName("TE").SetPattern(one2one) // actually critical!
-	tect.RecvPrjns().SendName("TE").SetClass("TEToTECT")
-	// net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("TECTToTECT")
+	net.ConnectCtxtToCT(tect, tect, pone2one)
 
 	te.RecvPrjns().SendName(tep.Name()).SetOff(true) // todo: test
 	net.ConnectLayers(v1mp, te, full, emer.Back).SetClass("FmPulv")
@@ -720,12 +718,12 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v2ct, v1mp, pone2one, emer.Back).SetClass("BackToPulv1")
 	net.ConnectLayers(v3ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(v4ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
-	net.ConnectLayers(teoct, v1mp, full, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(teoct, v1mp, full, emer.Back).SetClass("BackToPulv") // orig is scheduled
 
 	net.ConnectLayers(v2ct, v1hp, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackToPulv1")
 	net.ConnectLayers(v3ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(v4ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
-	net.ConnectLayers(teoct, v1hp, full, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(teoct, v1hp, full, emer.Back).SetClass("BackToPulv") // orig is scheduled
 
 	// note: v3ct -> v3p is automatic, with one-to-one -- not in standard one!
 	v3p.RecvPrjns().SendName(v3ct.Name()).SetOff(true)

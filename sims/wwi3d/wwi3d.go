@@ -431,13 +431,13 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v4p.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
 	v4p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
 
-	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 10, 10)
-	teop.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
-	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4")
+	teo, teoct, teop := net.AddDeep4D("TEO", 2, 2, 10, 10)
+	teop.Shape().SetShape([]int{2, 2, 14, 10}, nil, nil)  // 2x2 is basically same as 4x4
+	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V4") // def better clusters with V4
 
-	te, tect, tep := net.AddDeep4D("TE", 4, 4, 10, 10)
-	tep.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
-	tep.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4") // todo: "TEO"
+	te, tect, tep := net.AddDeep4D("TE", 2, 2, 10, 10)
+	tep.Shape().SetShape([]int{2, 2, 14, 10}, nil, nil)
+	tep.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V4")
 
 	v2.SetClass("V2")
 	v2ct.SetClass("V2")
@@ -521,7 +521,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v4teo, teov4 := net.BidirConnectLayers(v4, teo, full)
 	v4teo.SetClass("StdFF")
-	teov4.SetClass("StdFB")
+	teov4.SetClass("BackStrong") // Strong") // BackMed
 
 	teote, teteo := net.BidirConnectLayers(teo, te, full)
 	teote.SetClass("StdFF")
@@ -599,6 +599,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// todo: TEOCT -> V4?  TE -> V4?
 
+	net.ConnectLayers(te, v4, full, emer.Back).SetClass("BackStrong") // Strong") // BackMed
+
 	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
 	net.ConnectLayers(teoct, v4ct, full, emer.Back).SetClass("BackStrong")
@@ -612,7 +614,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// to TEO
 	net.ConnectCtxtToCT(teoct, teoct, pone2one)
 
-	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed") // todo: big -- try pone2one
+	net.ConnectLayers(tect, teoct, full, emer.Back).SetClass("BackMed")
 
 	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv") // recip
 	net.ConnectLayers(tep, teoct, full, emer.Back).SetClass("FmPulv") // recip

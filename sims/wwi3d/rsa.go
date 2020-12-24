@@ -313,7 +313,8 @@ func (rs *RSA) CatSortSimMat(insm *simat.SimMat, osm *simat.SimMat, nms []string
 	}
 	sobjs := make([]string, no)
 	for i := 0; i < no; i++ {
-		sobjs[i] = nms[ix.Idxs[i]]
+		nm := nms[ix.Idxs[i]]
+		sobjs[i] = catmap[nm] + ": " + nm
 	}
 	return sobjs
 }
