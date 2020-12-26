@@ -537,7 +537,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
 
 	// to V2
-	// net.ConnectCtxtToCT(v2ct, v2ct, pone2one) // no benefit, sig more hogging
+	net.ConnectCtxtToCT(v2ct, v2ct, pone2one).SetClass("CTSelfLower")
 
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP")        // key top-down attn
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMed") // 4x4skp2 fine -- was full
@@ -561,7 +561,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackMax") // s -> ct leak -- improves cosdif, reduces hogging, 4x4skp2 better than full!
 
 	// to V3
-	// net.ConnectCtxtToCT(v3ct, v3ct, pone2one) // worse hogging, cosdiff
+	net.ConnectCtxtToCT(v3ct, v3ct, pone2one).SetClass("CTSelfLower")
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMed FmLIP")
@@ -595,7 +595,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// to V4
 
 	// todo: try self here!
-	net.ConnectCtxtToCT(v4ct, v4ct, pone2one)
+	net.ConnectCtxtToCT(v4ct, v4ct, pone2one).SetClass("CTSelfLower")
 
 	// todo: TEOCT -> V4?  TE -> V4?
 

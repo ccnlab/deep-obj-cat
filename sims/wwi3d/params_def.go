@@ -227,15 +227,15 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtInit.Mean": "0.8", // 0.8 > 0.5 with lower S -> CT rel (2 instead of 4)
 				}},
+			{Sel: ".CTSelfLower", Desc: "CT to CT for lower-level layers",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.5", // 0.5 similar to 0.2 -- retry 1 again
+				}},
 			{Sel: "#LIPToLIPCT", Desc: "default 1",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1",
 				}},
 			{Sel: "#V2ToV2CT", Desc: "standard",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // .5 orig: slightly worse hogging, no bene
-				}},
-			{Sel: "#V2CTToV2CT", Desc: "standard",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1",
 				}},
@@ -251,10 +251,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
 				}},
-			{Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5", // 0.5 similar to .2, 1 sig more clustery
-				}},
+			// {Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
+			// 	Params: params.Params{
+			// 		"Prjn.WtScale.Rel": "0.5",
+			// 	}},
 			{Sel: "#TEOToTEOCT", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
