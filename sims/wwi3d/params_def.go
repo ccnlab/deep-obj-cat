@@ -138,17 +138,9 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-
-			{Sel: ".StdFF", Desc: "standard feedforward",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1.0",
-				}},
-			{Sel: ".StdFB", Desc: "standard feedback",
-				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.1",
 				}},
+
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.1", // .1 orig -- had a bug tho!! also trying .05
@@ -160,10 +152,6 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Var":  "0.05", // was 0 -- trying .05
 					"Prjn.WtInit.Sym":  "false",
 				}},
-			{Sel: ".BackMed", Desc: "medium / default",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-				}},
 			{Sel: ".BackStrong", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.2", // .1 > orig .2 > .05 -- not sep fm BackMax -- .1 = better TE_V1Sim, V2P cosdiff
@@ -171,14 +159,6 @@ var ParamSets = params.Sets{
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.5", // .1 > .2, orig .5 -- see BackStrong
-				}},
-			{Sel: ".BackWeak05", Desc: "weak .05",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-			{Sel: ".BackWeak02", Desc: "weak .02",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.02",
 				}},
 
 			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
@@ -194,26 +174,15 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.2", // .2 > .1 > .05 still true
 				}},
-			{Sel: ".FmPulv2", Desc: "strong pulvinar",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2",
-				}},
-			{Sel: ".FmPulv05", Desc: "weak pulvinar",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.05",
-				}},
-			{Sel: "#V2PToV2CT", Desc: "trying pulvinar prjns better",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": ".1", // .1 > .2 > .05 for cosdiff, not hog (.05 bad)
-				}},
-			{Sel: "#V3PToV3CT", Desc: "weaker pulvinar prjns better",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": ".1", // .05 > .1 for hog but worse for cosdif; .1 > .2 for hog, minor for cosdiff
-				}},
-			{Sel: "#V4PToV4CT", Desc: "weaker pulvinar prjns better",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": ".2", // was .2
-				}},
+
+			// {Sel: "#V2PToV2CT", Desc: "trying pulvinar prjns better",
+			// 	Params: params.Params{
+			// 		"Prjn.WtScale.Rel": ".1",
+			// 	}},
+			// {Sel: "#V3PToV3CT", Desc: "weaker pulvinar prjns better",
+			// 	Params: params.Params{
+			// 		"Prjn.WtScale.Rel": ".1",  cosdiff
+			// 	}},
 
 			{Sel: ".Lateral", Desc: "default for lateral",
 				Params: params.Params{
@@ -226,51 +195,33 @@ var ParamSets = params.Sets{
 			{Sel: ".CTFmSuper", Desc: "CT from main super -- fixed one2one",
 				Params: params.Params{
 					"Prjn.WtInit.Mean": "0.8", // 0.8 > 0.5 with lower S -> CT rel (2 instead of 4)
+					"Prjn.WtScale.Rel": "2",
 				}},
-			{Sel: ".CTSelfLower", Desc: "CT to CT for lower-level layers",
+			{Sel: ".CTFmSuperLower", Desc: "CT from main super -- for lower layers",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "1", // 1 maybe better
+				}},
+			{Sel: ".CTSelfLower", Desc: "CT to CT for lower-level layers: V2,3,4",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.5", // 0.5 similar to 0.2 -- retry 1 again
 				}},
-			{Sel: "#LIPToLIPCT", Desc: "default 1",
+			{Sel: ".CTSelfHigher", Desc: "CT to CT for higher-level layers: TEO, TE",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "1",
 				}},
-			{Sel: "#V2ToV2CT", Desc: "standard",
+			{Sel: ".CTBack", Desc: "CT to CT back (top-down)",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
+					"Prjn.WtScale.Rel": ".2",
 				}},
-			{Sel: "#V3ToV3CT", Desc: "V3 default",
+			{Sel: ".SToCT", Desc: "higher Super to CT back (top-down), leaks current state to prediction..",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
+					"Prjn.WtScale.Rel": ".2",
 				}},
-			{Sel: "#DPToDPCT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 2 > 3 orig
-				}},
-			{Sel: "#V4ToV4CT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
-				}},
-			// {Sel: "#V4CTToV4CT", Desc: "reg but beneficial?",
+
+			// {Sel: "#LIPToLIPCT", Desc: "default 1",
 			// 	Params: params.Params{
-			// 		"Prjn.WtScale.Rel": "0.5",
+			// 		"Prjn.WtScale.Rel": "1",
 			// 	}},
-			{Sel: "#TEOToTEOCT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
-				}},
-			{Sel: "#TEOCTToTEOCT", Desc: "reg but beneficial",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 > 4 orig for 5 cat TE
-				}},
-			{Sel: "#TEToTECT", Desc: "stronger",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "2", // 2 > 1 > 4 orig
-				}},
-			{Sel: "#TECTToTECT", Desc: "reg but beneficial",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 > 4 orig for 5 cat
-				}},
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
 				Params: params.Params{
