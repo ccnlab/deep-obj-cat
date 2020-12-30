@@ -509,11 +509,12 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v4v2.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	_, v3v2 := net.BidirConnectLayers(v2, v3, ss.Prjn4x4Skp2)
-	v3v2.SetClass("BackStrong") // "BackMax") // todo: test! super strong feedback
+	// v3v2.SetClass("BackStrong") // "BackMax") // todo: test! super strong feedback
 	v3v2.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	_, dpv3 := net.BidirConnectLayers(v3, dp, full)
-	dpv3.SetClass("BackStrong") // todo: test
+	_ = dpv3
+	// dpv3.SetClass("BackStrong") // todo: test
 
 	_, teov4 := net.BidirConnectLayers(v4, teo, full)
 	teov4.SetClass("BackStrong") // todo: test
@@ -538,7 +539,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectCtxtToCT(v2ct, v2ct, pone2one).SetClass("CTSelfLower")
 	v2ct.RecvPrjns().SendName(v2.Name()).SetClass("CTFmSuperLower")
 
-	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackStrong FmLIP") // key top-down attn
+	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("FmLIP") // key top-down attn
 	// net.ConnectLayers(teoct, v2, full, emer.Back).SetClass("CTBack")      // todo: try without
 
 	// todo: teo -> v2?
@@ -563,7 +564,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectCtxtToCT(v3ct, v3ct, pone2one).SetClass("CTSelfLower")
 	v3ct.RecvPrjns().SendName(v3.Name()).SetClass("CTFmSuperLower")
 
-	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
+	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back) // was BackStrong
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("FmLIP")
 
 	net.ConnectLayers(teo, v3, full, emer.Back)
@@ -603,9 +604,9 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(v4ct, v4ct, pone2one).SetClass("CTSelfLower")
+	net.ConnectCtxtToCT(v4ct, v4ct, pone2one).SetClass("CTSelfHigher")
 
-	net.ConnectLayers(te, v4, full, emer.Back) // todo: shortcut, .2 orig
+	net.ConnectLayers(te, v4, full, emer.Back).SetClass("BackStrong") // todo: shortcut, .2 orig
 
 	net.ConnectLayers(teoct, v4ct, full, emer.Back).SetClass("CTBack")
 	net.ConnectLayers(tect, v4ct, full, emer.Back).SetClass("CTBack")

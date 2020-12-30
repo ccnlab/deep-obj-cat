@@ -203,7 +203,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CTSelfLower", Desc: "CT to CT for lower-level layers: V2,3,4",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.5", // 0.5 similar to 0.2 -- retry 1 again
+					"Prjn.WtScale.Rel": "0.1", // 0.1 > 0.2
 				}},
 			{Sel: ".CTSelfHigher", Desc: "CT to CT for higher-level layers: TEO, TE",
 				Params: params.Params{
@@ -215,7 +215,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".SToCT", Desc: "higher Super to CT back (top-down), leaks current state to prediction..",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": ".2",
+					"Prjn.WtScale.Rel": ".2", // .2 > .1
 				}},
 
 			// {Sel: "#LIPToLIPCT", Desc: "default 1",
@@ -223,6 +223,15 @@ var ParamSets = params.Sets{
 			// 		"Prjn.WtScale.Rel": "1",
 			// 	}},
 
+			// todo: try this:
+			// {Sel: "#V2PToV2CT", Desc: "trying weaker pulv -> CT lower",
+			// 	Params: params.Params{
+			// 		"Prjn.WtScale.Rel": ".1", // default .2
+			// 	}},
+			// {Sel: "#V3PToV3CT", Desc: "trying weaker pulv -> CT lower",
+			// 	Params: params.Params{
+			// 		"Prjn.WtScale.Rel": ".1", // default .2
+			// 	}},
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
 				Params: params.Params{
 					"Prjn.WtScale.Abs": "0.5",
