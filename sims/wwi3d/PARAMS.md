@@ -2,14 +2,44 @@ This is the parameter search notes for wwi3d.
 
 # TODO
 
-* Add weaker surround projection from same CT -> P
+# 229 regularized
 
-* top-down CT to CT should be current or Ctxt??
+* restarted with "rationalized" parameters consistent across all layers -- didn't work very well..
 
+* 230, 231: V2,3 S->CT 2 vs 1 -- very high V1Sim with 2, but also higher TE CatDist with 2 -- not good tradeoff.  
+
+* 231, 233: got rid of full TEOCT->V2 @ .1, TEO->V2CT @.1, improved TE CatDist, no change in V1Sim.  inconsistent with 229 removing these prjns results.
+
+* overall 233 is pretty good for TE CatDist, but not as clean overall as 229
+
+* 234 v 233: CTback, S To CT both .2 -- both CatDst and V1Sim lower (tradeoff)
+* 235 v 234: BackMax (.5) -> BackStrong (.2) = higher CatDst & V1Sim (tradeoff)
+* 236 v 235: S to CT = .1 vs .2 -- worse CatDst, same later V1Sim (init higher) -- **S to CT important!**
+
+* 240 v 236: BackMax -> .1, CT self V2,3,4 .1 v. 5 -- no real diffs (transient V1Sim higher)
+* 241 v 240: CT Self V2,3,4 .2 v .1 -- higher V1Sim, same CatDst -- **low CT stronger = more V1Sim**
+* 242 v 240: V4 CT Self = 1 -- better CatDst and V1Sim -- **V4 CT self better!**
+* 243 v 242: again CT low self worse V1Sim (same 241 v. 240)
+* 244 v 242: incr SToCT .2 vs. .1 made V1Sim sig worse, small incr in CatDst
+* 244 v 233: 233 is sig better on V1Sim, similar on CatDst -- go back to 233
+* 245 v 244: V4 -> V3 .1 v .2, TE -> V4 .2 v .1 -- reduces V1Sim -- prob from TE -> V4
+* 246 v 245: CTback  .1 v .2 -- worse CatDst same V1Sim, **CT back important**
+* 245 v 233: 233 better CatDst, same V1Sim
+
+# 229 tweaks
+
+* 250: Weaker LIP -> V2 (.2 vs .5) sig lowered V1Sim, increased CatDst -- **weaker LIP -> V2 better**
+* 249: Weaker V3->V2 (.2 vs .5) sig *increased* V1Sim -- **keep V3->V2 strong**
+* 251: Stronger V2,3P -> .2 v .1 CatDst drops off, V1Sim MUCH lower.  **not clear about V2p .1**
+
+* 253: full TEO->V2 sig worse than partial (prelim)
+* 254: no TEOCT->V2 -- sig worse CatDist -- CT more important than TEO
+* 255: no TEO->V2CT -- not that much worse
 
 # 229 = 223 + Low CT Self .5
 
-* significantly better!
+* best so far -- after full training, dist matrix is very similar to original -- TE_CatDst high and TE_V1Sim low (both around .5 -- want CatDst higher and V1Sim lower)
+ 
 
 # 223 best case
 
@@ -206,7 +236,7 @@ TEOP: best: 73+  (in later ticks)
 
 # Current Best WtScale Listing
 
-* 229
+## 229
 
 ```
 Layer: V1m
@@ -324,6 +354,164 @@ Layer: V4CT
 	            TEOCTToV4CT		Abs:	1	Rel:	0.2
 	             TECTToV4CT		Abs:	1	Rel:	0.2
 	              TEOToV4CT		Abs:	1	Rel:	0.2
+
+Layer: V4P
+	              V4CTToV4P		Abs:	1	Rel:	1
+	             TEOCTToV4P		Abs:	1	Rel:	0.1
+	              V2CTToV4P		Abs:	1	Rel:	0.1
+
+Layer: TEO
+	              TEOPToTEO		Abs:	1	Rel:	0.2
+	                V4ToTEO		Abs:	2	Rel:	0.5
+	                TEToTEO		Abs:	1	Rel:	0.1
+
+Layer: TEOCT
+	             TEOToTEOCT		Abs:	1	Rel:	2
+	            TEOPToTEOCT		Abs:	1	Rel:	0.2
+	           TEOCTToTEOCT		Abs:	1	Rel:	1
+	            TECTToTEOCT		Abs:	1	Rel:	0.1
+	             V4PToTEOCT		Abs:	1	Rel:	0.2
+	             TEPToTEOCT		Abs:	1	Rel:	0.2
+
+Layer: TEOP
+	            TEOCTToTEOP		Abs:	1	Rel:	1
+	             V4CTToTEOP		Abs:	1	Rel:	0.1
+	             TECTToTEOP		Abs:	1	Rel:	0.1
+
+Layer: TE
+	                TEPToTE		Abs:	1	Rel:	0.2
+	                TEOToTE		Abs:	1.5	Rel:	0.667
+
+Layer: TECT
+	               TEToTECT		Abs:	1	Rel:	2
+	              TEPToTECT		Abs:	1	Rel:	0.2
+	             TECTToTECT		Abs:	1	Rel:	1
+	            TEOCTToTECT		Abs:	1	Rel:	0.1
+	              V4PToTECT		Abs:	1	Rel:	0.2
+	             TEOPToTECT		Abs:	1	Rel:	0.2
+
+Layer: TEP
+	              TECTToTEP		Abs:	1	Rel:	1
+	             TEOCTToTEP		Abs:	1	Rel:	0.1
+```
+
+## 233
+
+```
+Layer: V1m
+
+Layer: V1h
+
+Layer: LIP
+	              LIPPToLIP		Abs:	1	Rel:	0.2
+	             MTPosToLIP		Abs:	1	Rel:	0.5
+	            EyePosToLIP		Abs:	1	Rel:	1
+	           SacPlanToLIP		Abs:	1	Rel:	1
+	            ObjVelToLIP		Abs:	1	Rel:	1
+	                V2ToLIP		Abs:	1	Rel:	0.1
+	                V3ToLIP		Abs:	1	Rel:	0.1
+
+Layer: LIPCT
+	             LIPToLIPCT		Abs:	1	Rel:	1
+	            LIPPToLIPCT		Abs:	1	Rel:	0.2
+	          EyePosToLIPCT		Abs:	1	Rel:	1
+	         SaccadeToLIPCT		Abs:	1	Rel:	1
+	          ObjVelToLIPCT		Abs:	1	Rel:	1
+	            V2CTToLIPCT		Abs:	1	Rel:	0.1
+	            V3CTToLIPCT		Abs:	1	Rel:	0.1
+
+Layer: LIPP
+	            LIPCTToLIPP		Abs:	1	Rel:	1
+
+Layer: MTPos
+	             V1mToMTPos		Abs:	1	Rel:	1
+
+Layer: EyePos
+
+Layer: SacPlan
+
+Layer: Saccade
+
+Layer: ObjVel
+
+Layer: V2
+	                V2PToV2		Abs:	1	Rel:	0.2
+	                V1mToV2		Abs:	1	Rel:	1
+	                V1hToV2		Abs:	1	Rel:	1
+	                 V4ToV2		Abs:	1	Rel:	0.1
+	                 V3ToV2		Abs:	1	Rel:	0.5
+	                 V2ToV2		Abs:	1	Rel:	0.02
+	                LIPToV2		Abs:	1	Rel:	0.5
+    vs. 229: TEOCTToV2 Rel .1
+
+Layer: V2CT
+	               V2ToV2CT		Abs:	1	Rel:	1
+	              V2PToV2CT		Abs:	1	Rel:	0.2
+	             V2CTToV2CT		Abs:	1	Rel:	0.5
+	            LIPCTToV2CT		Abs:	1	Rel:	0.1 <- all .5 in 229
+	             V3CTToV2CT		Abs:	1	Rel:	0.1
+	             V4CTToV2CT		Abs:	1	Rel:	0.1
+	               V3ToV2CT		Abs:	1	Rel:	0.1
+
+Layer: V2P
+	              V2CTToV2P		Abs:	1	Rel:	1
+	              V3CTToV2P		Abs:	1	Rel:	0.1
+	              V4CTToV2P		Abs:	1	Rel:	0.1
+
+Layer: V3
+	                V3PToV3		Abs:	1	Rel:	0.2
+	                 V2ToV3		Abs:	0.5	Rel:	2
+	                 DPToV3		Abs:	1	Rel:	0.2
+	                 V3ToV3		Abs:	1	Rel:	0.02
+	                 V4ToV3		Abs:	1	Rel:	0.2
+	                LIPToV3		Abs:	1	Rel:	0.1
+	                TEOToV3		Abs:	1	Rel:	0.1
+	              TEOCTToV3		Abs:	1	Rel:	0.1
+
+Layer: V3CT
+	               V3ToV3CT		Abs:	1	Rel:	1
+	              V3PToV3CT		Abs:	1	Rel:	0.2
+	             V3CTToV3CT		Abs:	1	Rel:	0.5
+	            LIPCTToV3CT		Abs:	1	Rel:	0.1 <- these all .2 in 229
+	             DPCTToV3CT		Abs:	1	Rel:	0.1
+	             V4CTToV3CT		Abs:	1	Rel:	0.1
+	               DPToV3CT		Abs:	1	Rel:	0.1
+	               V4ToV3CT		Abs:	1	Rel:	0.1
+
+Layer: V3P
+	              V3CTToV3P		Abs:	1	Rel:	1
+	              DPCTToV3P		Abs:	1	Rel:	0.1
+
+Layer: DP
+	                DPPToDP		Abs:	1	Rel:	0.2
+	                 V3ToDP		Abs:	2	Rel:	0.5
+	                 V2ToDP		Abs:	1	Rel:	1
+	                TEOToDP		Abs:	1	Rel:	0.1
+	                V3PToDP		Abs:	1	Rel:	0.2
+
+Layer: DPCT
+	               DPToDPCT		Abs:	1	Rel:	2
+	              DPPToDPCT		Abs:	1	Rel:	0.2
+	            TEOCTToDPCT		Abs:	1	Rel:	0.1
+	              V3PToDPCT		Abs:	1	Rel:	0.2
+
+Layer: DPP
+	              DPCTToDPP		Abs:	1	Rel:	1
+
+Layer: V4
+	                V4PToV4		Abs:	1	Rel:	0.2
+	                 V2ToV4		Abs:	0.5	Rel:	2
+	                TEOToV4		Abs:	1	Rel:	0.2
+	                 V4ToV4		Abs:	1	Rel:	0.02
+	                 TEToV4		Abs:	1	Rel:	0.1
+
+Layer: V4CT
+	               V4ToV4CT		Abs:	1	Rel:	2
+	              V4PToV4CT		Abs:	1	Rel:	0.2
+	             V4CTToV4CT		Abs:	1	Rel:	0.5
+	            TEOCTToV4CT		Abs:	1	Rel:	0.1 <- these all .2 in 229
+	             TECTToV4CT		Abs:	1	Rel:	0.1
+	              TEOToV4CT		Abs:	1	Rel:	0.1
 
 Layer: V4P
 	              V4CTToV4P		Abs:	1	Rel:	1
