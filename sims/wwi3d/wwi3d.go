@@ -435,7 +435,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v4p.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
 	v4p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
 
-	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 7, 7) // 2x2 doesn't work with big V2 topo prjn
+	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
 	teop.Shape().SetShape([]int{4, 4, 14, 10}, nil, nil)
 	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V4") // def better clusters with V4
 
@@ -519,13 +519,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	_, dpv3 := net.BidirConnectLayers(v3, dp, full)
 	dpv3.SetClass("BackStrong") // likely key (in 233) -- retest
 
-	v4teo, teov4 := net.BidirConnectLayers(v4, teo, full)
-	v4teo.SetPattern(ss.Prjn3x3Skp1)
+	_, teov4 := net.BidirConnectLayers(v4, teo, ss.Prjn3x3Skp1)
 	teov4.SetClass("BackStrong") // todo: test
-	teov4.SetPattern(ss.Prjn3x3Skp1)
 
-	teote, teteo := net.BidirConnectLayers(teo, te, full)
-	teote.SetPattern(ss.Prjn4x4Skp2)
+	_, teteo := net.BidirConnectLayers(teo, te, ss.Prjn4x4Skp2)
 	teteo.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	// non-basic cons
@@ -551,7 +548,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back)              // key! .1 def
 
 	// todo: retry with fixed teo
-	// net.ConnectLayers(teo, v2, ss.Prjn4x4Skp2Recip, emer.Back) // lower V1Sim but same CatDst
+	// net.ConnectLayers(teo, v2, ss.Prjn4x4Skp2Recip, emer.Back)
 
 	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("CTBackMax FmLIP")
 	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBackMax")
@@ -693,6 +690,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 		tep.SetThread(0)
 	*/
 
+	net.LockThreads = true // trying
 	//	2 threads = about 600 msec / trl @8 mpi
 	v2.SetThread(0)
 	v2ct.SetThread(0)
@@ -1618,6 +1616,11 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 			dt.SetCellFloat(lnm+"_V1Sim", row, ss.RSA.V1Sims[li])
 			dt.SetCellFloat(lnm+"_CatDst", row, ss.RSA.CatDists[li])
 		}
+		pr := 0.0
+		if ss.RSA.PermDists["TE"] > 0 {
+			pr = ss.RSA.CatDists[len(ss.SuperLays)-1] / ss.RSA.PermDists["TE"]
+		}
+		dt.SetCellFloat("TE_PermRatio", row, pr)
 		dt.SetCellFloat("TE_PermDst", row, ss.RSA.PermDists["TE"])
 		dt.SetCellFloat("TE_PermNCat", row, float64(ss.RSA.PermNCats["TE"]))
 	}
@@ -1751,6 +1754,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	for _, lnm := range ss.SuperLays {
 		sch = append(sch, etable.Column{lnm + "_CatDst", etensor.FLOAT64, nil, nil})
 	}
+	sch = append(sch, etable.Column{"TE_PermRatio", etensor.FLOAT64, nil, nil})
 	sch = append(sch, etable.Column{"TE_PermDst", etensor.FLOAT64, nil, nil})
 	sch = append(sch, etable.Column{"TE_PermNCat", etensor.FLOAT64, nil, nil})
 	for tck := 0; tck < ss.MaxTicks; tck++ {
@@ -1783,9 +1787,13 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 		plt.SetColParams(lnm+"_TrlCosDiff0", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 	}
 	for _, lnm := range ss.SuperLays {
-		plt.SetColParams(lnm+"_V1Sim", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(lnm+"_CatDst", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
+		on := lnm == "TE"
+		plt.SetColParams(lnm+"_V1Sim", on, eplot.FixMin, 0, eplot.FixMax, 1)
+		plt.SetColParams(lnm+"_CatDst", on, eplot.FixMin, 0, eplot.FixMax, 1)
 	}
+	plt.SetColParams("TE_PermRatio", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+	plt.SetColParams("TE_PermDst", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+	plt.SetColParams("TE_PermNCat", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			plt.SetColParams(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
