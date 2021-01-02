@@ -57,13 +57,13 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.15",
+					"Layer.Inhib.ActAvg.Init": "0.1",
 				}},
 			{Sel: ".V4", Desc: "pool inhib, initial activity, less avgl.gain",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.15",
+					"Layer.Inhib.ActAvg.Init": "0.1",
 					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".DP", Desc: "no pool inhib, initial activity",
@@ -77,7 +77,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi":    "1.8",
 					"Layer.Inhib.Pool.On":     "true",
 					"Layer.Inhib.Pool.Gi":     "1.8",
-					"Layer.Inhib.ActAvg.Init": "0.15",
+					"Layer.Inhib.ActAvg.Init": "0.1",
 					"Layer.Learn.AvgL.Gain":   "2.5", // key param -- 3 > 2.5 > 3.5 except V4/IT!
 				}},
 			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
@@ -189,7 +189,8 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CTFmSuperLower", Desc: "CT from main super -- for lower layers",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1", // 1 maybe better
+					"Prjn.WtInit.Mean": "0.8", // 0.8 makes a diff for lower too, more V1 divergence at .5
+					"Prjn.WtScale.Rel": "1",   // 1 maybe better
 				}},
 			{Sel: ".CTSelfLower", Desc: "CT to CT for lower-level layers: V2,3,4",
 				Params: params.Params{
