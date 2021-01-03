@@ -256,10 +256,10 @@ var ParamSets = params.Sets{
 					"Prjn.WtScale.Rel": "0.667",
 				}},
 
-			{Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
-				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.2", // todo: try stronger
-				}},
+			// {Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
+			// 	Params: params.Params{
+			// 		"Prjn.WtScale.Rel": "0.1", // 0.1 > 0.2
+			// 	}},
 
 			{Sel: "#MTPosToLIP", Desc: "fixed weights",
 				Params: params.Params{

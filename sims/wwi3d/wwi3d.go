@@ -637,7 +637,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher")
 
-	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack")
+	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // CTBack > not
 
 	net.ConnectLayers(v4p, teoct, ss.Prjn3x3Skp1, emer.Back).SetClass("FmPulv")      // recip
 	net.ConnectLayers(tep, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("FmPulv") // recip
