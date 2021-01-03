@@ -16,6 +16,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -636,7 +637,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher")
 
-	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back) // .SetClass("CTBack") todo: test
+	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack")
 
 	net.ConnectLayers(v4p, teoct, ss.Prjn3x3Skp1, emer.Back).SetClass("FmPulv")      // recip
 	net.ConnectLayers(tep, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("FmPulv") // recip
@@ -660,8 +661,11 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv")  // recip
 	net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv") // recip
 
-	// 4 threads = about 500 msec / trl @8 mpi
+	// net.LockThreads = true // makes no difference
+	runtime.GOMAXPROCS(8) // makes no diff: otherwise gets it from slurm request and it is too small
+
 	/*
+		// 4 threads = about 500 msec / trl @8 mpi
 		v2.SetThread(1)
 		v2ct.SetThread(1)
 		v2p.SetThread(1)
@@ -675,7 +679,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 		v3p.SetThread(2)
 		v3.SetThread(2)
 
-		v4.SetThread(2)
+		v4.SetThread(3)
 		v4ct.SetThread(2)
 		v4p.SetThread(2)
 
@@ -690,8 +694,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 		tep.SetThread(0)
 	*/
 
-	net.LockThreads = true // trying
-	//	2 threads = about 600 msec / trl @8 mpi
+	//	2 threads = only slight advantage over 1 thread
 	v2.SetThread(0)
 	v2ct.SetThread(0)
 	v2p.SetThread(0)

@@ -202,11 +202,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CTBack", Desc: "CT to CT back (top-down)",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": ".2", // .2 > .1 in some configs
+					"Prjn.WtScale.Rel": ".2", // .2 > .1 in std
 				}},
 			{Sel: ".SToCT", Desc: "higher Super to CT back (top-down), leaks current state to prediction..",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": ".2", // .2 > .1 i some configs
+					"Prjn.WtScale.Rel": ".2", // .2 > .1 in std
 				}},
 			{Sel: ".CTBackMax", Desc: "CT to CT back (top-down), max",
 				Params: params.Params{
@@ -256,10 +256,10 @@ var ParamSets = params.Sets{
 					"Prjn.WtScale.Rel": "0.667",
 				}},
 
-			// {Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
-			// 	Params: params.Params{
-			// 		"Prjn.WtScale.Rel": "0.1", // todo: try stronger
-			// 	}},
+			{Sel: "#TEToTEO", Desc: "weaker top-down than std .1",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.2", // todo: try stronger
+				}},
 
 			{Sel: "#MTPosToLIP", Desc: "fixed weights",
 				Params: params.Params{
