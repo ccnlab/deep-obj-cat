@@ -2,6 +2,28 @@ This is the parameter search notes for wwi3d.
 
 # TODO
 
+# 300+: 4x4 TEO, 2x2 TE, removing pulv cons
+
+* projections from other pulv layers are generally not useful -- generally CT <-> P all in same layer
+
+* *some* other CT -> P is definitely useful for cosdif performance:
+
+    + V3CT -> V2P, V4CT -> V2P (todo: test each separately)
+    + V2CT -> V4P (Fwd)
+    + V4CT -> TEOP (Fwd), TECT -> TEOP (todo: test each separately)
+    + TEOCT -> TEP (Fwd)
+    
+    + .2 had no cosdif improvement vs. .1 -- try lower
+
+* general lessons: everything shows basic categorization effects, just differs in extent to which the TE remains more or less "tethered" to the bottom-up V1 structure -- when less connected, it produces lower-dimensional (typically 2) category structure, which tends to be more binary / discrete.
+
+* not too much actually affects the Pulv cosdiff performance -- definitely try to optimize that -- some changes change the geometry of drivers, so that has an effect, but otherwise, not much.
+
+* Lateral unit-to-unit cons do seem to make a diff!
+
+* synaptic noise in leabrax actually seems to have a very gradual effect..
+
+
 # 229 regularized
 
 * restarted with "rationalized" parameters consistent across all layers -- didn't work very well..

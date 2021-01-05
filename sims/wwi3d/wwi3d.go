@@ -520,10 +520,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	_, dpv3 := net.BidirConnectLayers(v3, dp, full)
 	dpv3.SetClass("BackStrong") // likely key (in 233) -- retest
 
-	_, teov4 := net.BidirConnectLayers(v4, teo, ss.Prjn3x3Skp1)
-	teov4.SetClass("BackStrong") // todo: test
+	_, teov4 := net.BidirConnectLayers(v4, teo, ss.Prjn3x3Skp1) // 3x3 > full
+	teov4.SetClass("BackStrong")                                // todo: test
 
-	_, teteo := net.BidirConnectLayers(teo, te, ss.Prjn4x4Skp2)
+	_, teteo := net.BidirConnectLayers(teo, te, ss.Prjn4x4Skp2) // 4x4 > full
 	teteo.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	// non-basic cons
@@ -542,39 +542,38 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(v2ct, v2ct, pone2one).SetClass("CTSelfLower")
+	net.ConnectCtxtToCT(v2ct, v2ct, pone2one).SetClass("CTSelfLower") // was pone2one
 	v2ct.RecvPrjns().SendName(v2.Name()).SetClass("CTFmSuperLower")
 
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP") // key top-down attn .5 > .2
 	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back)              // key! .1 def
 
-	// todo: retry with fixed teo
-	// net.ConnectLayers(teo, v2, ss.Prjn4x4Skp2Recip, emer.Back)
+	// net.ConnectLayers(teo, v2, ss.Prjn4x4Skp2Recip, emer.Back) // too strong of top-down
 
 	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("CTBackMax FmLIP")
 	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBackMax")
 	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBackMax")
 
-	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back) // todo: test again, and with CTBack
-	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back)
-
-	// net.ConnectLayers(teoct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // not used -- try later
+	// net.ConnectLayers(teoct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBackMax") // not beneficial
 
 	net.ConnectLayers(v3, v2ct, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("SToCTMax")  // s -> ct leak
 	net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("SToCTMax") // s -> ct leak -- key @ max
+
+	// CTBack generically worse, generally important for cosdiff
+	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
 
 	////////////////////
 	// to V3
 
 	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(v3ct, v3ct, pone2one).SetClass("CTSelfLower")
+	net.ConnectCtxtToCT(v3ct, v3ct, pone2one).SetClass("CTSelfLower") // was pone2one
 	v3ct.RecvPrjns().SendName(v3.Name()).SetClass("CTFmSuperLower")
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("FmLIP")
 
-	// todo: compare with full
 	net.ConnectLayers(teo, v3, ss.Prjn3x3Skp1, emer.Back)
 	net.ConnectLayers(teoct, v3, ss.Prjn3x3Skp1, emer.Back)
 
@@ -586,80 +585,71 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("SToCT")
 	net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("SToCT") // s -> ct, 3x3 ok
 
-	// todo: teoct -> v3p too
-	net.ConnectLayers(dpct, v3p, full, emer.Back) // todo: CTBack
-
-	// todo: test these
-	// net.ConnectLayers(v4ct, v3p, ss.Prjn3x3Skp1, emer.Back)
-	// net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back)
+	// net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv") // not much effect on cosdiff
+	net.ConnectLayers(v2ct, v3p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv") // has major effect on cosdiff
 
 	////////////////////
 	// to DP
 
-	// todo: try not v2 -> dp
-	net.ConnectLayers(v2, dp, full, emer.Forward) // full strength, full size shortcut
+	net.ConnectCtxtToCT(dpct, dpct, full).SetClass("CTSelfLower") // not much effect, but consistent
 
-	net.ConnectLayers(v3p, dp, full, emer.Back).SetClass("FmPulv")
-	net.ConnectLayers(teo, dp, full, emer.Back)
+	// net.ConnectLayers(v2, dp, full, emer.Forward) // no effect, expensive
+
+	net.ConnectLayers(teo, dp, full, emer.Back) // todo: test again
 
 	net.ConnectLayers(teoct, dpct, full, emer.Back).SetClass("CTBack")
-	net.ConnectLayers(v3p, dpct, full, emer.Back).SetClass("FmPulv")
 
 	////////////////////
 	// to V4
 
 	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(v4ct, v4ct, pone2one).SetClass("CTSelfLower") // 233, 229, higher 1 not better
+	net.ConnectCtxtToCT(v4ct, v4ct, pone2one).SetClass("CTSelfLower") // was pone2one
 
-	// net.ConnectLayers(teoct, v4, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack") // not better
+	// net.ConnectLayers(teoct, v4, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack") // very not beneficial
 
-	// todo: compare with full
-	// Prjn4x4Skp2Recip is same as full, but has topo scales
+	// Prjn4x4Skp2Recip is same as full, but has topo scales -- better than full
 	net.ConnectLayers(te, v4, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackStrong")
 
-	// todo: compare with full
 	net.ConnectLayers(teoct, v4ct, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack")
-	net.ConnectLayers(teo, v4ct, ss.Prjn3x3Skp1, emer.Back).SetClass("SToCT") // s -> ct -- test
+	net.ConnectLayers(teo, v4ct, ss.Prjn3x3Skp1, emer.Back).SetClass("SToCT") // s -> ct -- important
 
-	// todo: compare with full
-	// Prjn4x4Skp2Recip is same as full, but has topo scales
-	net.ConnectLayers(tect, v4ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // cannot use topo on te
+	// Prjn4x4Skp2Recip is same as full, but has topo scales -- better
+	net.ConnectLayers(tect, v4ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack")
 
-	// todo: compare with full
-	net.ConnectLayers(teoct, v4p, ss.Prjn3x3Skp1, emer.Back)                         // test: .SetClass("CTBack")
-	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv") // todo: test
+	// net.ConnectLayers(v2ct, v4ct, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // instead of direct to v2p -- not helpful
+
+	// net.ConnectLayers(teoct, v4p, ss.Prjn3x3Skp1, emer.Back) // not much additional benefit for cosdiff
+
+	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv") // has major effect on cosdiff
 
 	////////////////////
 	// to TEO
 
 	// net.ConnectLayers(teo, teo, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher")
+	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher") // was pone2one
 
 	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // CTBack > not
 
-	net.ConnectLayers(v4p, teoct, ss.Prjn3x3Skp1, emer.Back).SetClass("FmPulv")      // recip
-	net.ConnectLayers(tep, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("FmPulv") // recip
+	net.ConnectLayers(v4ct, teoct, full, emer.Forward).SetClass("CTBack") // instead of direct to v2p
 
 	// todo: test topo on both
-	net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // beneficial
-	net.ConnectLayers(tect, teop, full, emer.Back)
+	net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // major effect on cosdiff
+	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv")
 
 	////////////////////
 	// to TE
 
 	// net.ConnectLayers(te, te, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher")
+	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher") // was pone2one
 
-	net.ConnectLayers(teoct, tect, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdWeak")
+	net.ConnectLayers(teoct, tect, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // was FwdWeak
 
-	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv")
+	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv") // sig effect on cosdiff
 
-	// todo: test topo on both -- not clear about pulv
-	net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv")  // recip
-	net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv") // recip
+	////////////////////
 
 	// net.LockThreads = true // makes no difference
 	runtime.GOMAXPROCS(8) // makes no diff: otherwise gets it from slurm request and it is too small
