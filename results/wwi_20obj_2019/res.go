@@ -13,6 +13,7 @@ import (
 	"github.com/emer/etable/etensor"
 	_ "github.com/emer/etable/etview" // include to get gui views
 	"github.com/emer/etable/metric"
+	"github.com/emer/etable/norm"
 	"github.com/emer/etable/simat"
 	"github.com/goki/gi/gi"
 	"github.com/goki/gi/gimain"
@@ -322,7 +323,7 @@ type Res struct {
 	BpEncObjSimMat         simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
 	LbaTickSimMat          simat.SimMat  `desc:"Leabra TEs full similarity matrix, by tick"`
 	LbaTickNames           []string      `view:"-" desc:"object names in order"`
-	ExptCorrel             etable.Table  `desc:"correlations with expt data for each sim data"`
+	ExptDist               etable.Table  `desc:"correlations with expt data for each sim data"`
 	Expt1ClustPlot         *eplot.Plot2D `desc:"cluster plot"`
 	LbaObjClustPlot        *eplot.Plot2D `desc:"cluster plot"`
 	LbaFullClustPlot       *eplot.Plot2D `desc:"cluster plot"`
@@ -573,7 +574,7 @@ func (rs *Res) OpenSimMats() {
 }
 
 // ObjSimMat compresses full simat into a much smaller per-object sim mat
-func (rs *Res) ObjSimMat(fsm *simat.SimMat, nms []string, osm *simat.SimMat, maxv string) {
+func (rs *Res) ObjSimMat(fsm *simat.SimMat, nms []string, osm *simat.SimMat) {
 	fsmat := fsm.Mat.(*etensor.Float64)
 
 	ono := len(Objs)
@@ -582,7 +583,7 @@ func (rs *Res) ObjSimMat(fsm *simat.SimMat, nms []string, osm *simat.SimMat, max
 	osmat.SetShape([]int{ono, ono}, nil, nil)
 	osm.Rows = LbaCatsBlanks
 	osm.Cols = LbaCatsBlanks
-	osmat.SetMetaData("max", maxv)
+	osmat.SetMetaData("max", "1")
 	osmat.SetMetaData("min", "0")
 	osmat.SetMetaData("colormap", "Viridis")
 	osmat.SetMetaData("grid-fill", "1")
@@ -599,7 +600,11 @@ func (rs *Res) ObjSimMat(fsm *simat.SimMat, nms []string, osm *simat.SimMat, max
 			sval := fsmat.Values[sidx]
 			coi := ObjIdxs[nms[ci]]
 			oidx := roi*ono + coi
-			osmat.Values[oidx] += sval
+			if ri == ci {
+				osmat.Values[oidx] = 0
+			} else {
+				osmat.Values[oidx] += sval
+			}
 			nmat.Values[oidx] += 1
 		}
 	}
@@ -609,13 +614,14 @@ func (rs *Res) ObjSimMat(fsm *simat.SimMat, nms []string, osm *simat.SimMat, max
 			osmat.Values[oidx] /= nmat.Values[oidx]
 		}
 	}
+	norm.DivNorm64(osmat.Values, norm.Max64)
 }
 
 func (rs *Res) ObjSimMats() {
-	rs.ObjSimMat(&rs.LbaFullSimMat, rs.LbaFullNames, &rs.LbaObjSimMat, "1.5")
-	rs.ObjSimMat(&rs.V1FullSimMat, rs.V1FullNames, &rs.V1ObjSimMat, "1.0")
-	rs.ObjSimMat(&rs.BpPredFullSimMat, rs.BpPredFullNames, &rs.BpPredObjSimMat, "0.23")
-	rs.ObjSimMat(&rs.BpEncFullSimMat, rs.BpEncFullNames, &rs.BpEncObjSimMat, "0.032")
+	rs.ObjSimMat(&rs.LbaFullSimMat, rs.LbaFullNames, &rs.LbaObjSimMat)
+	rs.ObjSimMat(&rs.V1FullSimMat, rs.V1FullNames, &rs.V1ObjSimMat)
+	rs.ObjSimMat(&rs.BpPredFullSimMat, rs.BpPredFullNames, &rs.BpPredObjSimMat)
+	rs.ObjSimMat(&rs.BpEncFullSimMat, rs.BpEncFullNames, &rs.BpEncObjSimMat)
 }
 
 func (rs *Res) OpenExptMat() {
@@ -629,6 +635,7 @@ func (rs *Res) OpenExptMat() {
 		log.Println(err)
 		return
 	}
+	norm.DivNorm64(smat.Values, norm.Max64)
 	sm.Rows = LbaCatsBlanks
 	sm.Cols = LbaCatsBlanks
 	smat.SetMetaData("max", "1")
@@ -645,28 +652,28 @@ func (rs *Res) TestExptMats() {
 	rs.CatSortSimMat(&rs.Expt1SimMat, &rs.Expt1Ex5SimMat, Objs, Expt1Cats5, true, "Expt1_Ex5Cat")
 }
 
-func (rs *Res) SetCorrel(dt *etable.Table, row int, nm string, smat *simat.SimMat) {
+func (rs *Res) SetExptDist(dt *etable.Table, row int, nm string, smat *simat.SimMat) {
 	svals := smat.Mat.(*etensor.Float64).Values
 	evals := rs.Expt1SimMat.Mat.(*etensor.Float64).Values
-	cosine := metric.Cosine64(svals, evals)
+	dist := metric.CrossEntropy64(svals, evals)
 	dt.SetCellFloat("Num", row, float64(row))
 	dt.SetCellString("Sim", row, nm)
-	dt.SetCellFloat("Cosine", row, cosine)
+	dt.SetCellFloat("Dist", row, dist)
 }
 
-func (rs *Res) Correls() {
-	dt := &rs.ExptCorrel
+func (rs *Res) ExptDists() {
+	dt := &rs.ExptDist
 	sch := etable.Schema{
 		{"Num", etensor.FLOAT64, nil, nil},
 		{"Sim", etensor.STRING, nil, nil},
-		{"Cosine", etensor.FLOAT64, nil, nil},
+		{"Dist", etensor.FLOAT64, nil, nil},
 	}
 	nsim := 4
 	dt.SetFromSchema(sch, nsim)
-	rs.SetCorrel(dt, 0, "Leabra", &rs.LbaObjSimMat)
-	rs.SetCorrel(dt, 1, "V1", &rs.V1ObjSimMat)
-	rs.SetCorrel(dt, 2, "Bp Pred", &rs.BpPredObjSimMat)
-	rs.SetCorrel(dt, 3, "Bp Enc", &rs.BpEncObjSimMat)
+	rs.SetExptDist(dt, 0, "Leabra", &rs.LbaObjSimMat)
+	rs.SetExptDist(dt, 1, "V1", &rs.V1ObjSimMat)
+	rs.SetExptDist(dt, 2, "Bp Pred", &rs.BpPredObjSimMat)
+	rs.SetExptDist(dt, 3, "Bp Enc", &rs.BpEncObjSimMat)
 }
 
 func (rs *Res) ClustObj(smat *simat.SimMat, title string) *eplot.Plot2D {
@@ -945,7 +952,7 @@ func (rs *Res) Analyze() {
 	rs.ObjSimMats()
 	rs.OpenExptMat()
 	rs.TestExptMats()
-	rs.Correls()
+	rs.ExptDists()
 	rs.ClustPlots()
 	rs.PermuteFitCats()
 	// atd := rs.AvgTickDist(&rs.LbaTickSimMat)

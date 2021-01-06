@@ -561,7 +561,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// CTBack generically worse, generally important for cosdiff
 	net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
-	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
+	net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv") // better without?  not clear
 
 	////////////////////
 	// to V3
@@ -635,8 +635,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v4ct, teoct, full, emer.Forward).SetClass("CTBack") // instead of direct to v2p
 
 	// todo: test topo on both
-	net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // major effect on cosdiff
-	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv")
+	// net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // sig effect on TEOP cosdiff, but improves TEP
+	// net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv") // no effect on cosdiff, but better Cat without
 
 	////////////////////
 	// to TE
@@ -647,7 +647,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(teoct, tect, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // was FwdWeak
 
-	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv") // sig effect on cosdiff
+	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv") // sig effect on cosdiff, not much other eff
 
 	////////////////////
 
@@ -1610,12 +1610,15 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 			dt.SetCellFloat(lnm+"_CatDst", row, ss.RSA.CatDists[li])
 		}
 		pr := 0.0
+		teidx := len(ss.SuperLays) - 1
 		if ss.RSA.PermDists["TE"] > 0 {
-			pr = ss.RSA.CatDists[len(ss.SuperLays)-1] / ss.RSA.PermDists["TE"]
+			pr = ss.RSA.CatDists[teidx] / ss.RSA.PermDists["TE"]
 		}
 		dt.SetCellFloat("TE_PermRatio", row, pr)
 		dt.SetCellFloat("TE_PermDst", row, ss.RSA.PermDists["TE"])
 		dt.SetCellFloat("TE_PermNCat", row, float64(ss.RSA.PermNCats["TE"]))
+		dt.SetCellFloat("TE_BasicDst", row, ss.RSA.BasicDists[teidx])
+		dt.SetCellFloat("TE_ExptDst", row, ss.RSA.ExptDists[teidx])
 	}
 
 	if ss.LastEpcTime.IsZero() {
@@ -1750,6 +1753,8 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	sch = append(sch, etable.Column{"TE_PermRatio", etensor.FLOAT64, nil, nil})
 	sch = append(sch, etable.Column{"TE_PermDst", etensor.FLOAT64, nil, nil})
 	sch = append(sch, etable.Column{"TE_PermNCat", etensor.FLOAT64, nil, nil})
+	sch = append(sch, etable.Column{"TE_BasicDst", etensor.FLOAT64, nil, nil})
+	sch = append(sch, etable.Column{"TE_ExptDst", etensor.FLOAT64, nil, nil})
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", lnm, tck), etensor.FLOAT64, nil, nil})
@@ -1787,6 +1792,8 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("TE_PermRatio", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
 	plt.SetColParams("TE_PermDst", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
 	plt.SetColParams("TE_PermNCat", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+	plt.SetColParams("TE_BasicDst", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+	plt.SetColParams("TE_ExptDst", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			plt.SetColParams(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)

@@ -12,6 +12,7 @@ import (
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
 	"github.com/emer/etable/metric"
+	"github.com/emer/etable/norm"
 	"github.com/emer/etable/simat"
 	"github.com/goki/gi/gi"
 	"github.com/goki/ki/sliceclone"
@@ -44,6 +45,8 @@ var Objs = []string{
 	"motorcycle",
 }
 
+var ObjIdxs map[string]int
+
 // LbaCats5 is best-fitting 5-category leabra ("Centroid")
 var LbaCats5 = map[string]string{
 	"banana":      "1-pyramid",
@@ -68,17 +71,21 @@ var LbaCats5 = map[string]string{
 	"motorcycle":  "5-horiz",
 }
 
+var LbaCatsBlanks []string // LbaCats5 with repeats all blank -- for labels
+
 // RSA handles representational similarity analysis
 type RSA struct {
-	Interval  int                      `desc:"how often to run RSA analyses over epochs"`
-	Cats      []string                 `desc:"category names for each row of simmat / activation table -- call SetCats"`
-	Sims      map[string]*simat.SimMat `desc:"similarity matricies for each layer"`
-	V1Sims    []float64                `desc:"similarity for each layer relative to V1"`
-	CatDists  []float64                `desc:"AvgContrastDist for each layer under LbaCats5 centroid meta categories"`
-	Cat5Sims  map[string]*simat.SimMat `desc:"similarity matricies for each layer, organized into LbaCats5 and sorted"`
-	Cat5Objs  map[string]*[]string     `desc:"corresponding ordering of objects in sorted Cat5Sims lists"`
-	PermNCats map[string]int           `desc:"number of categories remaining after permutation from LbaCat"`
-	PermDists map[string]float64       `desc:"avg contrast dist for permutation"`
+	Interval   int                      `desc:"how often to run RSA analyses over epochs"`
+	Cats       []string                 `desc:"category names for each row of simmat / activation table -- call SetCats"`
+	Sims       map[string]*simat.SimMat `desc:"similarity matricies for each layer"`
+	V1Sims     []float64                `desc:"similarity for each layer relative to V1"`
+	CatDists   []float64                `desc:"AvgContrastDist for each layer under LbaCats5 centroid meta categories"`
+	BasicDists []float64                `desc:"AvgBasicDist for each layer -- basic-level distances"`
+	ExptDists  []float64                `desc:"AvgExptDist for each layer -- distances from expt data"`
+	Cat5Sims   map[string]*simat.SimMat `desc:"similarity matricies for each layer, organized into LbaCats5 and sorted"`
+	Cat5Objs   map[string]*[]string     `desc:"corresponding ordering of objects in sorted Cat5Sims lists"`
+	PermNCats  map[string]int           `desc:"number of categories remaining after permutation from LbaCat"`
+	PermDists  map[string]float64       `desc:"avg contrast dist for permutation"`
 }
 
 // Init initializes maps etc if not done yet
@@ -92,8 +99,26 @@ func (rs *RSA) Init(lays []string) {
 	rs.Cat5Objs = make(map[string]*[]string, nc)
 	rs.V1Sims = make([]float64, nc)
 	rs.CatDists = make([]float64, nc)
+	rs.BasicDists = make([]float64, nc)
+	rs.ExptDists = make([]float64, nc)
 	rs.PermNCats = make(map[string]int)
 	rs.PermDists = make(map[string]float64)
+
+	if ObjIdxs == nil {
+		no := len(Objs)
+		ObjIdxs = make(map[string]int, no)
+		LbaCatsBlanks = make([]string, no)
+		lstcat := ""
+		for i, o := range Objs {
+			ObjIdxs[o] = i
+			cat := LbaCats5[o]
+			if cat != lstcat {
+				LbaCatsBlanks[i] = cat
+				lstcat = cat
+			}
+		}
+		rs.OpenExptMat()
+	}
 }
 
 // SetCats sets the categories from given list of category/object_file names
@@ -142,9 +167,17 @@ func (rs *RSA) StatsFmActs(acts *etable.Table, lays []string) {
 		return tck == tick
 	})
 
-	for _, cn := range lays {
+	expt := rs.SimByName("Expt1")
+
+	for i, cn := range lays {
 		sm := rs.SimByName(cn)
 		rs.SimMatFmActs(sm, tix, cn)
+
+		osm := rs.SimByName(cn + "_Obj")
+		rs.ObjSimMat(osm, sm, rs.Cats)
+
+		dist := metric.CrossEntropy64(osm.Mat.(*etensor.Float64).Values, expt.Mat.(*etensor.Float64).Values)
+		rs.ExptDists[i] = dist
 	}
 
 	v1sm := rs.Sims["V1m"]
@@ -153,6 +186,7 @@ func (rs *RSA) StatsFmActs(acts *etable.Table, lays []string) {
 		osm := rs.SimByName(cn)
 
 		rs.CatDists[i] = -rs.AvgContrastDist(osm, rs.Cats, LbaCats5)
+		rs.BasicDists[i] = rs.AvgBasicDist(osm, rs.Cats)
 
 		if v1sm == osm {
 			rs.V1Sims[i] = 1
@@ -222,6 +256,15 @@ func (rs *RSA) OpenSimMat(laynm string, fname gi.FileName) {
 	sm.Rows = simat.BlankRepeat(rs.Cats)
 	sm.Cols = sm.Rows
 	rs.StatsSortPermuteCat5(laynm)
+	rs.PermDists[laynm+"_BasicDist"] = rs.AvgBasicDist(sm, rs.Cats)
+
+	expt := rs.SimByName("Expt1")
+
+	osm := rs.SimByName(laynm + "_Obj")
+	rs.ObjSimMat(osm, sm, rs.Cats)
+	dist := metric.CrossEntropy64(osm.Mat.(*etensor.Float64).Values, expt.Mat.(*etensor.Float64).Values)
+	rs.PermDists[laynm+"_ExptDist"] = dist
+
 }
 
 // CatSortSimMat takes an input sim matrix and categorizes the items according to given cats
@@ -362,6 +405,30 @@ func (rs *RSA) AvgContrastDist(insm *simat.SimMat, nms []string, catmap map[stri
 	return avgd
 }
 
+// AvgBasicDist computes average distance within basic-level categories given by nms
+func (rs *RSA) AvgBasicDist(insm *simat.SimMat, nms []string) float64 {
+	no := len(insm.Rows)
+	smatv := insm.Mat.(*etensor.Float64).Values
+	avgd := 0.0
+	ain := 0
+	for ri := 0; ri < no; ri++ {
+		roff := ri * no
+		rnm := nms[ri]
+		for ci := 0; ci < ri; ci++ {
+			cnm := nms[ci]
+			d := smatv[roff+ci]
+			if rnm == cnm {
+				avgd += d
+				ain++
+			}
+		}
+	}
+	if ain > 0 {
+		avgd /= float64(ain)
+	}
+	return avgd
+}
+
 // PermuteCatTest takes an input sim matrix and tries all one-off permutations relative to given
 // initial set of categories, and computes overall average constrast distance for each
 // selects categs with lowest dist and iterates until no better permutation can be found.
@@ -456,4 +523,69 @@ func (rs *RSA) PermuteCatTest(insm *simat.SimMat, nms []string, catmap map[strin
 		}
 	}
 	return itrmap, nCatUsed, -std
+}
+
+// ObjSimMat compresses full simat into a much smaller per-object sim mat
+func (rs *RSA) ObjSimMat(osm *simat.SimMat, fsm *simat.SimMat, nms []string) {
+	fsmat := fsm.Mat.(*etensor.Float64)
+
+	ono := len(Objs)
+	osm.Init()
+	osmat := osm.Mat.(*etensor.Float64)
+	osmat.SetShape([]int{ono, ono}, nil, nil)
+	osm.Rows = LbaCatsBlanks
+	osm.Cols = LbaCatsBlanks
+	osmat.SetMetaData("max", "1")
+	osmat.SetMetaData("min", "0")
+	osmat.SetMetaData("colormap", "Viridis")
+	osmat.SetMetaData("grid-fill", "1")
+	osmat.SetMetaData("dim-extra", "0.15")
+
+	nmat := &etensor.Float64{}
+	nmat.SetShape([]int{ono, ono}, nil, nil)
+
+	nf := len(nms)
+	for ri := 0; ri < nf; ri++ {
+		roi := ObjIdxs[nms[ri]]
+		for ci := 0; ci < nf; ci++ {
+			sidx := ri*nf + ci
+			sval := fsmat.Values[sidx]
+			coi := ObjIdxs[nms[ci]]
+			oidx := roi*ono + coi
+			if ri == ci {
+				osmat.Values[oidx] = 0
+			} else {
+				osmat.Values[oidx] += sval
+			}
+			nmat.Values[oidx] += 1
+		}
+	}
+	for ri := 0; ri < ono; ri++ {
+		for ci := 0; ci < ono; ci++ {
+			oidx := ri*ono + ci
+			osmat.Values[oidx] /= nmat.Values[oidx]
+		}
+	}
+	norm.DivNorm64(osmat.Values, norm.Max64)
+}
+
+func (rs *RSA) OpenExptMat() {
+	no := len(Objs)
+	sm := rs.SimByName("Expt1")
+	sm.Init()
+	smat := sm.Mat.(*etensor.Float64)
+	smat.SetShape([]int{no, no}, nil, nil)
+	err := etensor.OpenCSV(smat, gi.FileName("expt1_simat.csv"), etable.Comma.Rune())
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	norm.DivNorm64(smat.Values, norm.Max64)
+	sm.Rows = LbaCatsBlanks
+	sm.Cols = LbaCatsBlanks
+	smat.SetMetaData("max", "1")
+	smat.SetMetaData("min", "0")
+	smat.SetMetaData("colormap", "Viridis")
+	smat.SetMetaData("grid-fill", "1")
+	smat.SetMetaData("dim-extra", "0.15")
 }
