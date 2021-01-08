@@ -201,7 +201,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CTSelfHigher", Desc: "CT to CT for higher-level layers: TEO, TE",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "1",
+					"Prjn.WtScale.Rel": "1", // 1.0 > 0.5
 				}},
 			{Sel: ".CTBack", Desc: "CT to CT back (top-down)",
 				Params: params.Params{

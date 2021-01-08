@@ -542,7 +542,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(v2ct, v2ct, pone2one).SetClass("CTSelfLower") // was pone2one
+	net.ConnectCtxtToCT(v2ct, v2ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 	v2ct.RecvPrjns().SendName(v2.Name()).SetClass("CTFmSuperLower")
 
 	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP") // key top-down attn .5 > .2
@@ -568,7 +568,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(v3ct, v3ct, pone2one).SetClass("CTSelfLower") // was pone2one
+	net.ConnectCtxtToCT(v3ct, v3ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 	v3ct.RecvPrjns().SendName(v3.Name()).SetClass("CTFmSuperLower")
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
@@ -604,7 +604,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(v4ct, v4ct, pone2one).SetClass("CTSelfLower") // was pone2one
+	net.ConnectCtxtToCT(v4ct, v4ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 
 	// net.ConnectLayers(teoct, v4, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack") // very not beneficial
 
@@ -628,7 +628,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// net.ConnectLayers(teo, teo, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher") // was pone2one
+	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher") // pone2one similar to 3x3 -- bit better
 
 	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // CTBack > not
 
@@ -636,14 +636,14 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// todo: test topo on both
 	// net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // sig effect on TEOP cosdiff, but improves TEP
-	// net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv") // no effect on cosdiff, but better Cat without
+	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv") // no effect on cosdiff, but better Cat without
 
 	////////////////////
 	// to TE
 
 	// net.ConnectLayers(te, te, sameu, emer.Lateral)
 
-	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher") // was pone2one
+	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher") // pone2one > full
 
 	net.ConnectLayers(teoct, tect, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // was FwdWeak
 
