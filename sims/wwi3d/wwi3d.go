@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	// "github.com/ccnlab/leabrax/deep"
+	// "github.com/ccnlab/leabrax/leabra"
 	"github.com/emer/emergent/actrf"
 	"github.com/emer/emergent/emer"
 	"github.com/emer/emergent/env"
@@ -420,6 +422,7 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 
 // ConfigNetRest configures the rest of the network
 func (ss *Sim) ConfigNetRest(net *deep.Network) {
+	// replace with AddDeep4DFakeCT to disable CT
 	v2, v2ct, v2p := net.AddDeep4D("V2", 8, 8, 10, 10)
 	v2p.Shape().SetShape([]int{8, 8, 10, 4}, nil, nil)
 	v2p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..4 = v1m, 5..9 = v1h
@@ -473,6 +476,22 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	lip := net.LayerByName("LIP")
 	lipct := net.LayerByName("LIPCT")
 	eyepos := net.LayerByName("EyePos")
+
+	// lesion stuff here
+	/*
+		dp.SetOff(true)
+		dpct.SetOff(true)
+		dpp.SetOff(true)
+
+		v3.SetOff(true)
+		v3ct.SetOff(true)
+		v3p.SetOff(true)
+
+		lip.SetOff(true)
+		lipct.SetOff(true)
+		lipp := net.LayerByName("LIPP")
+		lipp.SetOff(true)
+	*/
 
 	v2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v2.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
@@ -970,6 +989,9 @@ func (ss *Sim) InitStats() {
 	ss.SuperLays = []string{"V1m"}
 	net := ss.Net
 	for _, ly := range net.Layers {
+		if ly.IsOff() {
+			continue
+		}
 		if ly.Type() == emer.Hidden {
 			ss.SuperLays = append(ss.SuperLays, ly.Name())
 		}
@@ -1030,6 +1052,9 @@ func (ss *Sim) TrialCosDiff() {
 func (ss *Sim) MinusStats() {
 	for hi, hnm := range ss.HidLays {
 		ly := ss.Net.LayerByName(hnm).(leabra.LeabraLayer).AsLeabra()
+		if ly.IsOff() {
+			continue
+		}
 		ss.HidGeMaxM[hi] = float64(ly.Pools[0].Inhib.Ge.Max)
 	}
 }
@@ -1836,6 +1861,9 @@ func (ss *Sim) LogTstTrl(dt *etable.Table) {
 
 	for _, lnm := range ss.LayStatNms {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
+		if ly.IsOff() {
+			continue
+		}
 		dt.SetCellFloat(ly.Nm+" ActM.Avg", row, float64(ly.Pools[0].ActM.Avg))
 	}
 	// note: essential to use Go version of update when called from another goroutine

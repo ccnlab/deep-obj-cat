@@ -138,6 +138,8 @@ var ParamSets = params.Sets{
 				}},
 			// {Sel: ".Forward", Desc: "std feedforward",
 			// 	Params: params.Params{
+			// 		"Prjn.Learn.WtSig.PFail":      "0.2",
+			// 		"Prjn.Learn.WtSig.PFailWtMax": "0.95",
 			// 	}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
