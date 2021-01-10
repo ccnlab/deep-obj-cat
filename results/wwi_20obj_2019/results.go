@@ -278,55 +278,58 @@ var PredNetCats2 = map[string]string{
 // Res is the main data structure for all expt results and tables
 // is visualized in gui so you can click on stuff..
 type Res struct {
-	LbaFullSimMat          simat.SimMat  `desc:"Leabra TEs full similarity matrix"`
-	LbaFullNames           []string      `view:"-" desc:"object names in order for FullSimMat"`
-	LbaLbaCatSimMat        simat.SimMat  `desc:"Leabra TEs full similarity matrix sorted fresh in Lba cat order"`
-	LbaV1CatSimMat         simat.SimMat  `desc:"Leabra TEs full similarity matrix, in V1 cat order"`
-	LbaBpCatSimMat         simat.SimMat  `desc:"Leabra TEs full similarity matrix, in Bp cat order"`
-	LbaV4FullSimMat        simat.SimMat  `desc:"Leabra V4s full similarity matrix"`
-	V1FullSimMat           simat.SimMat  `desc:"V1 full similarity matrix"`
-	V1FullNames            []string      `view:"-" desc:"object names in order for FullSimMat"`
-	V1V1CatSimMat          simat.SimMat  `desc:"V1 in V1 Cat order"`
-	V1BpCatSimMat          simat.SimMat  `desc:"V1 in Bp Cat order"`
-	V1LbaCatSimMat         simat.SimMat  `desc:"V1 in Lba Cat order"`
-	Lba200SimMat           simat.SimMat  `desc:"Leabra TEs full similarity matrix, 200 epcs"`
-	Lba200Names            []string      `view:"-" desc:"object names in order"`
-	Lba600SimMat           simat.SimMat  `desc:"Leabra TEs full similarity matrix, 600 epcs"`
-	Lba600Names            []string      `view:"-" desc:"object names in order"`
-	BpPredFullSimMat       simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix"`
-	BpPredFullNames        []string      `view:"-" desc:"object names in order for FullSimMat"`
-	BpPredBpCatSimMat      simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in Bp Cat order"`
-	BpPredV1CatSimMat      simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in V1 Cat order"`
-	BpPredLbaCatSimMat     simat.SimMat  `desc:"WWI Bp Predictive full similarity matrix, in Lba Cat order"`
-	BpEncFullSimMat        simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix"`
-	BpEncFullNames         []string      `view:"-" desc:"object names in order for FullSimMat"`
-	BpEncBpCatSimMat       simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix, in Bp Cat order"`
-	BpEncV1CatSimMat       simat.SimMat  `desc:"WWI Bp Encoder full similarity matrix, in Bp Cat order"`
-	PredNetFullSimMat      simat.SimMat  `desc:"PredNet predictor full similarity matrix"`
-	PredNetFullNames       []string      `view:"-" desc:"object names in order for FullSimMat"`
-	PredNetBpCatSimMat     simat.SimMat  `desc:"PredNet predictor in Bp Cat order"`
-	PredNetV1CatSimMat     simat.SimMat  `desc:"PredNet predictor in V1 Cat order"`
-	PredNetLbaCatSimMat    simat.SimMat  `desc:"PredNet predictor in Lba Cat order"`
-	PredNetPNCatSimMat     simat.SimMat  `desc:"PredNet predictor in PN Cat order"`
-	PredNetPixelSimMat     simat.SimMat  `desc:"PredNet predictor full similarity matrix, pixel layer"`
-	PredNetLay0SimMat      simat.SimMat  `desc:"PredNet predictor full similarity matrix, layer 0"`
-	PredNetPixV1CatSimMat  simat.SimMat  `desc:"PredNet predictor full similarity matrix, pixel layer, v1 cats"`
-	PredNetLay0V1CatSimMat simat.SimMat  `desc:"PredNet predictor full similarity matrix, layer 0, v1 cats"`
-	Expt1SimMat            simat.SimMat  `desc:"Expt1 similarity matrix"`
-	Expt1LbaSimMat         simat.SimMat  `desc:"Expt1 similarity matrix, leabra sorted"`
-	Expt1Ex5SimMat         simat.SimMat  `desc:"Expt1 similarity matrix, v1 sorted"`
-	Expt1BpSimMat          simat.SimMat  `desc:"Expt1 similarity matrix, bp sorted"`
-	Expt1V1SimMat          simat.SimMat  `desc:"Expt1 similarity matrix, v1 sorted"`
-	LbaObjSimMat           simat.SimMat  `desc:"Leabra TEs obj-cat reduced similarity matrix"`
-	V1ObjSimMat            simat.SimMat  `desc:"V1 obj-cat reduced similarity matrix"`
-	BpPredObjSimMat        simat.SimMat  `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
-	BpEncObjSimMat         simat.SimMat  `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
-	LbaTickSimMat          simat.SimMat  `desc:"Leabra TEs full similarity matrix, by tick"`
-	LbaTickNames           []string      `view:"-" desc:"object names in order"`
-	ExptDist               etable.Table  `desc:"correlations with expt data for each sim data"`
-	Expt1ClustPlot         *eplot.Plot2D `desc:"cluster plot"`
-	LbaObjClustPlot        *eplot.Plot2D `desc:"cluster plot"`
-	LbaFullClustPlot       *eplot.Plot2D `desc:"cluster plot"`
+	LbaFullSimMat          simat.SimMat    `desc:"Leabra TEs full similarity matrix"`
+	LbaFullNames           []string        `view:"-" desc:"object names in order for FullSimMat"`
+	LbaLbaCatSimMat        simat.SimMat    `desc:"Leabra TEs full similarity matrix sorted fresh in Lba cat order"`
+	LbaV1CatSimMat         simat.SimMat    `desc:"Leabra TEs full similarity matrix, in V1 cat order"`
+	LbaBpCatSimMat         simat.SimMat    `desc:"Leabra TEs full similarity matrix, in Bp cat order"`
+	LbaV4FullSimMat        simat.SimMat    `desc:"Leabra V4s full similarity matrix"`
+	V1FullSimMat           simat.SimMat    `desc:"V1 full similarity matrix"`
+	V1FullNames            []string        `view:"-" desc:"object names in order for FullSimMat"`
+	V1V1CatSimMat          simat.SimMat    `desc:"V1 in V1 Cat order"`
+	V1BpCatSimMat          simat.SimMat    `desc:"V1 in Bp Cat order"`
+	V1LbaCatSimMat         simat.SimMat    `desc:"V1 in Lba Cat order"`
+	Lba200SimMat           simat.SimMat    `desc:"Leabra TEs full similarity matrix, 200 epcs"`
+	Lba200Names            []string        `view:"-" desc:"object names in order"`
+	Lba600SimMat           simat.SimMat    `desc:"Leabra TEs full similarity matrix, 600 epcs"`
+	Lba600Names            []string        `view:"-" desc:"object names in order"`
+	BpPredFullSimMat       simat.SimMat    `desc:"WWI Bp Predictive full similarity matrix"`
+	BpPredFullNames        []string        `view:"-" desc:"object names in order for FullSimMat"`
+	BpPredBpCatSimMat      simat.SimMat    `desc:"WWI Bp Predictive full similarity matrix, in Bp Cat order"`
+	BpPredV1CatSimMat      simat.SimMat    `desc:"WWI Bp Predictive full similarity matrix, in V1 Cat order"`
+	BpPredLbaCatSimMat     simat.SimMat    `desc:"WWI Bp Predictive full similarity matrix, in Lba Cat order"`
+	BpEncFullSimMat        simat.SimMat    `desc:"WWI Bp Encoder full similarity matrix"`
+	BpEncFullNames         []string        `view:"-" desc:"object names in order for FullSimMat"`
+	BpEncBpCatSimMat       simat.SimMat    `desc:"WWI Bp Encoder full similarity matrix, in Bp Cat order"`
+	BpEncV1CatSimMat       simat.SimMat    `desc:"WWI Bp Encoder full similarity matrix, in Bp Cat order"`
+	PredNetFullSimMat      simat.SimMat    `desc:"PredNet predictor full similarity matrix"`
+	PredNetFullNames       []string        `view:"-" desc:"object names in order for FullSimMat"`
+	PredNetBpCatSimMat     simat.SimMat    `desc:"PredNet predictor in Bp Cat order"`
+	PredNetV1CatSimMat     simat.SimMat    `desc:"PredNet predictor in V1 Cat order"`
+	PredNetLbaCatSimMat    simat.SimMat    `desc:"PredNet predictor in Lba Cat order"`
+	PredNetPNCatSimMat     simat.SimMat    `desc:"PredNet predictor in PN Cat order"`
+	PredNetPixelSimMat     simat.SimMat    `desc:"PredNet predictor full similarity matrix, pixel layer"`
+	PredNetLay0SimMat      simat.SimMat    `desc:"PredNet predictor full similarity matrix, layer 0"`
+	PredNetPixV1CatSimMat  simat.SimMat    `desc:"PredNet predictor full similarity matrix, pixel layer, v1 cats"`
+	PredNetLay0V1CatSimMat simat.SimMat    `desc:"PredNet predictor full similarity matrix, layer 0, v1 cats"`
+	PredNetLays            []*simat.SimMat `desc:"all PredNet layers"`
+	PredNetSims            etable.Table    `desc:"correlations from l1 similarities"`
+	PredNetSimsPlot        *eplot.Plot2D   `desc:"similarity plot"`
+	Expt1SimMat            simat.SimMat    `desc:"Expt1 similarity matrix"`
+	Expt1LbaSimMat         simat.SimMat    `desc:"Expt1 similarity matrix, leabra sorted"`
+	Expt1Ex5SimMat         simat.SimMat    `desc:"Expt1 similarity matrix, v1 sorted"`
+	Expt1BpSimMat          simat.SimMat    `desc:"Expt1 similarity matrix, bp sorted"`
+	Expt1V1SimMat          simat.SimMat    `desc:"Expt1 similarity matrix, v1 sorted"`
+	LbaObjSimMat           simat.SimMat    `desc:"Leabra TEs obj-cat reduced similarity matrix"`
+	V1ObjSimMat            simat.SimMat    `desc:"V1 obj-cat reduced similarity matrix"`
+	BpPredObjSimMat        simat.SimMat    `desc:"WWI Bp Predictive obj-cat reduced similarity matrix"`
+	BpEncObjSimMat         simat.SimMat    `desc:"WWI Bp Encoder obj-cat reduced similarity matrix"`
+	LbaTickSimMat          simat.SimMat    `desc:"Leabra TEs full similarity matrix, by tick"`
+	LbaTickNames           []string        `view:"-" desc:"object names in order"`
+	ExptDist               etable.Table    `desc:"correlations with expt data for each sim data"`
+	Expt1ClustPlot         *eplot.Plot2D   `desc:"cluster plot"`
+	LbaObjClustPlot        *eplot.Plot2D   `desc:"cluster plot"`
+	LbaFullClustPlot       *eplot.Plot2D   `desc:"cluster plot"`
 }
 
 func (rs *Res) Init() {
@@ -537,9 +540,22 @@ func (rs *Res) OpenSimMats() {
 	// rs.OpenFullSimMatPredNet(&rs.PredNetPixelSimMat, &rs.PredNetFullNames, "prednet_pixels.csv", "prednet_labels.csv", "0.06")
 	// rs.OpenFullSimMatPredNet(&rs.PredNetLay0SimMat, &rs.PredNetFullNames, "prednet_layer0.csv", "prednet_labels.csv", "0.04")
 
-	rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, "prednet_64x64_6l_dropout0p1_layer6.csv", "prednet_64x64_6l_dropout0p1_labels.csv", "0.75")
-	rs.OpenFullSimMatPredNet(&rs.PredNetPixelSimMat, &rs.PredNetFullNames, "prednet_64x64_6l_dropout0p1_pixels.csv", "prednet_64x64_6l_dropout0p1_labels.csv", "0.06")
-	rs.OpenFullSimMatPredNet(&rs.PredNetLay0SimMat, &rs.PredNetFullNames, "prednet_64x64_6l_dropout0p1_layer1.csv", "prednet_64x64_6l_dropout0p1_labels.csv", "0.04")
+	pnfn := "prednet_64x64_6l_dropout0p1_"
+	pnlbl := pnfn + "labels.csv"
+	rs.OpenFullSimMatPredNet(&rs.PredNetFullSimMat, &rs.PredNetFullNames, pnfn+"layer6.csv", pnlbl, "0.75")
+	rs.OpenFullSimMatPredNet(&rs.PredNetPixelSimMat, &rs.PredNetFullNames, pnfn+"pixels.csv", pnlbl, "0.06")
+	rs.OpenFullSimMatPredNet(&rs.PredNetLay0SimMat, &rs.PredNetFullNames, pnfn+"layer1.csv", pnlbl, "0.04")
+
+	rs.PredNetLays = make([]*simat.SimMat, 7)
+	for i := 0; i < 7; i++ {
+		sm := &simat.SimMat{}
+		fn := fmt.Sprintf("%slayer%d.csv", pnfn, i)
+		if i == 0 {
+			fn = pnfn + "pixels.csv"
+		}
+		rs.OpenFullSimMatPredNet(sm, &rs.PredNetFullNames, fn, pnlbl, "0.75")
+		rs.PredNetLays[i] = sm
+	}
 
 	// bool arg = use within - between (else just within)
 	rs.CatSortSimMat(&rs.V1FullSimMat, &rs.V1V1CatSimMat, rs.V1FullNames, V1Cats, true, "V1_V1Cat")
@@ -674,6 +690,36 @@ func (rs *Res) ExptDists() {
 	rs.SetExptDist(dt, 1, "V1", &rs.V1ObjSimMat)
 	rs.SetExptDist(dt, 2, "Bp Pred", &rs.BpPredObjSimMat)
 	rs.SetExptDist(dt, 3, "Bp Enc", &rs.BpEncObjSimMat)
+}
+
+func (rs *Res) DoPredNetSims() {
+	nl := len(rs.PredNetLays)
+	dt := &rs.PredNetSims
+	sch := etable.Schema{
+		{"Layer", etensor.STRING, nil, nil},
+		{"Correlation", etensor.FLOAT64, nil, nil},
+	}
+	dt.SetFromSchema(sch, nl)
+	l1 := rs.PredNetLays[1].Mat.(*etensor.Float64).Values
+	for i := 0; i < nl; i++ {
+		cl := rs.PredNetLays[i].Mat.(*etensor.Float64).Values
+		l1sim := metric.Correlation64(l1, cl)
+		ln := fmt.Sprintf("Layer %d", i)
+		if i == 0 {
+			ln = "Pixels"
+		}
+		dt.SetCellString("Layer", i, ln)
+		dt.SetCellFloat("Correlation", i, l1sim)
+	}
+	plt := &eplot.Plot2D{}
+	plt.InitName(plt, "PredNetSims")
+	rs.PredNetSimsPlot = plt
+	plt.Params.Title = "PredNet Correlations with Layer 1 Similarities"
+	plt.Params.XAxisCol = "Layer"
+	plt.SetTable(dt)
+	plt.Params.Points = true
+	// order of params: on, fixMin, min, fixMax, max
+	plt.SetColParams("Correlation", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
 }
 
 func (rs *Res) ClustObj(smat *simat.SimMat, title string) *eplot.Plot2D {
@@ -955,6 +1001,7 @@ func (rs *Res) Analyze() {
 	rs.ExptDists()
 	rs.ClustPlots()
 	rs.PermuteFitCats()
+	rs.DoPredNetSims()
 	// atd := rs.AvgTickDist(&rs.LbaTickSimMat)
 	// fmt.Printf("avg within-tick distance: %v\n", atd)
 }
