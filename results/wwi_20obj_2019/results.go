@@ -330,6 +330,8 @@ type Res struct {
 	Expt1ClustPlot         *eplot.Plot2D   `desc:"cluster plot"`
 	LbaObjClustPlot        *eplot.Plot2D   `desc:"cluster plot"`
 	LbaFullClustPlot       *eplot.Plot2D   `desc:"cluster plot"`
+	V1SimData              etable.Table    `desc:"V1 similarity data"`
+	V1SimPlot              *eplot.Plot2D   `desc:"V1 similarity plot"`
 }
 
 func (rs *Res) Init() {
@@ -638,6 +640,21 @@ func (rs *Res) ObjSimMats() {
 	rs.ObjSimMat(&rs.V1FullSimMat, rs.V1FullNames, &rs.V1ObjSimMat)
 	rs.ObjSimMat(&rs.BpPredFullSimMat, rs.BpPredFullNames, &rs.BpPredObjSimMat)
 	rs.ObjSimMat(&rs.BpEncFullSimMat, rs.BpEncFullNames, &rs.BpEncObjSimMat)
+}
+
+func (rs *Res) OpenV1SimData() {
+	dt := &rs.V1SimData
+	dt.OpenCSV("leabra2_0345_v1sim_lays.csv", etable.Comma)
+	plt := &eplot.Plot2D{}
+	plt.InitName(plt, "V1SimsPlot")
+	rs.V1SimPlot = plt
+	plt.Params.Title = "V1 Similarity Correlations"
+	plt.Params.XAxisCol = "LayerNo"
+	plt.SetTable(dt)
+	plt.Params.Points = true
+	// order of params: on, fixMin, min, fixMax, max
+	plt.SetColParams("Intact", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+	plt.SetColParams("NoDorsal", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
 }
 
 func (rs *Res) OpenExptMat() {
@@ -994,6 +1011,7 @@ func (rs *Res) AvgTickDist(insm *simat.SimMat) float64 {
 }
 
 func (rs *Res) Analyze() {
+	rs.OpenV1SimData()
 	rs.OpenSimMats()
 	rs.ObjSimMats()
 	rs.OpenExptMat()
