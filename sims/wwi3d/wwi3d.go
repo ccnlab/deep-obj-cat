@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/ccnlab/leabrax/deep"
-	// "github.com/ccnlab/leabrax/leabra"
+	"github.com/ccnlab/leabrax/deep"
+	"github.com/ccnlab/leabrax/leabra"
 	"github.com/emer/emergent/actrf"
 	"github.com/emer/emergent/emer"
 	"github.com/emer/emergent/env"
@@ -39,8 +39,9 @@ import (
 	"github.com/emer/etable/etview" // include to get gui views
 	"github.com/emer/etable/metric"
 	"github.com/emer/etable/split"
-	"github.com/emer/leabra/deep"
-	"github.com/emer/leabra/leabra"
+
+	// "github.com/emer/leabra/deep"
+	// "github.com/emer/leabra/leabra"
 	"github.com/goki/gi/gi"
 	"github.com/goki/gi/gimain"
 	"github.com/goki/gi/giv"
