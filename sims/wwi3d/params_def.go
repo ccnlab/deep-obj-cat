@@ -25,11 +25,11 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.TRC.AvgMix": "0.5", // actually best on
 				}},
-			// {Sel: "SuperLayer", Desc: "see if burst params matter",
-			// 	Params: params.Params{
-			// 		"Layer.Burst.ThrRel": "-1",
-			// 		"Layer.Burst.ThrAbs": "0",
-			// 	}},
+			{Sel: "SuperLayer", Desc: "see if burst params matter",
+				Params: params.Params{
+					"Layer.Burst.ThrRel": ".2",
+					"Layer.Burst.ThrAbs": ".2",
+				}},
 			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":    "3.0",
