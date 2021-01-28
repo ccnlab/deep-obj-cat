@@ -1,0 +1,86 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% special title pages in apa format
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{titlefoot}
+
+% takes 4 args: title, author text, note, and abstract
+% makes a separate title page and abstract
+\newcommand{\titlesepage}[4]{
+\onecolumn
+\pagestyle{empty}
+\vspace*{1in}
+\begin{center}
+  {\Large #1 \\}
+  \vspace*{.5in}
+  {\large 
+  #2 }
+  \vspace*{.5in}
+  \today\\
+  \vspace*{.5in}
+  #3
+\end{center}
+\newpage
+\begin{abstract}
+  #4
+\end{abstract}
+}
+
+% takes 3 args: title, author text, note
+% makes a separate title page, NO abstract
+\newcommand{\titlesepagenoabstr}[3]{
+\onecolumn
+\pagestyle{empty}
+\vspace*{1in}
+\begin{center}
+  {\Large #1 \\}
+  \vspace*{.5in}
+  {\large 
+  #2 }
+  \vspace*{.5in}
+  \today\\
+  \vspace*{.5in}
+  #3
+\end{center}
+\newpage
+}
+
+\newcommand{\titlesamepage}[4]{
+\pagestyle{empty}
+\twocolumn[
+\begin{centering}
+{\Large #1 \\}
+\vspace{.25in}
+{#2}
+\vspace{.125in}
+\today\\
+\vspace{.125in}
+{Abstract:}\\
+\end{centering}
+\begin{quote}
+\small
+#4
+\end{quote}
+\vspace*{.25in}
+]
+\unmarkedfntext{#3}
+}
+
+\newcommand{\titlesamepageoc}[4]{
+\pagestyle{empty}
+\begin{centering}
+{\Large #1 \\}
+\vspace{.25in}
+{#2}
+\vspace{.125in}
+\today\\
+\vspace{.125in}
+{Abstract:}\\
+\end{centering}
+\begin{quote}
+\small
+#4
+\end{quote}
+\vspace*{.25in}
+\unmarkedfntext{#3}
+}
