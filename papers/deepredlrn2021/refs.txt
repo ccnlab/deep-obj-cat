@@ -1,0 +1,265 @@
+1. Abbott, L. F., Varela, J. A., Sen, K., & Nelson, S. B. (1997, December). Synaptic depression and cortical gain control. Science, 275, 220.
+2. Ackley, D. H., Hinton, G. E., & Sejnowski, T. J. (1985, December). A learning algorithm for Boltzmann machines. Cognitive Science, 9(1), 147–169.
+3. Antonov, P. A., Chakravarthi, R., & Andersen, S. K. (2020, October). Too little, too late, and in the wrong place: Alpha band activity does not reflect an active mechanism of selective attention. NeuroImage, 219, 117006. doi: 10.1016/j.neuroimage.2020.117006
+4. Arcaro, M. J., Pinsk, M. A., & Kastner, S. (2015, July). The anatomical and functional organization of the human visual pulvinar. Journal of Neuroscience, 35(27), 9848–9871. doi: 10.1523/JNEUROSCI .1575-14.2015
+5. Ashby, F. G., & Maddox, W. T. (2011, April). Human Category Learning 2.0. Annals of the New York Academy of Sciences, 1224, 147–161. doi: 10.1111/j.1749-6632.2010.05874.x
+6. Barczak, A., O’Connell, M. N., McGinnis, T., Ross, D., Mowery, T., Falchier, A., & Lakatos, P. (2018, August). Top-down, contextual entrainment of neuronal oscillations in the auditory thalamocortical circuit. Proceedings of the National Academy of Sciences, 115(32), E7605-E7614. doi: 10.1073/ pnas.1714684115
+7. Bastos, A. M., Usrey, W. M., Adams, R. A., Mangun, G. R., Fries, P., & Friston, K. J. (2012, November). Canonical microcircuits for predictive coding. Neuron, 76(4), 695–711. Retrieved from http:// www.ncbi.nlm.nih.gov/pubmed/23177956
+8. Bastos, A. M., Vezoli, J., Bosman, C. A., Schoffelen, J.-M., Oostenveld, R., Dowdall, J. R., ... Fries, P. (2015, January). Visual Areas Exert Feedforward and Feedback Influences through Distinct Fre- quency Channels. Neuron, 85(2), 390–401. doi: 10.1016/j.neuron.2014.12.018
+9. Bednar, J. A. (2012, September). Building a mechanistic model of the development and function of the primary visual cortex. Journal of physiology, Paris, 106(5-6). Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/22343520
+10. Bender, D. B. (1982, July). Receptive-field properties of neurons in the macaque inferior pulvinar. Journal of neurophysiology, 48. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/7119838
+11. Bender, D. B., & Youakim, M. (2001, January). Effect of attentive fixation in macaque thalamus and cortex. Journal of neurophysiology, 85, 219–234. Retrieved from http://www.ncbi.nlm.nih.gov/ pubmed/11152722
+12. Bengio, Y., Mesnard, T., Fischer, A., Zhang, S., & Wu, Y. (2017, January). STDP-compatible approximation of backpropagation in an energy-based model. Neural Computation, 29(3), 555–577. doi: 10.1162/ NECO a 00934
+13. Bengio, Y., Yao, L., Alain, G., & Vincent, P. (2013). Generalized Denoising Auto-Encoders as Gen- erative Models. In C. J. C. Burges, L. Bottou, M. Welling, Z. Ghahramani, & K. Q. Weinberger (Eds.), Advances in Neural Information Processing Systems 26 (pp. 899–907). Curran Associates, Inc. Retrieved 2017-05-15, from http://papers.nips.cc/paper/5023-generalized -denoising-auto-encoders-as-generative-models.pdf
+14. Berger, H. (1929, December). Uber das Elektrenkephalogramm des Menschen. Archiv fu ̈r Psychiatrie und Nervenkrankheiten, 87(1), 527–570. doi: 10.1007/BF01797193
+15. Bienenstock, E. L., Cooper, L. N., & Munro, P. W. (1982, March). Theory for the development of neuron selectivity: Orientation specificity and binocular interaction in visual cortex. The Journal of Neuro- science, 2(2), 32–48. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/7054394
+16. Bjork, R. A. (1994). Memory and metamemory considerations in the training of human beings. In Metacog- nition: Knowing about knowing (pp. 185–205). Cambridge, MA, US: The MIT Press.
+17. Bortone, D. S., Olsen, S. R., & Scanziani, M. (2014, April). Translaminar inhibitory cells recruited by layer 6 corticothalamic neurons suppress visual cortex. Neuron, 82. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/24656931
+18. Bourne, J. A., & Rosa, M. G. P. (2006, March). Hierarchical development of the primate visual cortex, as revealed by neurofilament immunoreactivity: Early maturation of the middle temporal area (MT). Cerebral Cortex, 16(3), 405–414. doi: 10.1093/cercor/bhi119
+19. Brette, R., & Gerstner, W. (2005, November). Adaptive exponential integrate-and-fire model as an effective description of neuronal activity. Journal of Neurophysiology, 94(5), 3637–3642. doi: 10.1152/jn .00686.2005
+20. Bridge, H., Leopold, D. A., & Bourne, J. A. (2016, February). Adaptive Pulvinar Circuitry Supports Visual Cognition. Trends in Cognitive Sciences, 20(2), 146–157. doi: 10.1016/j.tics.2015.10.003
+21. Buffalo, E. A., Fries, P., Landman, R., Buschman, T. J., & Desimone, R. (2011, July). Laminar differences in gamma and alpha coherence in the ventral stream. Proceedings of the National Academy of Sciences of the United States of America, 108(27), 11262–11267. Retrieved from http://www.ncbi.nlm .nih.gov/pubmed/21690410
+22. Busch, N. A., Dubois, J., & VanRullen, R. (2009, June). The phase of ongoing EEG oscillations predicts visual perception. The Journal of Neuroscience, 29(24), 7869–7876. Retrieved from http:// www.ncbi.nlm.nih.gov/pubmed/19535598
+23. Buzsaki, G. (2005). Theta rhythm of navigation: Link between path integration and landmark navigation, episodic and semantic memory. Hippocampus, 15(7), 827–840. doi: 10.1002/hipo.20113
+24. Cadieu, C. F., Hong, H., Yamins, D. L. K., Pinto, N., Ardila, D., Solomon, E. A., . . . DiCarlo, J. J. (2014, December). Deep Neural Networks Rival the Representation of Primate IT Cortex for Core Visual Object Recognition. PLoS Computational Biology, 10(12), e1003963. doi: 10.1371/journal.pcbi .1003963
+25. Cavanagh, P., Hunt, A. R., Afraz, A., & Rolfs, M. (2010, April). Visual stability based on remapping of attention pointers. Trends in Cognitive Sciences, 14(4), 147–153. doi: 10.1016/j.tics.2010.01.007
+26. Chaudhuri, R., Knoblauch, K., Gariel, M.-A., Kennedy, H., & Wang, X.-J. (2015, October). A Large-Scale Circuit Mechanism for Hierarchical Dynamical Processing in the Primate Cortex. Neuron, 88(2), 419–431. doi: 10.1016/j.neuron.2015.09.008
+27. Clark, A. (2013, June). Whatever next? Predictive brains, situated agents, and the future of cognitive science. Behavioral and Brain Sciences, 36(3), 181–204. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/23663408
+28. Clayton, M. S., Yeung, N., & Kadosh, R. C. (2018). The many characters of visual alpha oscillations. European Journal of Neuroscience, 48(7), 2498–2508. doi: 10.1111/ejn.13747
+29. Cleeremans, A., & McClelland, J. L. (1991, January). Learning the structure of event sequences. Journal of Experimental Psychology: General, 120, 235–253.
+30. Colby, C. L., Duhamel, J. R., & Goldberg, M. E. (1997, March). Visual, presaccadic, and cognitive activation of single neurons in monkey lateral intraparietal area. Journal of neurophysiology, 76, 2841. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/8930237
+31. Connors, B. W., Gutnick, M. J., & Prince, D. A. (1982, December). Electrophysiological properties of neocortical neurons in vitro. Journal of Neurophysiology, 48(6), 1302–1320. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/6296328
+32. Cooper, L. N., & Bear, M. F. (2012, November). The BCM theory of synapse modification at 30: Interaction of theory with experiment. Nature Reviews Neuroscience, 13(11), 798–810. doi: 10.1038/nrn3353
+33. Crick, F. (1984, July). Function of the thalamic reticular complex: The searchlight hypothesis. Proceedings of the National Academy of Sciences of the United States of America, 81, 4586–4590. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/6589612
+34. Crick, F. (1989, February). The recent excitement about neural networks. Nature, 337, 129–132. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/2911347
+35. Dayan, P. (1993, January). Improving generalization for temporal difference learning: The successor representation. Neural Computation, 5(4), 613–624. Retrieved from http://cognet.mit.edu/ journal/10.1162/neco.1993.5.4.613
+36. Dayan, P., Hinton, G. E., Neal, R. N., & Zemel, R. S. (1995, January). The Helmholtz machine. Neural Computation, 7(5), 889-904.
+37. de Lange, F. P., Heilbron, M., & Kok, P. (2018, September). How do expectations shape perception? Trends in Cognitive Sciences, 22(9), 764–779. doi: 10.1016/j.tics.2018.06.002
+38. Desimone, R., & Duncan, J. (1995). Neural mechanisms of selective visual attention. Annual Review of Neuroscience, 18(1), 193–222. doi: 10.1146/annurev.ne.18.030195.001205
+39. Duhamel, J. R., Colby, C. L., & Goldberg, M. E. (1992, April). The updating of the representation of visual space in parietal cortex by intended eye movements. Science, 255(5040), 90–92. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/1553535
+40. Elman, J., Bates, E., Karmiloff-Smith, A., Johnson, M., Parisi, D., & Plunkett, K. (1996). Rethinking Innateness: A Connectionist Perspective on Development. Cambridge, MA: MIT Press.
+41. Elman, J. L. (1990, January). Finding structure in time. Cognitive Science, 14(2), 179–211.
+42. Felleman, D. J., & Van Essen, D. C. (1991, January). Distributed Hierarchical Processing in the Primate Cerebral Cortex. Cerebral Cortex, 1(1), 1–47. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/1822724
+43. Fiebelkorn, I. C., & Kastner, S. (2019, February). A rhythmic theory of attention. Trends in Cognitive Sciences, 23(2), 87–101. doi: 10.1016/j.tics.2018.11.009
+44. Fiebelkorn, I. C., Pinsk, M. A., & Kastner, S. (2018, August). A dynamic interplay within the frontoparietal network underlies rhythmic spatial attention. Neuron, 99(4), 842-853.e8. doi: 10.1016/j.neuron.2018 .07.038
+Fiser, A., Mahringer, D., Oyibo, H. K., Petersen, A. V., Leinweber, M., & Keller, G. B. (2016, December). Experience-dependent spatial expectations in mouse visual cortex. Nature Neuroscience, 19(12), 1658–1664. doi: 10.1038/nn.4385
+Foldiak, P. (1991, January). Learning Invariance from Transformation Sequences. Neural Computation, 3(2), 194–200.
+Foster, J. J., & Awh, E. (2019, October). The role of alpha oscillations in spatial attention: Limited evidence for a suppression account. Current Opinion in Psychology, 29, 34–40. doi: 10.1016/j.copsyc.2018.11 .001
+Franceschetti, S., Guatteo, E., Panzica, F., Sancini, G., Wanke, E., & Avanzini, G. (1995, October). Ionic mechanisms underlying burst firing in pyramidal neurons: Intracellular study in rat sensorimotor cor- tex. Brain Research, 696(1–2), 127–139. Retrieved from http://www.ncbi.nlm.nih.gov/ pubmed/8574660
+Fries, P., Womelsdorf, T., Oostenveld, R., & Desimone, R. (2008, April). The Effects of Visual Stimulation and Selective Visual Attention on Rhythmic Neuronal Synchronization in Macaque Area V4. Journal of Neuroscience, 28(18), 4823–4835. doi: 10.1523/JNEUROSCI.4499-07.2008
+Friston, K. (2005, April). A theory of cortical responses. Philosophical Transactions of the Royal So- ciety B, 360(1456), 815–836. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 15937014
+Friston, K. (2010, February). The free-energy principle: A unified brain theory? Nature Reviews Neuroscience, 11(2), 127–138. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 20068583
+Fusi, S., Miller, E. K., & Rigotti, M. (2016, April). Why neurons mix: High dimensionality for higher
+O’Reilly et al. 45
+46 Deep Predictive Learning
+cognition. Current Opinion in Neurobiology, 37, 66–74. doi: 10.1016/j.conb.2016.01.010
+Gardner, M. P. H., Schoenbaum, G., & Gershman, S. J. (2018, November). Rethinking dopamine as generalized prediction error. Proceedings of the Royal Society B: Biological Sciences, 285(1891),
+20181645. doi: 10.1098/rspb.2018.1645
+Gavornik, J. P., & Bear, M. F. (2014, May). Learned spatiotemporal sequence recognition and prediction in
+primary visual cortex. Nature Neuroscience, 17(5), 732–737. doi: 10.1038/nn.3683
+George, D., & Hawkins, J. (2009, October). Towards a mathematical theory of cortical micro-circuits. PLoS Computational Biology, 5(10). Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/
+19816557
+Goodale, M. A., & Milner, A. D. (1992, January). Separate visual pathways for perception and action. Trends in Neurosciences, 15(1), 20–25.
+Gottlieb, J. P., Kusunoki, M., & Goldberg, M. E. (1998, February). The representation of visual salience in monkey parietal cortex. Nature, 391, 481. Retrieved from http://www.ncbi.nlm.nih.gov/ pubmed/9461214
+Grill-Spector, K., Henson, R., & Martin, A. (2006, January). Repetition and the brain: Neural models of stimulus-specific effects. Trends in Cognitive Sciences, 10(1), 14–23. doi: 10.1016/j.tics.2005.11 .006
+Grossberg, S. (1999). How does the cerebral cortex work? Learning, attention, and grouping by the laminar circuits of visual cortex. Spatial vision, 12. Retrieved from http://www.ncbi.nlm.nih.gov/ pubmed/10221426
+Gruber, W. R., Klimesch, W., Sauseng, P., & Doppelmayr, M. (2005, April). Alpha Phase Synchronization Predicts P1 and N1 Latency and Amplitude Size. Cerebral Cortex, 15(4), 371–377. doi: 10.1093/ cercor/bhh139
+Gundlach, C., Moratti, S., Forschack, N., & Mu ̈ller, M. M. (2020, May). Spatial Attentional Selection Modulates Early Visual Stimulus Processing Independently of Visual Alpha Modulations. Cerebral Cortex, 30(6), 3686–3703. doi: 10.1093/cercor/bhz335
+Halassa, M. M., & Kastner, S. (2017, December). Thalamic functions in distributed cognitive control. Nature Neuroscience, 20(12), 1669. doi: 10.1038/s41593-017-0020-1
+Harris, K. D., & Shepherd, G. M. G. (2015, February). The neocortical circuit: Themes and variations. Nature Neuroscience, 18(2), 170–181. doi: 10.1038/nn.3917
+Hawkins, J., & Blakeslee, S. (2004). On Intelligence. New York, NY: Times Books.
+Hennig, M. H. (2013). Theoretical models of synaptic short term plasticity. Frontiers in Computa- tional Neuroscience, 7. Retrieved from http://www.frontiersin.org/computational
+neuroscience/10.3389/fncom.2013.00045/abstract
+Hinton, G. E., & McClelland, J. L. (1988, January). Learning representations by recirculation. In D. Z. Anderson (Ed.), Neural Information Processing Systems (NIPS 1987) (Vol. 0, pp. 358–366). New York: American Institute of Physics. Retrieved from http://papers.nips.cc/paper/ 78-learning-representations-by-recirculation.pdf
+Hinton, G. E., & Salakhutdinov, R. R. (2006, July). Reducing the dimensionality of data with neural networks. Science, 313(5786), 504–507. Retrieved from http://www.ncbi.nlm.nih.gov/ pubmed/16873662
+Holroyd, C. B., & Coles, M. G. H. (2002, October). The neural basis of human error processing: Reinforce- ment learning, dopamine, and the error-related negativity. Psychological Review, 109(4), 679–709. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/12374324
+Hopfield, J. J. (1984, July). Neurons with graded response have collective computational properties like those of two-state neurons. Proceedings of the National Academy of Sciences USA, 81, 3088–3092. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/6587342
+Issa, E. B., Cadieu, C. F., & DiCarlo, J. J. (2018, November). Neural dynamics at successive stages
+of the ventral visual stream are consistent with hierarchical error signals. eLife, 7, e42870. doi:
+10.7554/eLife.42870
+Jaegle, A., & Ro, T. (2013, October). Direct Control of Visual Perception with Phase-specific Modulation
+of Posterior Parietal Cortex. Journal of Cognitive Neuroscience, 26(2), 422–432. doi: 10.1162/
+jocn a 00494
+Jaramillo, J., Mejias, J. F., & Wang, X.-J. (2019, January). Engagement of Pulvino-cortical Feedforward
+and Feedback Pathways in Cognitive Computations. Neuron, 101(2), 321-336.e9. doi: 10.1016/
+j.neuron.2018.11.023
+Jensen, O., Bonnefond, M., Marshall, T. R., & Tiesinga, P. (2015, April). Oscillatory mechanisms of
+feedforward and feedback visual processing. Trends in Neurosciences, 38(4), 192–194. doi: 10.1016/
+j.tins.2015.02.006
+Jensen, O., Bonnefond, M., & VanRullen, R. (2012, April). An oscillatory mechanism for prioritizing
+salient unattended stimuli. Trends in Cognitive Sciences, 16(4), 200–206. Retrieved from http://
+www.ncbi.nlm.nih.gov/pubmed/22436764
+Jensen, O., & Mazaheri, A. (2010). Shaping functional architecture by oscillatory alpha activity: Gating by inhibition. Frontiers in Human Neuroscience, 4(186). doi: 10.3389/fnhum.2010.00186
+Jordan, M. I. (1989, January). Serial Order: A Parallel, Distributed Processing Approach. In J. L. Elman & D. E. Rumelhart (Eds.), Advances in Connectionist Theory: Speech. Hillsdale, NJ: Lawrence Erlbaum Associates.
+Kachergis, G., Wyatte, D., O’Reilly, R. C., de Kleijn, R., & Hommel, B. (2014, November). A continuous- time neural model for sequential action. Philosophical Transactions of the Royal Society B: Biological Sciences, 369(1655), 20130623. doi: 10.1098/rstb.2013.0623
+Kahana, M. J., Seelig, D., & Madsen, J. R. (2001, December). Theta returns. Current Opinion in Neurobi- ology, 11(6), 739–744. doi: 10.1016/s0959-4388(01)00278-1
+Kawato, M., Hayakawa, H., & Inui, T. (1993, January). A forward-inverse optics model of reciprocal connections between visual cortical areas. Network: Computation in Neural Systems, 4(4), 415–422. doi: 10.1088/0954-898X 4 4 001
+Keitel, C., Keitel, A., Benwell, C. S. Y., Daube, C., Thut, G., & Gross, J. (2019, April). Stimulus-Driven Brain Rhythms within the Alpha Band: The Attentional-Modulation Conundrum. Journal of Neuro- science, 39(16), 3119–3129. doi: 10.1523/JNEUROSCI.1633-18.2019
+Kelly, S. P., Lalor, E. C., Reilly, R. B., & Foxe, J. J. (2006, June). Increases in Alpha Oscillatory Power Reflect an Active Retinotopic Mechanism for Distracter Suppression During Sustained Visuospatial Attention. Journal of Neurophysiology, 95(6), 3844–3851. doi: 10.1152/jn.01234.2005
+Khaligh-Razavi, S.-M., & Kriegeskorte, N. (2014, November). Deep Supervised, but Not Unsupervised, Models May Explain IT Cortical Representation. PLOS Computational Biology, 10(11), e1003915. doi: 10.1371/journal.pcbi.1003915
+Kiorpes, L., Price, T., Hall-Haro, C., & Anthony Movshon, J. (2012, June). Development of sensitivity to global form and motion in macaque monkeys (Macaca nemestrina). Vision Research, 63, 34–42. doi: 10.1016/j.visres.2012.04.018
+Klimesch, W. (2011, August). Evoked alpha and early access to the knowledge system: The P1 inhibition timing hypothesis. Brain Research, 1408, 52–71. doi: 10.1016/j.brainres.2011.06.003
+Klimesch, W., Sauseng, P., & Hanslmayr, S. (2007, January). EEG alpha oscillations: The inhibition-timing hypothesis. Brain Research Reviews, 53(1), 63–88. doi: 10.1016/j.brainresrev.2006.06.003
+Kobatake, E., & Tanaka, K. (1994, January). Neuronal selectivities to complex object features in the ventral visual pathway. Journal of Neurophysiology, 71(3), 856–867.
+Kogo, N., & Trengove, C. (2015). Is predictive coding theory articulated enough to be testable? Frontiers in Computational Neuroscience, 9. doi: 10.3389/fncom.2015.00111
+Kok, P., & de Lange, F. P. (2015). Predictive Coding in Sensory Cortex. In An Introduction to Model-Based
+O’Reilly et al. 47
+48 Deep Predictive Learning
+Cognitive Neuroscience (pp. 221–244). Springer, New York, NY. doi: 10.1007/978-1-4939-2236-9 11
+Kok, P., Jehee, J. F. M., & de Lange, F. P. (2012, July). Less Is More: Expectation Sharpens Representations in the Primary Visual Cortex. Neuron, 75(2), 265–270. doi: 10.1016/j.neuron.2012.04.034
+Komura, Y., Nikkuni, A., Hirashima, N., Uetake, T., & Miyamoto, A. (2013, June). Responses of pulvinar neurons reflect a subject’s confidence in visual categorization. Nature Neuroscience, 16(6), 749–755. doi: 10.1038/nn.3393
+Kriegeskorte, N., Mur, M., & Bandettini, P. (2008). Representational similarity analysis – connecting the branches of systems neuroscience. Frontiers in Systems Neuroscience, 2(4). Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/19104670
+LaBerge, D., & Buchsbaum, M. S. (1990, March). Positron emission tomographic measurements of pulvinar activity during an attention task. The Journal of neuroscience : the official journal of the Society for Neuroscience, 10, 613–9. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 2303863
+Larkum, M. E., Zhu, J. J., & Sakmann, B. (1999, March). A new cellular mechanism for coupling inputs arriving at different cortical layers. Nature, 398(6725), 338–341. doi: 10.1038/18686
+LeCun, Y., Bengio, Y., & Hinton, G. (2015, May). Deep learning. Nature, 521(7553), 436–444. doi: 10.1038/nature14539
+Lee, T. S., & Mumford, D. (2003, July). Hierarchical Bayesian inference in the visual cortex. Journal of the Optical Society of America, 20(7), 1434–1448. Retrieved from http://www.ncbi.nlm.nih .gov/pubmed/12868647/
+Lillicrap, T. P., Santoro, A., Marris, L., Akerman, C. J., & Hinton, G. (2020, June). Backpropagation and the brain. Nature Reviews Neuroscience, 21(6), 335–346. doi: 10.1038/s41583-020-0277-3
+Lim, S., McKee, J. L., Woloszyn, L., Amit, Y., Freedman, D. J., Sheinberg, D. L., & Brunel, N. (2015, December). Inferring learning rules from distributions of firing rates in cortical neurons. Nature Neuroscience, 18(12), 1804–1810. doi: 10.1038/nn.4158
+Lotter, W., Kreiman, G., & Cox, D. (2016, May). Deep predictive coding networks for video prediction and unsupervised learning. arXiv:1605.08104 [cs, q-bio]. Retrieved 2017-08-11, from http:// arxiv.org/abs/1605.08104
+Luczak, A., Bartho, P., & Harris, K. D. (2009, May). Spontaneous events outline the realm of possible sensory responses in neocortical populations. Neuron, 62(3), 413–425. Retrieved from http:// www.ncbi.nlm.nih.gov/pubmed/19447096
+Luczak, A., Bartho, P., & Harris, K. D. (2013, January). Gating of sensory input by spontaneous cortical activity. The Journal of Neuroscience, 33(4), 1684–1695. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/23345241
+Lu ̈scher, C., & Malenka, R. C. (2012, June). NMDA receptor-dependent long-term potentiation and long- term depression (LTP/LTD). Cold Spring Harbor Perspectives in Biology, 4(6), a005710. doi: 10 .1101/cshperspect.a005710
+Maier, A., Adams, G. K., Aura, C., & Leopold, D. A. (2010). Distinct Superficial and Deep Laminar Domains of Activity in the Visual Cortex during Rest and Stimulation. Frontiers in Systems Neuro- science, 4(31). doi: 10.3389/fnsys.2010.00031
+Maier, A., Aura, C. J., & Leopold, D. A. (2011, February). Infragranular sources of sustained local field potential responses in macaque primary visual cortex. The Journal of Neuroscience, 31(6), 1971– 1980. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/21307235
+Makeig, S., Westerfield, M., Jung, T. P., Enghoff, S., Townsend, J., Courchesne, E., & Sejnowski, T. J. (2002, January). Dynamic Brain Sources of Visual Evoked Responses. Science, 295, 690–693. Marino, A. C., & Mazer, J. A. (2016). Perisaccadic Updating of Visual Representations and Attentional
+States: Linking Behavior and Neurophysiology. Frontiers in Systems Neuroscience, 10. doi: 10.3389/
+fnsys.2016.00003
+Markov, N. T., Ercsey-Ravasz, M. M., Gomes, R., R, A., Lamy, C., Magrou, L., . . . Kennedy, H. (2014,
+January). A Weighted and Directed Interareal Connectivity Matrix for Macaque Cerebral Cortex.
+Cerebral Cortex, 24(1), 17–36. doi: 10.1093/cercor/bhs270
+Markov, N. T., Vezoli, J., Chameau, P., Falchier, A., Quilodran, R., Huissoud, C., . . . Kennedy, H. (2014,
+January). Anatomy of hierarchy: Feedforward and feedback pathways in macaque visual cortex: Cortical counterstreams. Journal of Comparative Neurology, 522(1), 225–259. doi: 10.1002/cne .23458
+Martinez-Conde, S., Macknik, S. L., & Hubel, D. H. (2004, March). The role of fixational eye movements in visual perception. Nature Reviews Neuroscience, 5(3), 229–240. doi: 10.1038/nrn1348
+Martinez-Conde, S., Otero-Millan, J., & Macknik, S. L. (2013, February). The impact of microsaccades on vision: Towards a unified theory of saccadic function. Nature Reviews Neuroscience, 14(2), 83–96. doi: 10.1038/nrn3405
+Mathewson, K., Gratton, G., Fabiani, M., Beck, D., & Ro, T. (2009). To see or not to see: Prestimulus alpha phase predicts visual awareness. The Journal of Neuroscience, 29(9), 2725–2732.
+Mathewson, K. E., Fabiani, M., Gratton, G., Beck, D. M., & Lleras, A. (2010, April). Rescuing stimuli from invisibility: Inducing a momentary release from visual masking with pre-target entrainment. Cognition, 115(1), 186–191. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 20035933
+Mathewson, K. E., Prudhomme, C., Fabiani, M., Beck, D. M., Lleras, A., & Gratton, G. (2012, August). Making waves in the stream of consciousness: Entraining oscillations in EEG alpha and fluctuations in visual awareness with rhythmic visual stimulation. Journal of Cognitive Neuroscience, 24(12), 2321–2333. doi: 10.1162/jocn a 00288
+Mayer, A., Schwiedrzik, C. M., Wibral, M., Singer, W., & Melloni, L. (2016, July). Expecting to See a Letter: Alpha Oscillations as Carriers of Top-Down Sensory Predictions. Cerebral Cortex, 26(7), 3146–3160. doi: 10.1093/cercor/bhv146
+Meyer, T., & Olson, C. R. (2011, November). Statistical learning of visual transitions in monkey infer- otemporal cortex. Proceedings of the National Academy of Sciences of the United States of Amer- ica, 108(48), 19401–19406. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 22084090
+Michalareas, G., Vezoli, J., van Pelt, S., Schoffelen, J.-M., Kennedy, H., & Fries, P. (2016, January). Alpha- Beta and Gamma Rhythms Subserve Feedback and Feedforward Influences among Human Visual Cortical Areas. Neuron, 89(2), 384–397. doi: 10.1016/j.neuron.2015.12.018
+Miller, E. K., & Cohen, J. D. (2001). An integrative theory of prefrontal cortex function. Annual Review of Neuroscience, 24, 167–202. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 11283309
+Miller, K. D. (1994, February). A model for the development of simple cell receptive fields and the ordered arrangement of orientation columns through activity-dependent competition between ON- and OFF-center inputs. The Journal of Neuroscience, 14(1), 409–441. Retrieved from http:// www.ncbi.nlm.nih.gov/pubmed/8283248
+Mu ̈ller, J. R., Metha, A. B., Krauskopf, J., & Lennie, P. (1999, September). Rapid adaptation in visual cortex to the structure of images. Science (New York, N.Y.), 285, 1405. Retrieved from http:// www.ncbi.nlm.nih.gov/pubmed/10464100
+Mumford, D. (1991, June). On the computational architecture of the neocortex. Biological Cybernetics, 65(2), 135–145. doi: 10.1007/BF00202389
+Mumford, D. (1992). On the computational architecture of the neocortex. II. The role of cortico-cortical loops. Biological Cybernetics, 66(3), 241–251. Retrieved from http://www.ncbi.nlm.nih .gov/pubmed/1540675
+O’Reilly et al. 49
+50 Deep Predictive Learning
+Nakamura, K., & Colby, C. L. (2002, March). Updating of the visual representation in monkey striate and extrastriate cortex during saccades. Proceedings of the National Academy of Sciences of the United States of America, 99(6), 4026–4031. Retrieved from http://www.ncbi.nlm.nih.gov/ pubmed/11904446
+Neupane, S., Guitton, D., & Pack, C. C. (2016, February). Two distinct types of remapping in primate cortical area V4. Nature Communications, 7, 10402. doi: 10.1038/ncomms10402
+Neupane, S., Guitton, D., & Pack, C. C. (2017, July). Coherent alpha oscillations link current and future receptive fields during saccades. Proceedings of the National Academy of Sciences, 201701672. doi: 10.1073/pnas.1701672114
+Neupane, S., Guitton, D., & Pack, C. C. (2020, April). Perisaccadic remapping: What? How? Why? Reviews in the Neurosciences. doi: 10.1515/revneuro-2019-0097
+Nunn, C. M. H., & Osselton, J. W. (1974, May). The Influence of the EEG Alpha Rhythm on the Perception of Visual Stimuli. Psychophysiology, 11(3), 294–303. doi: 10.1111/j.1469-8986.1974.tb00547.x
+O’Herron, P., & von der Heydt, R. (2013, January). Remapping of border ownership in the visual cortex. Journal of Neuroscience, 33(5), 1964–1974. doi: 10.1523/JNEUROSCI.2797-12.2013
+Olsen, S., Bortone, D., Adesnik, H., & Scanziani, M. (2012, February). Gain control by layer six in cortical circuits of vision. Nature, 483(7387), 47–52.
+O’Reilly, R. C. (1996, January). Biologically plausible error-driven learning using local activation differences: The generalized recirculation algorithm. Neural Computation, 8(5), 895–938. doi: 10.1162/neco.1996.8.5.895
+O’Reilly, R. C. (1998, January). Six Principles for Biologically-Based Computational Models of Cortical Cognition. Trends in Cognitive Sciences, 2(11), 455–462. Retrieved from https://www.ncbi .nlm.nih.gov/pubmed/21227277
+O’Reilly, R. C., Hazy, T. E., & Herd, S. A. (2016). The Leabra cognitive architecture: How to play 20 principles with nature and win! In S. Chipman (Ed.), Oxford handbook of cognitive science. Oxford University Press. Retrieved 2015-05-15, from http://www.oxfordhandbooks.com/view/ 10.1093/oxfordhb/9780199842193.001.0001/oxfordhb-9780199842193-e-8
+O’Reilly, R. C., & Munakata, Y. (2000). Computational Explorations in Cognitive Neuroscience: Under- standing the Mind by Simulating the Brain. Cambridge, MA: MIT Press.
+O’Reilly, R. C., Munakata, Y., Frank, M. J., Hazy, T. E., & Contributors. (2012). Computational Cognitive Neuroscience. Wiki Book, 1st Edition, URL: http://ccnbook.colorado.edu. Retrieved from http:// ccnbook.colorado.edu
+O’Reilly, R. C., Wyatte, D., Herd, S., Mingus, B., & Jilk, D. J. (2013). Recurrent Processing during Object Recognition. Frontiers in Psychology, 4(124). Retrieved from http://www.ncbi.nlm.nih .gov/pubmed/23554596
+O’Reilly, R. C., Wyatte, D., & Rohrlich, J. (2014, July). Learning Through Time in the Thalamocortical Loops. arXiv:1407.3432 [q-bio]. Retrieved 2015-05-15, from http://arxiv.org/abs/1407 .3432
+O’Reilly, R. C., Wyatte, D. R., & Rohrlich, J. (2017, September). Deep predictive learning: A com- prehensive model of three visual streams. arXiv:1709.04654 [q-bio]. Retrieved 2017-09-15, from http://arxiv.org/abs/1709.04654
+Ouden, H. E. M., Kok, P., & Lange, F. P. (2012). How prediction errors shape perception, attention, and motivation. Frontiers in Psychology, 3(548). Retrieved from http://www.ncbi.nlm.nih .gov/pubmed/23248610
+Palva, S., & Palva, J. M. (2011). Functional roles of alpha-band phase synchronization in local and large- scale cortical networks. Frontiers in Psychology, 2(204), ePub only. Retrieved from http:// www.ncbi.nlm.nih.gov/pubmed/21922012
+Pennartz, C. M., Dora, S., Muckli, L., & Lorteije, J. A. (2019). Towards a Unified View on Pathways and
+Functions of Neural Recurrent Processing. Trends in Neurosciences.
+Petersen, S. E., Robinson, D. L., & Keys, W. (1985, October). Pulvinar nuclei of the behaving rhesus
+monkey: Visual responses and their modulation. Journal of neurophysiology, 54. Retrieved from
+http://www.ncbi.nlm.nih.gov/pubmed/4067625
+Petrof, I., Viaene, A. N., & Sherman, S. M. (2012, June). Two populations of corticothalamic and interareal corticocortical cells in the subgranular layers of the mouse primary sensory cortices. Journal of Comparative Neurology, 520(8), 1678–1686. doi: 10.1002/cne.23006
+Pinault, D. (2004, August). The thalamic reticular nucleus: Structure, function and concept. Brain research, 46. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/15297152
+Pineda, F. J. (1987, January). Generalization of Backpropagation to Recurrent Neural Networks. Physical Review Letters, 18, 2229–2232.
+Pouget, A., & Sejnowski, T. J. (1997, January). Spatial Transformations in the Parietal Cortex Using Basis Functions. Journal of Cognitive Neuroscience, 9(2), 222–237. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/23962013
+Privman, E., Malach, R., & Yeshurun, Y. (2013, April). Modeling the electrical field created by mass neural activity. Neural Networks, 40, 44–51. doi: 10.1016/j.neunet.2013.01.004
+Purushothaman, G., Marion, R., Li, K., & Casagrande, V. A. (2012, June). Gating and control of primary visual cortex by pulvinar. Nature Neuroscience, 15(6), 905–912. doi: 10.1038/nn.3106
+Pylyshyn, Z. (1989, June). The role of location indexes in spatial perception: A sketch of the FINST spatial-index model. Cognition, 32(1), 65–97. doi: 10.1016/0010-0277(89)90014-0
+Rajalingham, R., Issa, E. B., Bashivan, P., Kar, K., Schmidt, K., & DiCarlo, J. J. (2018, February). Large- scale, high-resolution comparison of the core visual object recognition behavior of humans, monkeys, and state-of-the-art deep artificial neural networks. bioRxiv, 240614. doi: 10.1101/240614
+Rao, R. P., & Ballard, D. H. (1999, January). Predictive coding in the visual cortex: A functional in- terpretation of some extra-classical receptive-field effects. Nature Neuroscience, 2(1), 79–87. doi: 10.1038/4580
+Ray, S., & Maunsell, J. H. R. (2011, April). Different origins of gamma rhythm and high-gamma activity in macaque visual cortex. PLoS biology, 9(4), e1000610. doi: 10.1371/journal.pbio.1000610
+Reber, A. S. (1967, January). Implicit Learning of Artificial Grammars. Journal of Verbal Learning and Verbal Behavior, 6, 855–863.
+Reynolds, J. H., Chelazzi, L., & Desimone, R. (1999, April). Competitive mechanisms subserve attention in macaque areas V2 and V4. The Journal of neuroscience : the official journal of the Society for Neuroscience, 19, 1736–1753. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 10024360
+Reynolds, J. H., & Heeger, D. J. (2009, January). The normalization model of attention. Neuron, 61(2), 168–185. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/19186161/
+Richter, D., & de Lange, F. P. (2019, August). Statistical learning attenuates visual activity only for attended stimuli. eLife, 8, e47869. doi: 10.7554/eLife.47869
+Robinson, D. L. (1993). Functional contributions of the primate pulvinar. Progress in brain research, 95. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/8493346
+Rockland, K. S. (1996, October). Two types of corticopulvinar terminations: Round (type 2) and elongate (type 1). The Journal of comparative neurology, 368, 57–87. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/8725294
+Rockland, K. S. (1998, January). Convergence and branching patterns of round, type 2 corticopulv- inar axons. The Journal of Comparative Neurology, 390(4), 515–536. doi: 10.1002/(SICI)1096 -9861(19980126)390:4⟨515::AID-CNE5⟩3.0.CO;2-3
+Rockland, K. S., & Pandya, D. N. (1979, December). Laminar origins and terminations of cortical con- nections of the occipital lobe in the rhesus monkey. Brain Research, 179(1), 3–20. Retrieved from
+O’Reilly et al. 51
+52 Deep Predictive Learning
+http://www.ncbi.nlm.nih.gov/pubmed/116716
+Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986, January). Learning representations by back- propagating errors. Nature, 323(9), 533–536.
+Rumelhart, D. E., & McClelland, J. L. (1982, April). An interactive activation model of context effects in letter perception: Part 2. The contextual enhancement effect and some tests and extensions of the model. Psychological review, 89, 60–94. Retrieved from http://www.ncbi.nlm.nih.gov/ pubmed/7058229
+Saalmann, Y. B., & Kastner, S. (2011, July). Cognitive and perceptual functions of the visual thala- mus. Neuron, 71(2), 209–223. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 21791281
+Saalmann, Y. B., Pinsk, M. A., Wang, L., Li, X., & Kastner, S. (2012, August). The pulvinar regulates information transmission between cortical areas based on attention demands. Science, 337(6095), 753–756. doi: 10.1126/science.1223082
+Sakata, S., & Harris, K. D. (2009, November). Laminar structure of spontaneous and sensory-evoked population activity in auditory cortex. Neuron, 64(3), 404–418. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/19914188
+Sakata, S., & Harris, K. D. (2012). Laminar-dependent effects of cortical state on auditory cortical spon- taneous activity. Frontiers in neural circuits, 6. Retrieved from http://www.ncbi.nlm.nih .gov/pubmed/23267317
+Samaha, J., Bauer, P., Cimaroli, S., & Postle, B. R. (2015, July). Top-down control of the phase of alpha- band oscillations as a mechanism for temporal prediction. Proceedings of the National Academy of Sciences USA, 112(27), 8439–8444. doi: 10.1073/pnas.1503686112
+Sherman, M. T., Kanai, R., Seth, A. K., & VanRullen, R. (2016, April). Rhythmic influence of top–down perceptual priors in the phase of prestimulus occipital alpha oscillations. Journal of Cognitive Neuro- science, 28(9), 1318–1330. doi: 10.1162/jocn a 00973
+Sherman, S. M. (2014, May). The function of metabotropic glutamate receptors in thalamus and cortex. The Neuroscientist, 20(2), 146–149.
+Sherman, S. M., & Guillery, R. W. (2006). Exploring the Thalamus and Its Role in Cortical Function. Cambridge, MA: MIT Press. Retrieved from http://www.scholarpedia.org/article/ Thalamus
+Sherman, S. M., & Guillery, R. W. (2011, September). Distinct functions for direct and transthalamic corticocortical connections. Journal of Neurophysiology, 106(3), 1068–1077. doi: 10.1152/jn.00429 .2011
+Sherman, S. M., & Guillery, R. W. (2013). Functional Connections of Cortical Areas: A New View From the Thalamus. Cambridge, MA: MIT Press.
+Shipp, S. (2003, October). The functional logic of cortico-pulvinar connections. Philosophical Transactions of the Royal Society of London B, 358(1438), 1605–1624. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/14561322
+Shouval, H. Z. S., Bear, M. F., & Cooper, L. N. (2002, August). A unified model of NMDA receptor- dependent bidirectional synaptic plasticity. Proceedings of the National Academy of Sciences USA, 99(16), 10831–10836. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 12136127
+Shrager, J., & Johnson, M. H. (1996, October). Dynamic Plasticity Influences the Emergence of Function in a Simple Cortical Array. Neural Networks, 9(7), 1119–1129. doi: 10.1016/0893-6080(96)00033-0
+Silva, L. R., Amitai, Y., & Connors, B. W. (1991, January). Intrinsic oscillations of neocortex generated by layer 5 pyramidal neurons. Science, 251(4992), 432–435. Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/1824881
+Snow, J. C., Allen, H. A., Rafal, R. D., & Humphreys, G. W. (2009, March). Impaired attentional selection
+following lesions to human pulvinar: Evidence for homology between human and monkey. Proceed-
+ings of the National Academy of Sciences, 106(10), 4054–4059. doi: 10.1073/pnas.0810086106 Sol ́ıs-Vivanco, R., Jensen, O., & Bonnefond, M. (2018, August). Top-Down Control of Alpha Phase Adjust- ment in Anticipation of Temporally Predictable Visual Stimuli. Journal of Cognitive Neuroscience,
+30(8), 1157–1169. doi: 10.1162/jocn a 01280
+Solomon, E. A., Kragel, J. E., Sperling, M. R., Sharan, A., Worrell, G., Kucewicz, M., . . . Kahana, M. J.
+(2017, November). Widespread theta synchrony and high-frequency desynchronization underlies
+enhanced cognition. Nature Communications, 8(1), 1704. doi: 10.1038/s41467-017-01763-2
+Spaak, E., Bonnefond, M., Maier, A., Leopold, D. A., & Jensen, O. (2012, December). Layer-specific entrainment of gamma-band neural activity by the alpha rhythm in monkey visual cortex. Current Biology, 22(24), 2313–2318. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/
+23159599
+Spaak, E., de Lange, F. P., & Jensen, O. (2014, March). Local Entrainment of Alpha Oscillations by Visual Stimuli Causes Cyclic Modulation of Perception. Journal of Neuroscience, 34(10), 3536–3544. doi: 10.1523/JNEUROSCI.4385-13.2014
+Spelke, E., Breinlinger, K., Macomber, J., & Jacobson, K. (1992, January). Origins of Knowledge. Psycho- logical Review, 99(4), 605–632.
+Spratling, M. W. (2008). Reconciling predictive coding and biased competition models of cortical function. Frontiers in Computational Neuroscience, 2(4), 1-8 (online). Retrieved from http://www.ncbi .nlm.nih.gov/pubmed/18978957
+Summerfield, C., & de Lange, F. P. (2014, November). Expectation in perceptual decision making: Neural and computational mechanisms. Nature Reviews Neuroscience, 15(11), 745–756. doi: 10.1038/ nrn3838
+Summerfield, C., & Egner, T. (2009, September). Expectation (and attention) in visual cognition. Trends in Cognitive Sciences, 13(9), 403–409. doi: 10.1016/j.tics.2009.06.003
+Summerfield, C., Trittschuh, E. H., Monti, J. M., Mesulam, M. M., & Egner, T. (2008, September). Neural repetition suppression reflects fulfilled perceptual expectations. Nature Neuroscience, 11(9), 1004– 1006. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/19160497
+Sutton, R. S., & Barto, A. G. (1998). Reinforcement Learning: An Introduction. Cambridge, MA: MIT Press. Retrieved from http://www.cs.ualberta.ca/sutton/book/ebook/the-book .html
+Thomson, A. M. (2010). Neocortical layer 6, a review. Frontiers in Neuroanatomy, 4(13). Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/20556241
+Thomson, A. M., & Lamy, C. (2007, November). Functional maps of neocortical local circuitry. Frontiers in Neuroscience, 1(1), 19–42. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/ 18982117
+Todorovic, A., van Ede, F., Maris, E., & de Lange, F. P. (2011, June). Prior Expectation Mediates Neural Adaptation to Repeated Sounds in the Auditory Cortex: An MEG Study. Journal of Neuroscience, 31(25), 9118–9123. doi: 10.1523/JNEUROSCI.1425-11.2011
+Ungerleider, L. G., & Mishkin, M. (1982, January). Two Cortical Visual Systems. In D. J. Ingle, M. A. Goodale, & R. J. W. Mansfield (Eds.), The Analysis of Visual Behavior (pp. 549–586). Cam- bridge, MA: MIT Press.
+Urakubo, H., Honda, M., Froemke, R. C., & Kuroda, S. (2008, March). Requirement of an allosteric kinetics of NMDA receptors for spike timing-dependent plasticity. The Journal of Neuroscience, 28(13), 3310–3323. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/18367598
+Usrey, W. M., & Sherman, S. M. (2018). Corticofugal circuits: Communication lines from the cortex to the rest of the brain. Journal of Comparative Neurology, 0(0). doi: 10.1002/cne.24423
+Valpola, H. (2014, November). From neural PCA to deep unsupervised learning. arXiv:1411.7783 [cs,
+O’Reilly et al. 53
+54 Deep Predictive Learning
+stat]. Retrieved 2017-05-15, from http://arxiv.org/abs/1411.7783
+van Kerkoerle, T., Self, M. W., Dagnino, B., Gariel-Mathis, M.-A., Poort, J., van der Togt, C., & Roelfsema, P. R. (2014, October). Alpha and gamma oscillations characterize feedback and feedforward pro- cessing in monkey visual cortex. Proceedings of the National Academy of Sciences U.S.A., 111(40),
+14332–14341. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/25205811 VanRullen, R. (2016, October). Perceptual cycles. Trends in Cognitive Sciences, 20(10), 723–735. doi:
+10.1016/j.tics.2016.07.006
+VanRullen, R., & Koch, C. (2003, May). Is perception discrete or continuous? Trends in Cognitive Sciences,
+7(5), 207–213. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/12757822 VanRullen, R., & Thorpe, S. J. (2002, November). Surfing a spike wave down the ventral stream. Vi- sion research, 42, 2593–2615. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/
+12446033
+Varela, F. J., Toro, A., John, E. R., & Schwartz, E. L. (1981). Perceptual framing and cortical al- pha rhythm. Neuropsychologia, 19(5), 675–686. Retrieved from http://www.ncbi.nlm.nih .gov/pubmed/7312152
+Vinken, K., & Vogels, R. (2017, November). Adaptation can explain evidence for encoding of probabilistic information in macaque inferior temporal cortex. Current Biology, 27(22), R1210-R1212. doi: 10 .1016/j.cub.2017.09.018
+von Stein, A., Chiang, C., & Ko ̈nig, P. (2000, December). Top-down processing mediated by interareal synchronization. Proceedings of the National Academy of Sciences of the United States of America, 97(26), 14748–14753. doi: 10.1073/pnas.97.26.14748
+von Helmholtz, H. (1867). Treatise on Physiological Optics, Vol III. Courier Corporation.
+Waldert, S., Lemon, R. N., & Kraskov, A. (2013). Influence of spiking activity on cortical local field
+potentials. The Journal of Physiology, 591(21), 5291–5303. doi: 10.1113/jphysiol.2013.258228 Walsh, K. S., McGovern, D. P., Clark, A., & O’Connell, R. G. (2020, March). Evaluating the neurophysio- logical evidence for predictive processing as a model of perception. Annals of the New York Academy
+of Sciences, 1464(1), 242–268. doi: 10.1111/nyas.14321
+Walter, W. G. (1953). The living brain. Oxford, England: W. W. Norton.
+Watanabe, T., & Sasaki, Y. (2015, January). Perceptual learning: Toward a comprehensive theory. Annual
+review of psychology, 66, 197–221. doi: 10.1146/annurev-psych-010814-015214
+Whittington, J. C. R., & Bogacz, R. (2019, March). Theories of error back-propagation in the brain. Trends
+in Cognitive Sciences, 23(3), 235–250. doi: 10.1016/j.tics.2018.12.005
+Williams, R. J., & Zipser, D. (1992, January). Gradient-based learning algorithms for recurrent networks
+and their computational complexity. In Y. Chauvin & D. E. Rumelhart (Eds.), Backpropagation:
+Theory, Architectures and Applications. Hillsdale, NJ: Erlbaum.
+Wilson, J. R., Bose, N., Sherman, S. M., & Guillery, R. W. (1984, June). Fine structural morphology of
+identified X- and Y-cells in the cat’s lateral geniculate nucleus. Proceedings of the Royal Society of
+London. Series B. Biological Sciences, 221(1225), 411–436. doi: 10.1098/rspb.1984.0042
+Wimmer, R. D., Schmitt, L. I., Davidson, T. J., Nakajima, M., Deisseroth, K., & Halassa, M. M. (2015, October). Thalamic control of sensory selection in divided attention. Nature, 526(7575), 705–709.
+doi: 10.1038/nature15398
+Wiskott, L., & Sejnowski, T. J. (2002, April). Slow feature analysis: Unsupervised learning of invari-
+ances. Neural Computation, 14, 715–770. Retrieved from http://www.ncbi.nlm.nih.gov/
+    pubmed/11936959
+Worden, M. S., Foxe, J. J., Wang, N., & Simpson, G. V. (2000, March). Anticipatory biasing of visuospa- tial attention indexed by retinotopically specific alpha-band electroencephalography increases over occipital cortex. The Journal of neuroscience, 20. Retrieved from http://www.ncbi.nlm.nih .gov/pubmed/10704517
+Wurtz, R. H. (2008, September). Neuronal mechanisms of visual stability. Vision Research, 48(20), 2070– 2089. doi: 10.1016/j.visres.2008.03.021
+Xing, D., Yeh, C.-I., Burns, S., & Shapley, R. M. (2012, August). Laminar analysis of visually evoked activity in the primary visual cortex. Proceedings of the National Academy of Sciences, 109(34), 13871–13876. doi: 10.1073/pnas.1201478109
+Yu, C., & Smith, L. B. (2012, November). Embodied attention and word learning by toddlers. Cognition, 125(2), 244–262. doi: 10.1016/j.cognition.2012.06.016
+Zhou, H., Schafer, R. J., & Desimone, R. (2016). Pulvinar-cortex interactions in vision and attention. Neuron, 89, 209–220.
