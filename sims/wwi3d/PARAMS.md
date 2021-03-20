@@ -258,13 +258,149 @@ TEOP: best: 73+  (in later ticks)
 
 # Current Best WtScale Listing
 
+## 345
+
+```
+Layer: LIP
+	              LIPPToLIP		Abs:	1	Rel:	0.2
+	             MTPosToLIP		Abs:	1	Rel:	0.5
+	            EyePosToLIP		Abs:	1	Rel:	1
+	           SacPlanToLIP		Abs:	1	Rel:	1
+	            ObjVelToLIP		Abs:	1	Rel:	1
+	                V2ToLIP		Abs:	1	Rel:	0.1
+	                V3ToLIP		Abs:	1	Rel:	0.1
+
+Layer: LIPCT
+	             LIPToLIPCT		Abs:	1	Rel:	1
+	            LIPPToLIPCT		Abs:	1	Rel:	0.2
+	          EyePosToLIPCT		Abs:	1	Rel:	1
+	         SaccadeToLIPCT		Abs:	1	Rel:	1
+	          ObjVelToLIPCT		Abs:	1	Rel:	1
+	            V2CTToLIPCT		Abs:	1	Rel:	0.1
+	            V3CTToLIPCT		Abs:	1	Rel:	0.1
+
+Layer: LIPP
+	            LIPCTToLIPP		Abs:	1	Rel:	1
+
+Layer: MTPos
+	             V1mToMTPos		Abs:	1	Rel:	1
+
+Layer: V2
+	                V2PToV2		Abs:	1	Rel:	0.2
+	                V1mToV2		Abs:	1	Rel:	1
+	                V1hToV2		Abs:	1	Rel:	1
+	                 V4ToV2		Abs:	1	Rel:	0.1
+	                 V3ToV2		Abs:	1	Rel:	0.5
+	                 V2ToV2		Abs:	1	Rel:	0.02
+	                LIPToV2		Abs:	1	Rel:	0.5
+	              TEOCTToV2		Abs:	1	Rel:	0.1
+
+Layer: V2CT
+	               V2ToV2CT		Abs:	1	Rel:	1
+	              V2PToV2CT		Abs:	1	Rel:	0.1
+	             V2CTToV2CT		Abs:	1	Rel:	0.5
+	            LIPCTToV2CT		Abs:	1	Rel:	0.5
+	             V3CTToV2CT		Abs:	1	Rel:	0.5
+	             V4CTToV2CT		Abs:	1	Rel:	0.5
+	               V3ToV2CT		Abs:	1	Rel:	0.5
+	              TEOToV2CT		Abs:	1	Rel:	0.5
+
+Layer: V2P
+	              V2CTToV2P		Abs:	1	Rel:	1
+	              V3CTToV2P		Abs:	1	Rel:	0.1
+	              V4CTToV2P		Abs:	1	Rel:	0.1
+
+Layer: V3
+	                V3PToV3		Abs:	1	Rel:	0.2
+	                 V2ToV3		Abs:	0.5	Rel:	2
+	                 DPToV3		Abs:	1	Rel:	0.2
+	                 V3ToV3		Abs:	1	Rel:	0.02
+	                 V4ToV3		Abs:	1	Rel:	0.2
+	                LIPToV3		Abs:	1	Rel:	0.1
+	                TEOToV3		Abs:	1	Rel:	0.1
+	              TEOCTToV3		Abs:	1	Rel:	0.1
+
+Layer: V3CT
+	               V3ToV3CT		Abs:	1	Rel:	1
+	              V3PToV3CT		Abs:	1	Rel:	0.1
+	             V3CTToV3CT		Abs:	1	Rel:	0.5
+	            LIPCTToV3CT		Abs:	1	Rel:	0.2
+	             DPCTToV3CT		Abs:	1	Rel:	0.2
+	             V4CTToV3CT		Abs:	1	Rel:	0.2
+	               DPToV3CT		Abs:	1	Rel:	0.2
+	               V4ToV3CT		Abs:	1	Rel:	0.2
+
+Layer: V3P
+	              V3CTToV3P		Abs:	1	Rel:	1
+	              V2CTToV3P		Abs:	1	Rel:	0.1
+
+Layer: DP
+	                DPPToDP		Abs:	1	Rel:	0.2
+	                 V3ToDP		Abs:	2	Rel:	0.5
+	                TEOToDP		Abs:	1	Rel:	0.1
+
+Layer: DPCT
+	               DPToDPCT		Abs:	1	Rel:	2
+	              DPPToDPCT		Abs:	1	Rel:	0.2
+	             DPCTToDPCT		Abs:	1	Rel:	0.5
+	            TEOCTToDPCT		Abs:	1	Rel:	0.1
+
+Layer: DPP
+	              DPCTToDPP		Abs:	1	Rel:	1
+
+Layer: V4
+	                V4PToV4		Abs:	1	Rel:	0.2
+	                 V2ToV4		Abs:	0.5	Rel:	2
+	                TEOToV4		Abs:	1	Rel:	0.2
+	                 V4ToV4		Abs:	1	Rel:	0.02
+	                 TEToV4		Abs:	1	Rel:	0.2
+
+Layer: V4CT
+	               V4ToV4CT		Abs:	1	Rel:	2
+	              V4PToV4CT		Abs:	1	Rel:	0.2
+	             V4CTToV4CT		Abs:	1	Rel:	0.5
+	            TEOCTToV4CT		Abs:	1	Rel:	0.2
+	              TEOToV4CT		Abs:	1	Rel:	0.2
+	             TECTToV4CT		Abs:	1	Rel:	0.2
+
+Layer: V4P
+	              V4CTToV4P		Abs:	1	Rel:	1
+	              V2CTToV4P		Abs:	1	Rel:	0.1
+
+Layer: TEO
+	              TEOPToTEO		Abs:	1	Rel:	0.2
+	                V4ToTEO		Abs:	2	Rel:	0.5
+	                TEToTEO		Abs:	1	Rel:	0.1
+
+Layer: TEOCT
+	             TEOToTEOCT		Abs:	1	Rel:	2
+	            TEOPToTEOCT		Abs:	1	Rel:	0.2
+	           TEOCTToTEOCT		Abs:	1	Rel:	1
+	            TECTToTEOCT		Abs:	1	Rel:	0.2
+	            V4CTToTEOCT		Abs:	1	Rel:	0.2
+
+Layer: TEOP
+	            TEOCTToTEOP		Abs:	1	Rel:	1
+	             TECTToTEOP		Abs:	1	Rel:	0.1
+
+Layer: TE
+	                TEPToTE		Abs:	1	Rel:	0.2
+	                TEOToTE		Abs:	1.5	Rel:	0.667
+
+Layer: TECT
+	               TEToTECT		Abs:	1	Rel:	2
+	              TEPToTECT		Abs:	1	Rel:	0.2
+	             TECTToTECT		Abs:	1	Rel:	1
+	            TEOCTToTECT		Abs:	1	Rel:	0.2
+
+Layer: TEP
+	              TECTToTEP		Abs:	1	Rel:	1
+	             TEOCTToTEP		Abs:	1	Rel:	0.1
+```
+    
 ## 229
 
 ```
-Layer: V1m
-
-Layer: V1h
-
 Layer: LIP
 	              LIPPToLIP		Abs:	1	Rel:	0.2
 	             MTPosToLIP		Abs:	1	Rel:	0.5

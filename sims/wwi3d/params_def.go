@@ -25,10 +25,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.TRC.AvgMix": "0.5", // actually best on
 				}},
-			{Sel: "SuperLayer", Desc: "see if burst params matter",
+			{Sel: "SuperLayer", Desc: "burst params don't really matter",
 				Params: params.Params{
-					"Layer.Burst.ThrRel": ".2",
-					"Layer.Burst.ThrAbs": ".2",
+					"Layer.Burst.ThrRel": ".1", // not big diffs
+					"Layer.Burst.ThrAbs": ".1",
 				}},
 			{Sel: ".V1", Desc: "pool inhib (not used), initial activity",
 				Params: params.Params{
@@ -141,16 +141,16 @@ var ParamSets = params.Sets{
 					"Prjn.WtInit.Var":  "0",
 					"Prjn.WtInit.Sym":  "false",
 				}},
-			{Sel: ".Forward", Desc: "std feedforward",
-				Params: params.Params{
-					"Prjn.Learn.WtSig.PFail":      "0.5",
-					"Prjn.Learn.WtSig.PFailWtMax": "0.8",
-				}},
+			// {Sel: ".Forward", Desc: "std feedforward",
+			// 	Params: params.Params{
+			// 		"Prjn.Learn.WtSig.PFail":      "0.5",
+			// 		"Prjn.Learn.WtSig.PFailWtMax": "0.8",
+			// 	}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel":            "0.1",
-					"Prjn.Learn.WtSig.PFail":      "0.5",
-					"Prjn.Learn.WtSig.PFailWtMax": "0.8",
+					"Prjn.WtScale.Rel": "0.1",
+					// "Prjn.Learn.WtSig.PFail":      "0.5",
+					// "Prjn.Learn.WtSig.PFailWtMax": "0.8",
 				}},
 
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
