@@ -120,16 +120,16 @@ type Sim struct {
 	ActRFNms         []string          `desc:"names of layers to compute activation rfields on"`
 
 	// statistics: note use float64 as that is best for etable.Table
-	PulvLays       []string  `interactive:"-" desc:"pulvinar layers -- for stats"`
-	PulvCosDiff    []float64 `interactive:"-" desc:"trial stats cos diff for pulvs"`
-	PulvAvgSSE     []float64 `interactive:"-" desc:"trial stats AvgSSE for pulvs"`
-	PulvTrlCosDiff []float64 `interactive:"-" desc:"trial stats trial cos diff for pulvs"`
+	PulvLays       []string  `view:"-" desc:"pulvinar layers -- for stats"`
+	HidLays        []string  `view:"-" desc:"hidden layers: super and CT -- for hogging stats"`
+	SuperLays      []string  `view:"-" desc:"superficial layers"`
+	PulvCosDiff    []float64 `inactive:"+" desc:"trial stats cos diff for pulvs"`
+	PulvAvgSSE     []float64 `inactive:"+" desc:"trial stats AvgSSE for pulvs"`
+	PulvTrlCosDiff []float64 `inactive:"+" desc:"trial stats trial cos diff for pulvs"`
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
-	HidLays        []string  `interactive:"-" desc:"hidden layers: super and CT -- for hogging stats"`
-	HidGeMaxM      []float64 `interactive:"-" desc:"trial-level GeMaxM (minus phase Ge max)"`
-	HidTrlCosDiff  []float64 `interactive:"-" desc:"trial-level cosine differnces"`
-	SuperLays      []string  `interactive:"-" desc:"superficial layers"`
+	HidGeMaxM      []float64 `view:"-" desc:"trial-level GeMaxM (minus phase Ge max)"`
+	HidTrlCosDiff  []float64 `view:"-" desc:"trial-level cosine differnces"`
 
 	// internal state - view:"-"
 	Win          *gi.Window                    `view:"-" desc:"main GUI window"`
@@ -443,10 +443,12 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
 	teop.Shape().SetShape([]int{4, 4, 14, 10}, nil, nil)
 	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V4") // def better clusters with V4
+	// note: has Layer.TRC.NoTopo set to true in params by default
 
 	te, tect, tep := net.AddDeep4D("TE", 2, 2, 10, 10)
 	tep.Shape().SetShape([]int{2, 2, 14, 10}, nil, nil)
 	tep.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V4")
+	// note: has Layer.TRC.NoTopo set to true in params by default
 
 	v2.SetClass("V2")
 	v2ct.SetClass("V2")
@@ -526,7 +528,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	sameu.SelfCon = false
 	_ = one2one
 
-	// basic ff cons
+	// basic super cons
 	net.ConnectLayers(v1m, v2, ss.Prjn3x3Skp1, emer.Forward) // todo: uses V1V2 version of prjn?
 	net.ConnectLayers(v1h, v2, ss.Prjn4x4Skp2, emer.Forward) // todo: uses V1V2 version of prjn?
 
@@ -993,14 +995,14 @@ func (ss *Sim) InitStats() {
 		if ly.IsOff() {
 			continue
 		}
-		if ly.Type() == emer.Hidden {
-			ss.SuperLays = append(ss.SuperLays, ly.Name())
-		}
-		if ly.Type() == emer.Hidden || ly.Type() == deep.CT {
-			ss.HidLays = append(ss.HidLays, ly.Name())
-		}
-		if ly.Type() == deep.TRC {
+		switch ly.Type() {
+		case deep.TRC:
 			ss.PulvLays = append(ss.PulvLays, ly.Name())
+		case emer.Hidden:
+			ss.SuperLays = append(ss.SuperLays, ly.Name())
+			fallthrough
+		case deep.CT:
+			ss.HidLays = append(ss.HidLays, ly.Name())
 		}
 	}
 	np := len(ss.PulvLays)

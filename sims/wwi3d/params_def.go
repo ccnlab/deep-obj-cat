@@ -129,6 +129,7 @@ var ParamSets = params.Sets{
 					"Prjn.Learn.Momentum.MTau": "10",   // now 10 much better than 20!
 					"Prjn.Learn.WtBal.On":      "true", // essential
 					"Prjn.Learn.Lrate":         "0.04", // must set initial lrate here when using schedule!
+					// "Prjn.WtInit.Sym":          "false", // experimenting with asymmetry
 				}},
 			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
 				Params: params.Params{
