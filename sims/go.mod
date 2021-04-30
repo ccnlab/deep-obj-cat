@@ -1,10 +1,10 @@
-module github.com/ccnlab/deep-obj-cat/sims/wwi3d
+module github.com/ccnlab/deep-obj-cat/sims
 
 go 1.13
 
 require (
 	github.com/anthonynsimon/bild v0.13.0
-	github.com/emer/axon v1.2.14
+	github.com/emer/axon v1.2.16
 	github.com/emer/emergent v1.1.26
 	github.com/emer/empi v1.0.10
 	github.com/emer/etable v1.0.27

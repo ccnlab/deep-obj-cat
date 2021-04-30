@@ -15,19 +15,25 @@ var ParamSets = params.Sets{
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
 					"Layer.Learn.AvgL.Gain":       "3.0",  // key param -- 3 > 2.5 > 3.5 except IT!
-					"Layer.Act.Gbar.L":            "0.1",  // todo: orig has 0.2 -- don't see any exploration notes..
+					"Layer.Act.Gbar.L":            "0.2",  // 0.2 now best
 					"Layer.Inhib.Layer.FBTau":     "1.4",  // smoother = faster? but worse?
 					"Layer.Inhib.Pool.FBTau":      "1.4",  // smoother = faster?
-					"Layer.Act.Init.Decay":        "0",    // used deep default, now must set
+					"Layer.Act.Init.Decay":        "0.5",  // used deep default, now must set
 					"Layer.Inhib.ActAvg.UseFirst": "true", // doesn't fix weird V3 effect, works better overall
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
-					"Layer.CtxtGeGain": "0.5",
+					"Layer.Act.Init.Decay": "0.5", // used deep default, now must set
+					"Layer.CtxtGeGain":     "0.2",
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.AvgMix": "0.5", // actually best on
+					"Layer.TRC.AvgMix":     "0.5",  // actually best on
+					"Layer.TRC.MaxInhib":   "0.6",  // 0.6 def -- no prob
+					"Layer.TRC.DriveScale": "0.05", // 0.05 > 0.1 > 0.15
+					"Layer.Act.Init.Decay": "1",
+					"Layer.Act.GABAB.Gbar": "0.005", //
+					"Layer.Act.NMDA.Gbar":  "0.1",   // 0.1 > .05 > .2
 				}},
 			{Sel: "SuperLayer", Desc: "burst params don't really matter",
 				Params: params.Params{
@@ -43,9 +49,8 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.2",
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "0.9",
+					"Layer.Inhib.Layer.Gi":    "1.2", // 1.2 > 1.1
+					"Layer.Inhib.Pool.On":     "false",
 					"Layer.Inhib.ActAvg.Init": "0.1",
 				}},
 			{Sel: ".PopIn", Desc: "pop-code input",
@@ -104,7 +109,7 @@ var ParamSets = params.Sets{
 			// 	}},
 			{Sel: "#LIPP", Desc: "layer only",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "1.0",
+					"Layer.Inhib.Layer.Gi": "0.9", // 0.9 > 0.8 > 1.0
 					"Layer.Inhib.Pool.On":  "false",
 				}},
 			{Sel: "#MTPos", Desc: "layer only",
@@ -128,9 +133,10 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.XCal.SetLLrn": "true",
+					"Prjn.Learn.XCal.SetLLrn": "true", // false, 3.0 does diff things, mostly worse
 					"Prjn.Learn.XCal.LLrn":    "0",
 					"Prjn.Learn.WtBal.On":     "true", // essential
+					"Prjn.Learn.WtBal.Targs":  "true", // true = much better cosdif -- investigate
 					"Prjn.Learn.Lrate":        "0.04", // must set initial lrate here when using schedule!
 					// "Prjn.WtInit.Sym":          "false", // experimenting with asymmetry
 				}},
@@ -152,9 +158,7 @@ var ParamSets = params.Sets{
 			// 	}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
-					// "Prjn.Learn.WtSig.PFail":      "0.5",
-					// "Prjn.Learn.WtSig.PFailWtMax": "0.8",
+					"Prjn.WtScale.Rel": "0.2",
 				}},
 
 			{Sel: ".FwdWeak", Desc: "weak feedforward",

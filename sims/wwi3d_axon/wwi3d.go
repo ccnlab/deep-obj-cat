@@ -127,6 +127,7 @@ type Sim struct {
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
 	HidGeMaxM      []float64 `view:"-" desc:"trial-level GeMaxM (minus phase Ge max)"`
+	HidAvgActM     []float64 `view:"-" desc:"trial-level AvgActM minus phase"`
 	HidTrlCosDiff  []float64 `view:"-" desc:"trial-level cosine differnces"`
 
 	// internal state - view:"-"
@@ -171,7 +172,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true
+	ss.LIPOnly = false
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -360,7 +361,7 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	v1m := net.AddLayer4D("V1m", 8, 8, 5, 4, emer.Input)
 	v1h := net.AddLayer4D("V1h", 16, 16, 5, 4, emer.Input)
 
-	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 4, 4)
+	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 2, 2)
 	lipp.Shape().SetShape([]int{8, 8, 1, 1}, nil, nil)
 
 	mtpos := net.AddLayer4D("MTPos", 8, 8, 1, 1, emer.Hidden)
@@ -387,7 +388,7 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
 	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
 	lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
-	mtpos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 4})
+	mtpos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 2})
 
 	eyepos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
 	sacplan.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: eyepos.Name(), XAlign: relpos.Left, Space: 10})
@@ -1006,6 +1007,7 @@ func (ss *Sim) InitStats() {
 	ss.PulvTrlCosDiff = make([]float64, np)
 	nh := len(ss.HidLays)
 	ss.HidGeMaxM = make([]float64, nh)
+	ss.HidAvgActM = make([]float64, nh)
 	ss.HidTrlCosDiff = make([]float64, nh)
 
 	ss.RSA.Init(ss.SuperLays)
@@ -1054,6 +1056,7 @@ func (ss *Sim) MinusStats() {
 			continue
 		}
 		ss.HidGeMaxM[hi] = float64(ly.Pools[0].Inhib.Ge.Max)
+		ss.HidAvgActM[hi] = float64(ly.Pools[0].Inhib.Act.Avg)
 	}
 }
 
@@ -1661,6 +1664,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 		dt.SetCellFloat(lnm+"_Dead", row, dead)
 		dt.SetCellFloat(lnm+"_Hog", row, hog)
 		dt.SetCellFloat(lnm+"_GeMaxM", row, ss.HidGeMaxM[li])
+		dt.SetCellFloat(lnm+"_AvgActM", row, ss.HidAvgActM[li])
 	}
 
 	tix := etable.NewIdxView(trl)
@@ -1760,6 +1764,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		sch = append(sch, etable.Column{lnm + "_Dead", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_Hog", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_GeMaxM", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_AvgActM", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
 	}
@@ -1800,6 +1805,7 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 		plt.SetColParams(lnm+"_Dead", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 		plt.SetColParams(lnm+"_Hog", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 		plt.SetColParams(lnm+"_GeMaxM", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		plt.SetColParams(lnm+"_AvgActM", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 		plt.SetColParams(lnm+"_TrlCosDiff", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 		plt.SetColParams(lnm+"_TrlCosDiff0", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 	}
