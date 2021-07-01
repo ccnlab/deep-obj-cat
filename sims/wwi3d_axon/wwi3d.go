@@ -92,6 +92,9 @@ type Sim struct {
 	ActRFs           actrf.RFs       `view:"no-inline" desc:"activation-based receptive fields"`
 	RunLog           *etable.Table   `view:"no-inline" desc:"summary log of each run"`
 	RunStats         *etable.Table   `view:"no-inline" desc:"aggregate stats on all runs"`
+	MinusCycles      int             `desc:"number of minus-phase cycles"`
+	PlusCycles       int             `desc:"number of plus-phase cycles"`
+	ErrLrMod         axon.LrateMod   `view:"inline" desc:"learning rate modulation as function of error"`
 	Params           params.Sets     `view:"no-inline" desc:"full collection of param sets"`
 	ParamSet         string          `desc:"which set of *additional* parameters to use -- always applies Base and optionaly this next if set"`
 	Tag              string          `desc:"extra tag string to add to any file names output from sim (e.g., weights files, log files, params for run)"`
@@ -116,19 +119,19 @@ type Sim struct {
 	TestUpdt         axon.TimeScales `desc:"at what time scale to update the display during testing?  Anything longer than Epoch updates at Epoch in this model"`
 	LayStatNms       []string        `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
 	ActRFNms         []string        `desc:"names of layers to compute activation rfields on"`
+	HidTrlCosDiff    []float64       `view:"-" desc:"trial-level cosine differnces"`
 
 	// statistics: note use float64 as that is best for etable.Table
 	PulvLays       []string  `view:"-" desc:"pulvinar layers -- for stats"`
 	HidLays        []string  `view:"-" desc:"hidden layers: super and CT -- for hogging stats"`
 	SuperLays      []string  `view:"-" desc:"superficial layers"`
+	InLays         []string  `view:"-" desc:"input layers -- for stats"`
 	PulvCosDiff    []float64 `inactive:"+" desc:"trial stats cos diff for pulvs"`
 	PulvUnitErr    []float64 `inactive:"+" desc:"trial stats UnitErr for pulvs"`
 	PulvTrlCosDiff []float64 `inactive:"+" desc:"trial stats trial cos diff for pulvs"`
+	TrlCosDiff     float64   `inactive:"+" desc:"cos diff used for driving ErrLrMod"`
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
-	HidGeMaxM      []float64 `view:"-" desc:"trial-level GeMaxM (minus phase Ge max)"`
-	HidAvgActM     []float64 `view:"-" desc:"trial-level AvgActM minus phase"`
-	HidTrlCosDiff  []float64 `view:"-" desc:"trial-level cosine differnces"`
 
 	// internal state - view:"-"
 	Win          *gi.Window                    `view:"-" desc:"main GUI window"`
@@ -172,7 +175,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = false
+	ss.LIPOnly = true
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -184,6 +187,14 @@ func (ss *Sim) New() {
 	ss.TstTrlLogAll = &etable.Table{}
 	ss.RunLog = &etable.Table{}
 	ss.RunStats = &etable.Table{}
+
+	ss.Time.Defaults()
+	ss.MinusCycles = 150
+	ss.PlusCycles = 50
+	ss.ErrLrMod.Defaults()
+	ss.ErrLrMod.Base = 0.05 // 0.05 > .02? > .1 in long-term output layer health
+	ss.ErrLrMod.Range.Set(0.2, 0.8)
+
 	ss.Params = ParamSets
 	ss.RndSeeds = make([]int64, 100) // make enough for plenty of runs
 	for i := 0; i < 100; i++ {
@@ -437,13 +448,13 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v4p.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // y 0..1 = v1m, 2..3 = v1h, 4..13 = V2 -- todo: v2?
 
 	teo, teoct, teop := net.AddDeep4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
-	teop.Shape().SetShape([]int{4, 4, 14, 10}, nil, nil)
-	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V4") // def better clusters with V4
+	teop.Shape().SetShape([]int{4, 4, 4, 10}, nil, nil)
+	teop.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4") // def better clusters with V4
 	// note: has Layer.TRC.NoTopo set to true in params by default
 
 	te, tect, tep := net.AddDeep4D("TE", 2, 2, 10, 10)
-	tep.Shape().SetShape([]int{2, 2, 14, 10}, nil, nil)
-	tep.(*deep.TRCLayer).Drivers.Add("V1m", "V1h", "V4")
+	tep.Shape().SetShape([]int{2, 2, 4, 10}, nil, nil)
+	tep.(*deep.TRCLayer).Drivers.Add("V1m", "V1h") // , "V4")
 	// note: has Layer.TRC.NoTopo set to true in params by default
 
 	v2.SetClass("V2")
@@ -731,39 +742,15 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	tep.SetThread(0)
 }
 
-func (ss *Sim) SetTopoScales(net *deep.Network, send, recv string, pooltile *prjn.PoolTile) {
-	slay := net.LayerByName(send)
-	rlay := net.LayerByName(recv)
-	pj := rlay.RecvPrjns().SendName(send).(axon.AxonPrjn).AsAxon()
-	scales := &etensor.Float32{}
-	pooltile.TopoWts(slay.Shape(), rlay.Shape(), scales)
-	pj.SetScalesRPool(scales)
-}
-
 func (ss *Sim) InitWts(net *deep.Network) {
 	if len(net.Layers) == 0 {
 		return
 	}
-
-	net.InitTopoScales() //  sets all wt scales
-
-	// these are not set automatically b/c prjn is Full, not PoolTile
-	ss.SetTopoScales(net, "EyePos", "LIP", ss.PrjnGaussTopo)
-	ss.SetTopoScales(net, "SacPlan", "LIP", ss.PrjnSigTopo)
-	ss.SetTopoScales(net, "ObjVel", "LIP", ss.PrjnSigTopo)
-
-	ss.SetTopoScales(net, "LIP", "LIPCT", ss.Prjn3x3Skp1)
-	ss.SetTopoScales(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
-	ss.SetTopoScales(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
-	ss.SetTopoScales(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
-
 	net.InitWts()
 	if !ss.LIPOnly {
 		mpi.Printf("loading lip_pretrained.wts.gz...\n")
 		net.OpenWtsJSON(gi.FileName("lip_pretrained.wts.gz"))
 	}
-
-	net.LrateMult(1) // restore initial learning rate value
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -815,15 +802,34 @@ func (ss *Sim) UpdateView(train bool) {
 	}
 }
 
+func (ss *Sim) UpdateViewTime(train bool, viewUpdt axon.TimeScales) {
+	switch viewUpdt {
+	case axon.Cycle:
+		ss.UpdateView(train)
+	case axon.FastSpike:
+		if ss.Time.Cycle%10 == 0 {
+			ss.UpdateView(train)
+		}
+	case axon.GammaCycle:
+		if ss.Time.Cycle%25 == 0 {
+			ss.UpdateView(train)
+		}
+	case axon.AlphaCycle:
+		if ss.Time.Cycle%100 == 0 {
+			ss.UpdateView(train)
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // 	    Running the Network, starting bottom-up..
 
-// AlphaCyc runs one alpha-cycle (100 msec, 4 quarters)			 of processing.
+// ThetaCyc runs one theta cycle (200 msec) of processing.
 // External inputs must have already been applied prior to calling,
 // using ApplyExt method on relevant layers (see TrainTrial, TestTrial).
 // If train is true, then learning DWt or WtFmDWt calls are made.
-// Handles netview updating within scope of AlphaCycle
-func (ss *Sim) AlphaCyc(train bool) {
+// Handles netview updating within scope, and calls TrainStats()
+func (ss *Sim) ThetaCyc(train bool) {
 	// ss.Win.PollEvents() // this can be used instead of running in a separate goroutine
 	viewUpdt := ss.TrainUpdt
 	if !train {
@@ -838,48 +844,66 @@ func (ss *Sim) AlphaCyc(train bool) {
 		ss.MPIWtFmDWt()
 	}
 
-	ss.Net.AlphaCycInit()
-	ss.Time.AlphaCycStart()
-	for qtr := 0; qtr < 4; qtr++ {
-		for cyc := 0; cyc < ss.Time.CycPerQtr; cyc++ {
-			ss.Net.Cycle(&ss.Time)
-			ss.Time.CycleInc()
-			if ss.ViewOn {
-				switch viewUpdt {
-				case axon.Cycle:
-					if cyc != ss.Time.CycPerQtr-1 { // will be updated by quarter
-						ss.UpdateView(train)
-					}
-				case axon.FastSpike:
-					if (cyc+1)%10 == 0 {
-						ss.UpdateView(train)
-					}
-				}
-			}
+	minusCyc := ss.MinusCycles
+	plusCyc := ss.PlusCycles
+
+	ss.Net.NewState()
+	ss.Time.NewState()
+	for cyc := 0; cyc < minusCyc; cyc++ { // do the minus phase
+		ss.Net.Cycle(&ss.Time)
+		// ss.LogTrnCyc(ss.TrnCycLog, ss.Time.Cycle)
+		// if !ss.NoGui {
+		// 	ss.RecSpikes(ss.Time.Cycle)
+		// }
+		ss.Time.CycleInc()
+		switch ss.Time.Cycle { // save states at beta-frequency -- not used computationally
+		case 75:
+			ss.Net.ActSt1(&ss.Time)
+			// if erand.BoolProb(float64(ss.PAlphaPlus), -1) {
+			// 	ss.Net.TargToExt()
+			// 	ss.Time.PlusPhase = true
+			// }
+		case 100:
+			ss.Net.ActSt2(&ss.Time)
+			ss.Net.ClearTargExt()
+			ss.Time.PlusPhase = false
 		}
-		ss.Net.QuarterFinal(&ss.Time)
-		if qtr == 2 {
-			ss.MinusStats()
+
+		if cyc == minusCyc-1 { // do before view update
+			ss.Net.MinusPhase(&ss.Time)
 		}
-		ss.Time.QuarterInc()
 		if ss.ViewOn {
-			switch {
-			case viewUpdt <= axon.Quarter:
-				ss.UpdateView(train)
-			case viewUpdt == axon.Phase:
-				if qtr >= 2 {
-					ss.UpdateView(train)
-				}
-			}
+			ss.UpdateViewTime(train, viewUpdt)
+		}
+	}
+	ss.Time.NewPhase()
+	if viewUpdt == axon.Phase {
+		ss.UpdateView(train)
+	}
+	for cyc := 0; cyc < plusCyc; cyc++ { // do the plus phase
+		ss.Net.Cycle(&ss.Time)
+		// ss.LogTrnCyc(ss.TrnCycLog, ss.Time.Cycle)
+		// if !ss.NoGui {
+		// 	ss.RecSpikes(ss.Time.Cycle)
+		// }
+		ss.Time.CycleInc()
+
+		if cyc == plusCyc-1 { // do before view update
+			ss.Net.PlusPhase(&ss.Time)
+		}
+		if ss.ViewOn {
+			ss.UpdateViewTime(train, viewUpdt)
 		}
 	}
 
+	ss.TrialStats(train)
+
 	if train {
-		if ss.TrainEnv.Tick.Cur > 0 { // important: don't learn on first tick!
-			ss.Net.DWt()
-		}
+		ss.ErrLrMod.LrateMod(ss.Net.AsAxon(), float32(1-ss.TrlCosDiff))
+		ss.Net.DWt()
 	}
-	if ss.ViewOn && viewUpdt == axon.AlphaCycle {
+
+	if viewUpdt == axon.Phase || viewUpdt == axon.AlphaCycle || viewUpdt == axon.ThetaCycle {
 		ss.UpdateView(train)
 	}
 }
@@ -935,8 +959,7 @@ func (ss *Sim) TrainTrial() {
 
 	// note: type must be in place before apply inputs
 	ss.ApplyInputs(&ss.TrainEnv)
-	ss.AlphaCyc(true) // train
-	ss.TrialStats()
+	ss.ThetaCyc(true) // train
 	ss.LogTrnTrl(ss.TrnTrlLog)
 	if ss.CurImgGrid != nil {
 		ss.CurImgGrid.UpdateSig()
@@ -985,6 +1008,7 @@ func (ss *Sim) InitStats() {
 	}
 	ss.PulvLays = []string{}
 	ss.HidLays = []string{}
+	ss.InLays = []string{}
 	ss.SuperLays = []string{"V1m"}
 	net := ss.Net
 	for _, ly := range net.Layers {
@@ -992,6 +1016,8 @@ func (ss *Sim) InitStats() {
 			continue
 		}
 		switch ly.Type() {
+		case emer.Input:
+			ss.InLays = append(ss.InLays, ly.Name())
 		case deep.TRC:
 			ss.PulvLays = append(ss.PulvLays, ly.Name())
 		case emer.Hidden:
@@ -1005,9 +1031,8 @@ func (ss *Sim) InitStats() {
 	ss.PulvCosDiff = make([]float64, np)
 	ss.PulvUnitErr = make([]float64, np)
 	ss.PulvTrlCosDiff = make([]float64, np)
+
 	nh := len(ss.HidLays)
-	ss.HidGeMaxM = make([]float64, nh)
-	ss.HidAvgActM = make([]float64, nh)
 	ss.HidTrlCosDiff = make([]float64, nh)
 
 	ss.RSA.Init(ss.SuperLays)
@@ -1015,11 +1040,14 @@ func (ss *Sim) InitStats() {
 }
 
 // TrialStats computes the trial-level statistics.
-func (ss *Sim) TrialStats() {
+func (ss *Sim) TrialStats(train bool) {
 	for li, lnm := range ss.PulvLays {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		ss.PulvCosDiff[li] = float64(ly.CosDiff.Cos)
 		ss.PulvUnitErr[li] = ly.PctUnitErr()
+		if (ss.LIPOnly && lnm == "LIPP") || (!ss.LIPOnly && lnm == "V2P") {
+			ss.TrlCosDiff = float64(ly.CosDiff.Cos)
+		}
 	}
 	ss.TrialCosDiff()
 }
@@ -1045,18 +1073,6 @@ func (ss *Sim) TrialCosDiff() {
 	}
 	for li, lnm := range ss.PulvLays {
 		ss.PulvTrlCosDiff[li] = ss.TrialCosDiffLay(lnm, "ActP") // driver more interesting here
-	}
-}
-
-// MinusStats computes the trial-level statistics at end of minus phase
-func (ss *Sim) MinusStats() {
-	for hi, hnm := range ss.HidLays {
-		ly := ss.Net.LayerByName(hnm).(axon.AxonLayer).AsAxon()
-		if ly.IsOff() {
-			continue
-		}
-		ss.HidGeMaxM[hi] = float64(ly.Pools[0].Inhib.Ge.Max)
-		ss.HidAvgActM[hi] = float64(ly.Pools[0].Inhib.Act.Avg)
 	}
 }
 
@@ -1125,13 +1141,13 @@ func (ss *Sim) SaveWeights(filename gi.FileName) {
 func (ss *Sim) LrateSched(epc int) {
 	switch epc {
 	case 250:
-		ss.Net.LrateMult(0.5)
+		ss.Net.LrateSched(0.5)
 		mpi.Printf("dropped lrate to 0.5 at epoch: %d\n", epc)
 	case 500:
-		ss.Net.LrateMult(0.2)
+		ss.Net.LrateSched(0.2)
 		mpi.Printf("dropped lrate to 0.2 at epoch: %d\n", epc)
 	case 750:
-		ss.Net.LrateMult(0.1)
+		ss.Net.LrateSched(0.1)
 		mpi.Printf("dropped lrate to 0.1 at epoch: %d\n", epc)
 	}
 }
@@ -1167,8 +1183,7 @@ func (ss *Sim) TestTrial(returnOnChg bool) {
 
 	// note: type must be in place before apply inputs
 	ss.ApplyInputs(&ss.TestEnv)
-	ss.AlphaCyc(false) // !train
-	ss.TrialStats()
+	ss.ThetaCyc(false) // !train
 	// todo: actrf etc
 	ss.LogTstTrl(ss.TstTrlLog)
 }
@@ -1659,12 +1674,19 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("Epoch", row, float64(epc))
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
 
-	for li, lnm := range ss.HidLays {
+	for _, lnm := range ss.HidLays {
+		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		hog, dead := ss.HogDead(lnm)
 		dt.SetCellFloat(lnm+"_Dead", row, dead)
 		dt.SetCellFloat(lnm+"_Hog", row, hog)
-		dt.SetCellFloat(lnm+"_GeMaxM", row, ss.HidGeMaxM[li])
-		dt.SetCellFloat(lnm+"_AvgActM", row, ss.HidAvgActM[li])
+		dt.SetCellFloat(lnm+"_MaxGeM", row, float64(ly.ActAvg.AvgMaxGeM))
+		dt.SetCellFloat(lnm+"_ActAvg", row, float64(ly.ActAvg.ActMAvg))
+		dt.SetCellFloat(lnm+"_GiMult", row, float64(ly.ActAvg.GiMult))
+	}
+
+	for _, lnm := range ss.InLays {
+		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
+		dt.SetCellFloat(lnm+"_ActAvg", row, float64(ly.ActAvg.ActMAvg))
 	}
 
 	tix := etable.NewIdxView(trl)
@@ -1763,8 +1785,9 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	for _, lnm := range ss.HidLays {
 		sch = append(sch, etable.Column{lnm + "_Dead", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_Hog", etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{lnm + "_GeMaxM", etensor.FLOAT64, nil, nil})
-		sch = append(sch, etable.Column{lnm + "_AvgActM", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_MaxGeM", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_GiMult", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
 	}
@@ -1783,6 +1806,11 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	sch = append(sch, etable.Column{"TE_PermNCat", etensor.FLOAT64, nil, nil})
 	sch = append(sch, etable.Column{"TE_BasicDst", etensor.FLOAT64, nil, nil})
 	sch = append(sch, etable.Column{"TE_ExptDst", etensor.FLOAT64, nil, nil})
+
+	for _, lnm := range ss.InLays {
+		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
+	}
+
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", lnm, tck), etensor.FLOAT64, nil, nil})
@@ -1804,8 +1832,8 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	for _, lnm := range ss.HidLays {
 		plt.SetColParams(lnm+"_Dead", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 		plt.SetColParams(lnm+"_Hog", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(lnm+"_GeMaxM", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
-		plt.SetColParams(lnm+"_AvgActM", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		plt.SetColParams(lnm+"_MaxGeM", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+		plt.SetColParams(lnm+"_ActAvg", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 		plt.SetColParams(lnm+"_TrlCosDiff", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 		plt.SetColParams(lnm+"_TrlCosDiff0", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 	}
@@ -1823,6 +1851,11 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("TE_PermNCat", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
 	plt.SetColParams("TE_BasicDst", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
 	plt.SetColParams("TE_ExptDst", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+
+	for _, lnm := range ss.InLays {
+		plt.SetColParams(lnm+"_ActAvg", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
+	}
+
 	for tck := 0; tck < ss.MaxTicks; tck++ {
 		for _, lnm := range ss.PulvLays {
 			plt.SetColParams(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
@@ -2441,10 +2474,7 @@ func (ss *Sim) MPIFinalize() {
 
 // CollectDWts collects the weight changes from all synapses into AllDWts
 func (ss *Sim) CollectDWts(net *axon.Network) {
-	made := net.CollectDWts(&ss.AllDWts, 78163328) // plug in number from printout below, to avoid realloc
-	if made {
-		mpi.Printf("MPI: AllDWts len: %d\n", len(ss.AllDWts)) // put this number in above make
-	}
+	net.CollectDWts(&ss.AllDWts) // plug in number from printout below, to avoid realloc
 }
 
 // MPIWtFmDWt updates weights from weight changes, using MPI to integrate
@@ -2458,7 +2488,7 @@ func (ss *Sim) MPIWtFmDWt() {
 			ss.SumDWts = make([]float32, ndw)
 		}
 		ss.Comm.AllReduceF32(mpi.OpSum, ss.SumDWts, ss.AllDWts)
-		ss.Net.SetDWts(ss.SumDWts)
+		ss.Net.SetDWts(ss.SumDWts, mpi.WorldSize())
 	}
 	ss.Net.WtFmDWt()
 }

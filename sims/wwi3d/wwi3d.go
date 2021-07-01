@@ -822,7 +822,7 @@ func (ss *Sim) UpdateView(train bool) {
 ////////////////////////////////////////////////////////////////////////////////
 // 	    Running the Network, starting bottom-up..
 
-// AlphaCyc runs one alpha-cycle (100 msec, 4 quarters)			 of processing.
+// AlphaCyc runs one alpha-cycle (100 msec, 4 quarters) of processing.
 // External inputs must have already been applied prior to calling,
 // using ApplyExt method on relevant layers (see TrainTrial, TestTrial).
 // If train is true, then learning DWt or WtFmDWt calls are made.
@@ -1734,14 +1734,16 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	// note: essential to use Go version of update when called from another goroutine
 	ss.TrnEpcPlot.GoUpdate()
 	if ss.TrnEpcFile != nil {
-		if ss.TrainEnv.Run.Cur == ss.StartRun && epc == 0 {
+		if ss.TrainEnv.Run.Cur == ss.StartRun && row == 0 {
+			// note: can't use row=0 b/c reset table each run
 			dt.WriteCSVHeaders(ss.TrnEpcFile, etable.Tab)
 		}
 		dt.WriteCSVRow(ss.TrnEpcFile, row, etable.Tab)
 	}
 
 	if ss.TrnTrlFile != nil && !(!ss.UseMPI || ss.SaveProcLog) { // saved at trial level otherwise
-		if ss.TrainEnv.Run.Cur == ss.StartRun && epc == 0 {
+		if ss.TrainEnv.Run.Cur == ss.StartRun && row == 0 {
+			// note: can't just use row=0 b/c reset table each run
 			trl.WriteCSVHeaders(ss.TrnTrlFile, etable.Tab)
 		}
 		for ri := 0; ri < trl.Rows; ri++ {
