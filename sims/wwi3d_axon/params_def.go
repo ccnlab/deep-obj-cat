@@ -18,9 +18,11 @@ var ParamSets = params.Sets{
 					"Layer.Act.Dt.IntTau":                "40",  // 40 > 20
 					"Layer.Inhib.Layer.Gi":               "1.1", // general default
 					"Layer.Inhib.Pool.Gi":                "1.1", // general default
+					"Layer.Inhib.ActAvg.LoTol":           "1.1", // no low adapt
+					"Layer.Inhib.ActAvg.AdaptRate":       "0.2", // 0.5 default
 					"Layer.Act.Gbar.L":                   "0.2", // 0.2 now best
-					"Layer.Act.Decay.Act":                "0.0",
-					"Layer.Act.Decay.Glong":              "0.0",
+					"Layer.Act.Decay.Act":                "0.0", // 0 best
+					"Layer.Act.Decay.Glong":              "0.0", // 0.5 > 0.2
 					"Layer.Act.KNa.Fast.Max":             "0.1", // fm both .2 worse
 					"Layer.Act.KNa.Med.Max":              "0.2", // 0.2 > 0.1 def
 					"Layer.Act.KNa.Slow.Max":             "0.2", // 0.2 > higher
@@ -57,8 +59,8 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "SuperLayer", Desc: "burst params don't really matter",
 				Params: params.Params{
-					"Layer.Burst.ThrRel": ".1", // not big diffs
-					"Layer.Burst.ThrAbs": ".1",
+					"Layer.Burst.ThrRel": "0.1", // not big diffs
+					"Layer.Burst.ThrAbs": "0.1",
 				}},
 			{Sel: ".V1", Desc: "pool inhib, initial activity",
 				Params: params.Params{
@@ -70,8 +72,8 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V1m", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.ActAvg.Init": "0.035",
-					"Layer.Inhib.ActAvg.Targ": "0.035",
+					"Layer.Inhib.ActAvg.Init": "0.03",
+					"Layer.Inhib.ActAvg.Targ": "0.03",
 				}},
 			{Sel: "#V1h", Desc: "pool inhib, initial activity",
 				Params: params.Params{
@@ -80,7 +82,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.1", // 1.2 > 1.1
+					"Layer.Inhib.Layer.Gi":    "1.1",
 					"Layer.Inhib.Pool.On":     "false",
 					"Layer.Inhib.ActAvg.Init": "0.05",
 					"Layer.Inhib.ActAvg.Targ": "0.05",
@@ -98,7 +100,7 @@ var ParamSets = params.Sets{
 			{Sel: ".V2", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.Pool.Gi":        "1.0",
+					"Layer.Inhib.Pool.Gi":        "1.1",
 					"Layer.Inhib.ActAvg.Init":    "0.04",
 					"Layer.Inhib.ActAvg.Targ":    "0.04",
 					"Layer.Inhib.ActAvg.AdaptGi": "true",
@@ -107,7 +109,7 @@ var ParamSets = params.Sets{
 			{Sel: ".V3", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.0",
+					"Layer.Inhib.Pool.Gi":     "1.1",
 					"Layer.Inhib.ActAvg.Init": "0.1",
 					"Layer.Inhib.ActAvg.Targ": "0.1",
 				}},
@@ -177,15 +179,15 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.ScaleLrate": "2",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8", // good now...
 					"Prjn.PrjnScale.Init":       "1",
-					"Prjn.PrjnScale.AvgTau":     "500",  // slower default
-					"Prjn.SWt.Adapt.On":         "true", // true > false, esp in cosdiff
-					"Prjn.SWt.Adapt.Lrate":      "1",    // .01 == .001 == .1 459
+					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
+					"Prjn.SWt.Adapt.On":         "true",  // true > false, esp in cosdiff
+					"Prjn.SWt.Adapt.Lrate":      "0.001", //
 					"Prjn.SWt.Adapt.SigGain":    "6",
-					"Prjn.SWt.Adapt.DreamVar":   "0.0", // < 0.005 no effect 0.01 max that works in small nets
-					"Prjn.SWt.Init.SPct":        "1",   // 1 > lower
-					"Prjn.SWt.Init.Mean":        "0.5", // .5 > .4 -- key, except v2?
-					"Prjn.SWt.Limit.Min":        "0.2", // .2-.8 == .1-.9; .3-.7 not better
-					"Prjn.SWt.Limit.Max":        "0.8", //
+					"Prjn.SWt.Adapt.DreamVar":   "0.02", // 0.02 good in lvis
+					"Prjn.SWt.Init.SPct":        "1",    // 1 > lower
+					"Prjn.SWt.Init.Mean":        "0.5",  // .5 > .4 -- key, except v2?
+					"Prjn.SWt.Limit.Min":        "0.2",  // .2-.8 == .1-.9; .3-.7 not better
+					"Prjn.SWt.Limit.Max":        "0.8",  //
 				}},
 			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
 				Params: params.Params{
@@ -208,11 +210,24 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.Rel": "0.2",
 				}},
 
+			{Sel: ".V1V2", Desc: "special SWt params",
+				Params: params.Params{
+					"Prjn.SWt.Init.Mean":  "0.4", // .4 here is key!
+					"Prjn.SWt.Limit.Min":  "0.1", // .1-.7
+					"Prjn.SWt.Limit.Max":  "0.7", //
+					"Prjn.PrjnScale.Init": "0.8", // weaker?
+				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "0.1", // .1 orig -- had a bug tho!! also trying .05
 				}},
 
+			{Sel: ".V1SC", Desc: "v1 shortcut",
+				Params: params.Params{
+					"Prjn.Learn.Lrate.Base": "0.001", //
+					"Prjn.PrjnScale.Rel":    "0.5",   // .5 lvis
+					"Prjn.SWt.Adapt.On":     "false", // seems better
+				}},
 			{Sel: ".FmLIP", Desc: "no random weights here",
 				Params: params.Params{
 					"Prjn.SWt.Init.Var": "0.05", // was 0 -- trying .05
@@ -224,7 +239,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
-					"Prjn.PrjnScale.Rel": "0.5", // .1 > .2, orig .5 -- see BackStrong
+					"Prjn.PrjnScale.Rel": "0.2", // .1 > .2, orig .5 -- see BackStrong
 				}},
 
 			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",

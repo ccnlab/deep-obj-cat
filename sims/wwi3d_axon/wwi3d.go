@@ -175,7 +175,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true
+	ss.LIPOnly = false
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -189,7 +189,7 @@ func (ss *Sim) New() {
 	ss.RunStats = &etable.Table{}
 
 	ss.Time.Defaults()
-	ss.MinusCycles = 150
+	ss.MinusCycles = 180
 	ss.PlusCycles = 50
 	ss.ErrLrMod.Defaults()
 	ss.ErrLrMod.Base = 0.05 // 0.05 > .02? > .1 in long-term output layer health
@@ -503,41 +503,19 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 		lipp.SetOff(true)
 	*/
 
-	v2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
-	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v2.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
-	v2p.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v1m.Name(), XAlign: relpos.Left, Space: 10})
-	v2ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v2.Name(), XAlign: relpos.Left, Space: 10})
-
-	v3.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v2.Name(), YAlign: relpos.Front, Space: 2})
-	v3ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3.Name(), XAlign: relpos.Left, Space: 10})
-	v3p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v3ct.Name(), YAlign: relpos.Front, Space: 2})
-
-	dp.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v3.Name(), YAlign: relpos.Front, Space: 2})
-	dpct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: dp.Name(), XAlign: relpos.Left, Space: 10})
-	dpp.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: dpct.Name(), YAlign: relpos.Front, Space: 2})
-
-	v4.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3ct.Name(), XAlign: relpos.Left, Space: 10})
-	v4ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v4.Name(), XAlign: relpos.Left, Space: 10})
-	v4p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v4ct.Name(), YAlign: relpos.Back, Space: 2})
-
-	teo.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: eyepos.Name(), YAlign: relpos.Front, Space: 2})
-	teoct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teo.Name(), XAlign: relpos.Left, Space: 10})
-	teop.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teoct.Name(), XAlign: relpos.Left, Space: 10})
-
-	te.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: teo.Name(), YAlign: relpos.Front, Space: 2})
-	tect.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: te.Name(), XAlign: relpos.Left, Space: 10})
-	tep.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: tect.Name(), XAlign: relpos.Left, Space: 10})
-
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
 	one2one := prjn.NewOneToOne()
 	sameu := prjn.NewPoolSameUnit()
 	sameu.SelfCon = false
 	_ = one2one
+	rndcut := prjn.NewUnifRnd()
+	rndcut.PCon = 0.1
+	_ = rndcut
 
 	// basic super cons
-	net.ConnectLayers(v1m, v2, ss.Prjn3x3Skp1, emer.Forward) // todo: uses V1V2 version of prjn?
-	net.ConnectLayers(v1h, v2, ss.Prjn4x4Skp2, emer.Forward) // todo: uses V1V2 version of prjn?
+	net.ConnectLayers(v1m, v2, ss.Prjn3x3Skp1, emer.Forward).SetClass("V1V2")
+	net.ConnectLayers(v1h, v2, ss.Prjn4x4Skp2, emer.Forward).SetClass("V1V2")
 
 	_, v4v2 := net.BidirConnectLayers(v2, v4, ss.Prjn4x4Skp2)
 	v4v2.SetPattern(ss.Prjn4x4Skp2Recip)
@@ -677,6 +655,44 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teoct, tect, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // was FwdWeak
 
 	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv") // sig effect on cosdiff, not much other eff
+
+	////////////////////
+	// Shortcuts
+
+	// V1 shortcuts best for syncing all layers -- like the pulvinar basically
+	net.ConnectLayers(v1m, v3, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, dp, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, v4, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, teo, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, te, rndcut, emer.Forward).SetClass("V1SC")
+
+	////////////////////
+	// Position
+
+	v2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
+	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v2.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
+	v2p.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v1m.Name(), XAlign: relpos.Left, Space: 10})
+	v2ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v2.Name(), XAlign: relpos.Left, Space: 10})
+
+	v3.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v2.Name(), YAlign: relpos.Front, Space: 2})
+	v3ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3.Name(), XAlign: relpos.Left, Space: 10})
+	v3p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v3ct.Name(), YAlign: relpos.Front, Space: 2})
+
+	dp.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v3.Name(), YAlign: relpos.Front, Space: 2})
+	dpct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: dp.Name(), XAlign: relpos.Left, Space: 10})
+	dpp.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: dpct.Name(), YAlign: relpos.Front, Space: 2})
+
+	v4.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3ct.Name(), XAlign: relpos.Left, Space: 10})
+	v4ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v4.Name(), XAlign: relpos.Left, Space: 10})
+	v4p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v4ct.Name(), YAlign: relpos.Back, Space: 2})
+
+	teo.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: eyepos.Name(), YAlign: relpos.Front, Space: 2})
+	teoct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teo.Name(), XAlign: relpos.Left, Space: 10})
+	teop.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teoct.Name(), XAlign: relpos.Left, Space: 10})
+
+	te.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: teo.Name(), YAlign: relpos.Front, Space: 2})
+	tect.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: te.Name(), XAlign: relpos.Left, Space: 10})
+	tep.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: tect.Name(), XAlign: relpos.Left, Space: 10})
 
 	////////////////////
 
