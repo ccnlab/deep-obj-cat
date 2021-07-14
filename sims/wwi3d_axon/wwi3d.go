@@ -189,10 +189,10 @@ func (ss *Sim) New() {
 	ss.RunStats = &etable.Table{}
 
 	ss.Time.Defaults()
-	ss.MinusCycles = 180
+	ss.MinusCycles = 150
 	ss.PlusCycles = 50
 	ss.ErrLrMod.Defaults()
-	ss.ErrLrMod.Base = 0.05 // 0.05 > .02? > .1 in long-term output layer health
+	ss.ErrLrMod.Base = 0.1 // 0.1 > .05 > 0.2 > 0.5 lr.04
 	ss.ErrLrMod.Range.Set(0.2, 0.8)
 
 	ss.Params = ParamSets
@@ -914,7 +914,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 
 	ss.TrialStats(train)
 
-	if train {
+	if train && ss.TrainEnv.Tick.Cur > 0 { // important: don't learn on first tick!
 		ss.ErrLrMod.LrateMod(ss.Net.AsAxon(), float32(1-ss.TrlCosDiff))
 		ss.Net.DWt()
 	}
@@ -956,7 +956,7 @@ func (ss *Sim) TrainTrial() {
 	epc, _, chg := ss.TrainEnv.Counter(env.Epoch)
 	if chg {
 		ss.LogTrnEpc(ss.TrnEpcLog)
-		ss.LrateSched(epc)
+		ss.EpochSched(epc)
 		if ss.ViewOn && ss.TrainUpdt > axon.AlphaCycle {
 			ss.UpdateView(true)
 		}
@@ -1147,24 +1147,32 @@ func (ss *Sim) Stopped() {
 	}
 }
 
-// SaveWeights saves the network weights -- when called with giv.CallMethod
-// it will auto-prompt for filename
-func (ss *Sim) SaveWeights(filename gi.FileName) {
-	ss.Net.SaveWtsJSON(filename)
+// SaveWeights saves the network weights with the std wts filename
+func (ss *Sim) SaveWeights() {
+	if mpi.WorldRank() != 0 {
+		return
+	}
+	fnm := ss.WeightsFileName()
+	mpi.Printf("Saving Weights to: %s\n", fnm)
+	ss.Net.SaveWtsJSON(gi.FileName(fnm))
 }
 
-// LrateSched implements the learning rate schedule
-func (ss *Sim) LrateSched(epc int) {
+// EpochSched implements the epoch-wise schedule
+func (ss *Sim) EpochSched(epc int) {
 	switch epc {
+	case 100:
+		ss.SaveWeights()
 	case 250:
-		ss.Net.LrateSched(0.5)
-		mpi.Printf("dropped lrate to 0.5 at epoch: %d\n", epc)
+		ss.SaveWeights()
+		// ss.Net.LrateSched(0.5)
+		// mpi.Printf("dropped lrate to 0.5 at epoch: %d\n", epc)
 	case 500:
-		ss.Net.LrateSched(0.2)
-		mpi.Printf("dropped lrate to 0.2 at epoch: %d\n", epc)
+		ss.SaveWeights()
+		// ss.Net.LrateSched(0.2)
+		// mpi.Printf("dropped lrate to 0.2 at epoch: %d\n", epc)
 	case 750:
-		ss.Net.LrateSched(0.1)
-		mpi.Printf("dropped lrate to 0.1 at epoch: %d\n", epc)
+		// ss.Net.LrateSched(0.1)
+		// mpi.Printf("dropped lrate to 0.1 at epoch: %d\n", epc)
 	}
 }
 

@@ -49,9 +49,9 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.NoTopo":      "false", // actually best on
-					"Layer.TRC.AvgMix":      "0.5",   // actually best on
-					"Layer.TRC.DriveScale":  "0.05",  // 0.05 > 0.1 > 0.15
+					"Layer.TRC.NoTopo":      "false", //
+					"Layer.TRC.AvgMix":      "0.5",   //
+					"Layer.TRC.DriveScale":  "0.05",  // 0.05 > 0.1 v.70
 					"Layer.Act.GABAB.Gbar":  "0.005", //
 					"Layer.Act.NMDA.Gbar":   "0.1",   // 0.1 > .05 / .03 > .2 -- much stronger!
 					"Layer.Act.Decay.Act":   "0.5",
@@ -174,7 +174,7 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base": "0.04", // must set initial lrate here when using schedule!
+					"Prjn.Learn.Lrate.Base": "0.02", // .02 > .04 lvis
 					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
 					"Prjn.PrjnScale.ScaleLrate": "2",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8", // good now...
