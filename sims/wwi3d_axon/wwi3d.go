@@ -175,7 +175,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = false
+	ss.LIPOnly = true
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -192,7 +192,7 @@ func (ss *Sim) New() {
 	ss.MinusCycles = 150
 	ss.PlusCycles = 50
 	ss.ErrLrMod.Defaults()
-	ss.ErrLrMod.Base = 0.1 // 0.1 > .05 > 0.2 > 0.5 lr.04
+	ss.ErrLrMod.Base = 0.2 // 0.2 > 0.1
 	ss.ErrLrMod.Range.Set(0.2, 0.8)
 
 	ss.Params = ParamSets
@@ -372,7 +372,7 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	v1m := net.AddLayer4D("V1m", 8, 8, 5, 4, emer.Input)
 	v1h := net.AddLayer4D("V1h", 16, 16, 5, 4, emer.Input)
 
-	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 2, 2)
+	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 4, 4)
 	lipp.Shape().SetShape([]int{8, 8, 1, 1}, nil, nil)
 
 	mtpos := net.AddLayer4D("MTPos", 8, 8, 1, 1, emer.Hidden)
@@ -395,24 +395,14 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	sac.SetClass("PopIn")
 	objvel.SetClass("PopIn")
 
-	v1h.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1m.Name(), YAlign: relpos.Front, Space: 2})
-	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
-	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
-	lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
-	mtpos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 2})
-
-	eyepos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
-	sacplan.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: eyepos.Name(), XAlign: relpos.Left, Space: 10})
-	sac.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sacplan.Name(), XAlign: relpos.Left, Space: 10})
-	objvel.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sac.Name(), XAlign: relpos.Left, Space: 10})
-
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
 
 	net.ConnectLayers(v1m, mtpos, pone2one, emer.Forward).SetClass("Fixed")
 	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
+	net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")           // only helpful with rel = 2
 
-	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)
+	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full) // full > pone2one
 	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
 	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
 	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
@@ -426,6 +416,19 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	net.ConnectLayers(eyepos, lipct, full, emer.Forward) // InitWts sets ss.PrjnGaussTopo
 	net.ConnectLayers(sac, lipct, full, emer.Forward)    // InitWts sets ss.PrjnSigTopo
 	net.ConnectLayers(objvel, lipct, full, emer.Forward) // InitWts sets ss.PrjnSigTopo
+
+	//	Position
+	v1h.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1m.Name(), YAlign: relpos.Front, Space: 2})
+	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1m.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
+	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
+	lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
+	mtpos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 2})
+
+	eyepos.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
+	sacplan.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: eyepos.Name(), XAlign: relpos.Left, Space: 10})
+	sac.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sacplan.Name(), XAlign: relpos.Left, Space: 10})
+	objvel.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sac.Name(), XAlign: relpos.Left, Space: 10})
+
 }
 
 // ConfigNetRest configures the rest of the network

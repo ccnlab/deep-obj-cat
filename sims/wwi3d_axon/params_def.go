@@ -51,7 +51,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.TRC.NoTopo":      "false", //
 					"Layer.TRC.AvgMix":      "0.5",   //
-					"Layer.TRC.DriveScale":  "0.05",  // 0.05 > 0.1 v.70
+					"Layer.TRC.DriveScale":  "0.1",   // LIP .1 > .05
 					"Layer.Act.GABAB.Gbar":  "0.005", //
 					"Layer.Act.NMDA.Gbar":   "0.1",   // 0.1 > .05 / .03 > .2 -- much stronger!
 					"Layer.Act.Decay.Act":   "0.5",
@@ -83,7 +83,7 @@ var ParamSets = params.Sets{
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":    "1.1",
-					"Layer.Inhib.Pool.On":     "false",
+					"Layer.Inhib.Pool.On":     "false", // false > true
 					"Layer.Inhib.ActAvg.Init": "0.05",
 					"Layer.Inhib.ActAvg.Targ": "0.05",
 				}},
@@ -149,9 +149,10 @@ var ParamSets = params.Sets{
 			// 	}},
 			{Sel: "#LIPP", Desc: "layer only",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "0.9", // 0.9 > 0.8 > 1.0
-					"Layer.Inhib.Pool.On":  "false",
-					"Layer.TRC.DriveScale": "0.05", // 0.05 > 0.1 > 0.15
+					"Layer.Inhib.Layer.Gi":   "0.6", // no diff 0.5..0.9
+					"Layer.Inhib.Pool.On":    "false",
+					"Layer.TRC.DriveScale":   "0.15", // .15 > .1 > .05
+					"Layer.TRC.FullDriveAct": "0.4",
 				}},
 			{Sel: "#MTPos", Desc: "layer only",
 				Params: params.Params{
@@ -174,7 +175,7 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base": "0.02", // .02 > .04 lvis
+					"Prjn.Learn.Lrate.Base": "0.02", // .02 > .04 here & lvis
 					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
 					"Prjn.PrjnScale.ScaleLrate": "2",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8", // good now...
@@ -195,10 +196,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".Fixed", Desc: "fixed weights",
 				Params: params.Params{
-					"Prjn.Learn.Learn":   "false",
-					"Prjn.SWt.Init.Mean": "0.8",
-					"Prjn.SWt.Init.Var":  "0",
-					"Prjn.SWt.Init.Sym":  "false",
+					"Prjn.Learn.Learn":     "false",
+					"Prjn.PrjnScale.Adapt": "false", // key to not adapt!
+					"Prjn.SWt.Init.Mean":   "0.8",   // 0.8 better
+					"Prjn.SWt.Init.Var":    "0",
+					"Prjn.SWt.Init.Sym":    "false",
 				}},
 			// {Sel: ".Forward", Desc: "std feedforward",
 			// 	Params: params.Params{
@@ -272,6 +274,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.SWt.Init.Mean": "0.8", // 0.8 makes a diff for lower too, more V1 divergence at .5
 					"Prjn.PrjnScale.Rel": "1",   // 1 maybe better
+				}},
+			{Sel: ".CTSelfLIP", Desc: "CT to CT for LIP",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "2", // 2 > 1
 				}},
 			{Sel: ".CTSelfLower", Desc: "CT to CT for lower-level layers: V2,3,4",
 				Params: params.Params{
