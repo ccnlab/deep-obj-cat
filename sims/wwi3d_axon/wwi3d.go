@@ -36,6 +36,8 @@ import (
 	"github.com/emer/etable/etensor"
 	"github.com/emer/etable/etview" // include to get gui views
 	"github.com/emer/etable/metric"
+	"github.com/emer/etable/norm"
+	"github.com/emer/etable/pca"
 	"github.com/emer/etable/split"
 
 	"github.com/emer/axon/axon"
@@ -82,6 +84,8 @@ type Sim struct {
 	BinarizeV1       bool            `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
 	TrnTrlLog        *etable.Table   `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table   `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
+	TrnTrlRepLog     *etable.Table   `view:"no-inline" desc:"training trial-level reps log data"`
+	TrnTrlRepLogAll  *etable.Table   `view:"no-inline" desc:"training trial-level reps log data"`
 	CatLayActs       *etable.Table   `view:"no-inline" desc:"super layer activations per category / object"`
 	CatLayActsDest   *etable.Table   `view:"no-inline" desc:"MPI dest super layer activations per category / object"`
 	RSA              RSA             `view:"no-inline" desc:"RSA data"`
@@ -94,6 +98,7 @@ type Sim struct {
 	RunStats         *etable.Table   `view:"no-inline" desc:"aggregate stats on all runs"`
 	MinusCycles      int             `desc:"number of minus-phase cycles"`
 	PlusCycles       int             `desc:"number of plus-phase cycles"`
+	SubPools         bool            `desc:"if true, organize layers and connectivity with 2x2 sub-pools within each topological pool"`
 	ErrLrMod         axon.LrateMod   `view:"inline" desc:"learning rate modulation as function of error"`
 	Params           params.Sets     `view:"no-inline" desc:"full collection of param sets"`
 	ParamSet         string          `desc:"which set of *additional* parameters to use -- always applies Base and optionaly this next if set"`
@@ -111,6 +116,7 @@ type Sim struct {
 	MaxTrls          int             `desc:"maximum number of training trials per epoch (each trial is MaxTicks ticks)"`
 	MaxTicks         int             `desc:"max number of ticks, for logs, stats"`
 	NZeroStop        int             `desc:"if a positive number, training will stop after this many epochs with zero SSE"`
+	RepsInterval     int             `desc:"how often to analyze the representations"`
 	TrainEnv         Obj3DSacEnv     `desc:"Training environment -- 3D Object training"`
 	TestEnv          Obj3DSacEnv     `desc:"Testing environment -- testing 3D Objects"`
 	Time             axon.Time       `desc:"axon timing parameters and state"`
@@ -132,6 +138,7 @@ type Sim struct {
 	TrlCosDiff     float64   `inactive:"+" desc:"cos diff used for driving ErrLrMod"`
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
+	PCA            pca.PCA   `view:"-" desc:"pca obj"`
 
 	// internal state - view:"-"
 	Win          *gi.Window                    `view:"-" desc:"main GUI window"`
@@ -175,10 +182,12 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true
+	ss.LIPOnly = false
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
+	ss.TrnTrlRepLog = &etable.Table{}
+	ss.TrnTrlRepLogAll = &etable.Table{}
 	ss.CatLayActs = &etable.Table{}
 	ss.CatLayActsDest = &etable.Table{}
 	ss.TrnEpcLog = &etable.Table{}
@@ -191,6 +200,8 @@ func (ss *Sim) New() {
 	ss.Time.Defaults()
 	ss.MinusCycles = 150
 	ss.PlusCycles = 50
+	ss.SubPools = false
+	ss.RepsInterval = 10
 	ss.ErrLrMod.Defaults()
 	ss.ErrLrMod.Base = 0.2 // 0.2 > 0.1
 	ss.ErrLrMod.Range.Set(0.2, 0.8)
@@ -284,6 +295,8 @@ func (ss *Sim) Config() {
 	}
 	ss.ConfigTrnTrlLog(ss.TrnTrlLog)
 	ss.ConfigTrnTrlLog(ss.TrnTrlLogAll)
+	ss.ConfigTrnTrlRepLog(ss.TrnTrlRepLog)
+	ss.ConfigTrnTrlRepLog(ss.TrnTrlRepLogAll)
 	ss.ConfigTrnEpcLog(ss.TrnEpcLog)
 	ss.ConfigTstEpcLog(ss.TstEpcLog)
 	ss.ConfigTstTrlLog(ss.TstTrlLog)
@@ -372,7 +385,7 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	v1m := net.AddLayer4D("V1m", 8, 8, 5, 4, emer.Input)
 	v1h := net.AddLayer4D("V1h", 16, 16, 5, 4, emer.Input)
 
-	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 4, 4)
+	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 2, 2) // 4, 4 tiny bit better than 2,2
 	lipp.Shape().SetShape([]int{8, 8, 1, 1}, nil, nil)
 
 	mtpos := net.AddLayer4D("MTPos", 8, 8, 1, 1, emer.Hidden)
@@ -550,7 +563,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	////////////////////
 	// to V2
 
-	net.ConnectLayers(v2, v2, sameu, emer.Lateral)
+	// net.ConnectLayers(v2, v2, sameu, emer.Lateral)
 
 	net.ConnectCtxtToCT(v2ct, v2ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 	v2ct.RecvPrjns().SendName(v2.Name()).SetClass("CTFmSuperLower")
@@ -576,7 +589,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	////////////////////
 	// to V3
 
-	net.ConnectLayers(v3, v3, sameu, emer.Lateral)
+	// net.ConnectLayers(v3, v3, sameu, emer.Lateral)
 
 	net.ConnectCtxtToCT(v3ct, v3ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 	v3ct.RecvPrjns().SendName(v3.Name()).SetClass("CTFmSuperLower")
@@ -612,7 +625,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	////////////////////
 	// to V4
 
-	net.ConnectLayers(v4, v4, sameu, emer.Lateral)
+	// net.ConnectLayers(v4, v4, sameu, emer.Lateral)
 
 	net.ConnectCtxtToCT(v4ct, v4ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 
@@ -668,6 +681,12 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1m, v4, rndcut, emer.Forward).SetClass("V1SC")
 	net.ConnectLayers(v1m, teo, rndcut, emer.Forward).SetClass("V1SC")
 	net.ConnectLayers(v1m, te, rndcut, emer.Forward).SetClass("V1SC")
+
+	net.ConnectLayers(v1m, v3ct, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, dpct, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, v4ct, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, teoct, rndcut, emer.Forward).SetClass("V1SC")
+	net.ConnectLayers(v1m, tect, rndcut, emer.Forward).SetClass("V1SC")
 
 	////////////////////
 	// Position
@@ -980,6 +999,9 @@ func (ss *Sim) TrainTrial() {
 	ss.ApplyInputs(&ss.TrainEnv)
 	ss.ThetaCyc(true) // train
 	ss.LogTrnTrl(ss.TrnTrlLog)
+	if ss.RepsInterval > 0 && epc%ss.RepsInterval == 0 {
+		ss.LogTrnRepTrl(ss.TrnTrlRepLog)
+	}
 	if ss.CurImgGrid != nil {
 		ss.CurImgGrid.UpdateSig()
 	}
@@ -1032,6 +1054,9 @@ func (ss *Sim) InitStats() {
 	net := ss.Net
 	for _, ly := range net.Layers {
 		if ly.IsOff() {
+			continue
+		}
+		if ly.Name() == "MTPos" {
 			continue
 		}
 		switch ly.Type() {
@@ -1583,6 +1608,135 @@ func (ss *Sim) ConfigCatLayActs(dt *etable.Table) {
 }
 
 //////////////////////////////////////////////
+//  TrnTrlRepLog
+
+// CenterPoolsIdxs returns the indexes for 2x2 center pools (including sub-pools):
+// nu = number of units per pool, sis = starting indexes
+func (ss *Sim) CenterPoolsIdxs(ly *axon.Layer) (nu int, sis []int) {
+	nu = ly.Shp.Dim(2) * ly.Shp.Dim(3)
+	npy := ly.Shp.Dim(0)
+	npx := ly.Shp.Dim(1)
+	npxact := npx
+	nsp := 1
+	if ss.SubPools {
+		npy /= 2
+		npx /= 2
+		nsp = 2
+	}
+	cpy := (npy - 1) / 2
+	cpx := (npx - 1) / 2
+	if npx <= 2 {
+		cpx = 0
+	}
+	if npy <= 2 {
+		cpy = 0
+	}
+
+	for py := 0; py < 2; py++ {
+		for px := 0; px < 2; px++ {
+			for sy := 0; sy < nsp; sy++ {
+				for sx := 0; sx < nsp; sx++ {
+					y := (py+cpy)*nsp + sy
+					x := (px+cpx)*nsp + sx
+					si := (y*npxact + x) * nu
+					sis = append(sis, si)
+				}
+			}
+		}
+	}
+	return
+}
+
+// CopyCenterPools copy 2 center pools of ActM to tensor
+func (ss *Sim) CopyCenterPools(ly *axon.Layer, vl *etensor.Float32) {
+	nu, sis := ss.CenterPoolsIdxs(ly)
+	vl.SetShape([]int{len(sis) * nu}, nil, nil)
+	ti := 0
+	for _, si := range sis {
+		for ni := 0; ni < nu; ni++ {
+			vl.Values[ti] = ly.Neurons[si+ni].ActM
+			ti++
+		}
+	}
+}
+
+// LogTrnRepTrl adds data from current trial to the TrnTrlRepLog table.
+func (ss *Sim) LogTrnRepTrl(dt *etable.Table) {
+	epc := ss.TrainEnv.Epoch.Cur
+	trl := ss.TrainEnv.Trial.Cur
+	tick := ss.TrainEnv.Tick.Cur
+	row := dt.Rows
+
+	if row > 1 { // reset at new epoch
+		lstepc := int(dt.CellFloat("Epoch", row-1))
+		if lstepc != epc {
+			dt.SetNumRows(0)
+			row = 0
+		}
+	}
+	if dt.Rows <= row {
+		dt.SetNumRows(row + 1)
+	}
+
+	dt.SetCellFloat("Run", row, float64(ss.TrainEnv.Run.Cur))
+	dt.SetCellFloat("Epoch", row, float64(epc))
+	dt.SetCellFloat("Trial", row, float64(trl))
+	dt.SetCellFloat("Tick", row, float64(tick))
+	dt.SetCellFloat("Idx", row, float64(row))
+	dt.SetCellString("Obj", row, ss.TrainEnv.CurCat)
+	dt.SetCellString("TrialName", row, ss.TrainEnv.String())
+
+	for _, lnm := range ss.HidLays {
+		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
+		lvt := ss.ValsTsr(lnm)
+		if ly.Is4D() && ly.Shp.Dim(0) > 2 && ly.Shp.Dim(2) > 2 && !strings.HasPrefix(ly.Nm, "TE") {
+			ss.CopyCenterPools(ly, lvt)
+			dt.SetCellTensor(lnm, row, lvt)
+		} else {
+			ly.UnitValsTensor(lvt, "ActM")
+			dt.SetCellTensor(lnm, row, lvt)
+		}
+	}
+
+	// if ss.TrnTrlFile != nil && (!ss.UseMPI || ss.SaveProcLog) { // otherwise written at end of epoch, integrated
+	// 	if ss.TrainEnv.Run.Cur == ss.StartRun && epc == 0 && row == 0 {
+	// 		dt.WriteCSVHeaders(ss.TrnTrlFile, etable.Tab)
+	// 	}
+	// 	dt.WriteCSVRow(ss.TrnTrlFile, row, etable.Tab)
+	// }
+
+	// note: essential to use Go version of update when called from another goroutine
+	// ss.TrnTrlPlot.GoUpdate()
+}
+
+func (ss *Sim) ConfigTrnTrlRepLog(dt *etable.Table) {
+	dt.SetMetaData("name", "TrnTrlRepLog")
+	dt.SetMetaData("desc", "Record of training per input pattern")
+	dt.SetMetaData("read-only", "true")
+	dt.SetMetaData("precision", strconv.Itoa(LogPrec))
+
+	sch := etable.Schema{
+		{"Run", etensor.INT64, nil, nil},
+		{"Epoch", etensor.INT64, nil, nil},
+		{"Trial", etensor.INT64, nil, nil},
+		{"Tick", etensor.INT64, nil, nil},
+		{"Idx", etensor.INT64, nil, nil},
+		{"Obj", etensor.STRING, nil, nil},
+		{"TrialName", etensor.STRING, nil, nil},
+	}
+	for _, lnm := range ss.HidLays {
+		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
+		if ly.Is4D() && ly.Shp.Dim(0) > 2 && ly.Shp.Dim(2) > 2 && !strings.HasPrefix(ly.Nm, "TE") {
+			nu, sis := ss.CenterPoolsIdxs(ly)
+			sch = append(sch, etable.Column{lnm, etensor.FLOAT64, []int{len(sis) * nu}, nil})
+		} else {
+			sch = append(sch, etable.Column{lnm, etensor.FLOAT64, ly.Shp.Shp, nil})
+		}
+	}
+	dt.SetFromSchema(sch, 0)
+}
+
+//////////////////////////////////////////////
 //  TrnEpcLog
 
 // HogDead computes the proportion of units in given layer name with ActAvg over hog thr
@@ -1771,11 +1925,55 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	}
 
 	for li, lnm := range ss.PulvLays {
+		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
+		dt.SetCellFloat(lnm+"_MaxGeM", row, float64(ly.ActAvg.AvgMaxGeM))
+		dt.SetCellFloat(lnm+"_ActAvg", row, float64(ly.ActAvg.ActMAvg))
 		for tck := 0; tck < ss.MaxTicks; tck++ {
 			val := tags.Cols[1+2*li].FloatVal1D(tck)
 			dt.SetCellFloat(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), row, val)
 			// val = tags.Cols[2+2*li].FloatVal1D(tck)
 			// dt.SetCellFloat(fmt.Sprintf("%s_UnitErr_%d", lnm, tck), row, val)
+		}
+	}
+
+	if ss.RepsInterval > 0 && epc%ss.RepsInterval == 0 {
+		reps := etable.NewIdxView(ss.TrnTrlRepLog)
+		if ss.UseMPI {
+			empi.GatherTableRows(ss.TrnTrlRepLogAll, ss.TrnTrlRepLog, ss.Comm)
+			reps = etable.NewIdxView(ss.TrnTrlRepLogAll)
+		}
+		// reps.SortColName("Obj", true)
+		for _, lnm := range ss.HidLays {
+			ss.PCA.TableCol(reps, lnm, metric.Covariance64)
+			var nstr float64
+			ln := len(ss.PCA.Values)
+			for i, v := range ss.PCA.Values {
+				// fmt.Printf("%s\t\t %d  %g\n", lnm, i, v)
+				if v >= 0.01 {
+					nstr = float64(ln - i)
+					break
+				}
+			}
+			var top5, next5 float64
+			for i := 0; i < 5; i++ {
+				top5 += ss.PCA.Values[ln-1-i]
+				next5 += ss.PCA.Values[ln-6-i]
+			}
+			sum := norm.Sum64(ss.PCA.Values)
+			ravg := (sum - (top5 + next5)) / float64(ln-10)
+			dt.SetCellFloat(lnm+"_PCA_NStrong", row, nstr)
+			dt.SetCellFloat(lnm+"_PCA_Top5", row, top5/5)
+			dt.SetCellFloat(lnm+"_PCA_Next5", row, next5/5)
+			dt.SetCellFloat(lnm+"_PCA_Rest", row, ravg)
+		}
+	} else {
+		if row > 0 {
+			for _, lnm := range ss.HidLays {
+				dt.SetCellFloat(lnm+"_PCA_NStrong", row, dt.CellFloat(lnm+"_PCA_NStrong", row-1))
+				dt.SetCellFloat(lnm+"_PCA_Top5", row, dt.CellFloat(lnm+"_PCA_Top5", row-1))
+				dt.SetCellFloat(lnm+"_PCA_Next5", row, dt.CellFloat(lnm+"_PCA_Next5", row-1))
+				dt.SetCellFloat(lnm+"_PCA_Rest", row, dt.CellFloat(lnm+"_PCA_Rest", row-1))
+			}
 		}
 	}
 
@@ -1817,6 +2015,10 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		sch = append(sch, etable.Column{lnm + "_GiMult", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_NStrong", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_Top5", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_Next5", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_Rest", etensor.FLOAT64, nil, nil})
 	}
 	for _, lnm := range ss.PulvLays {
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
@@ -1835,6 +2037,11 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	sch = append(sch, etable.Column{"TE_ExptDst", etensor.FLOAT64, nil, nil})
 
 	for _, lnm := range ss.InLays {
+		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
+	}
+
+	for _, lnm := range ss.PulvLays {
+		sch = append(sch, etable.Column{lnm + "_MaxGeM", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
 	}
 
