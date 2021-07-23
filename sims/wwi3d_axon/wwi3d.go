@@ -673,6 +673,23 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("FwdToPulv") // sig effect on cosdiff, not much other eff
 
 	////////////////////
+	// Latinhib
+
+	// this extra inhibition drives decorrelation, produces significant learning benefits
+	net.LateralConnectLayerPrjn(v2, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(v2ct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(v3, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(v3ct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(dp, full, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(dpct, full, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(v4, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(v4ct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(teo, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(teoct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(te, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	net.LateralConnectLayerPrjn(tect, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+
+	////////////////////
 	// Shortcuts
 
 	// V1 shortcuts best for syncing all layers -- like the pulvinar basically
@@ -1928,6 +1945,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		dt.SetCellFloat(lnm+"_MaxGeM", row, float64(ly.ActAvg.AvgMaxGeM))
 		dt.SetCellFloat(lnm+"_ActAvg", row, float64(ly.ActAvg.ActMAvg))
+		dt.SetCellFloat(lnm+"_GiMult", row, float64(ly.ActAvg.GiMult))
 		for tck := 0; tck < ss.MaxTicks; tck++ {
 			val := tags.Cols[1+2*li].FloatVal1D(tck)
 			dt.SetCellFloat(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), row, val)
@@ -2043,6 +2061,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 	for _, lnm := range ss.PulvLays {
 		sch = append(sch, etable.Column{lnm + "_MaxGeM", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_GiMult", etensor.FLOAT64, nil, nil})
 	}
 
 	for tck := 0; tck < ss.MaxTicks; tck++ {

@@ -103,45 +103,59 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.Gi":        "1.1",
 					"Layer.Inhib.ActAvg.Init":    "0.06", // .06 stable without adapting, was .04
 					"Layer.Inhib.ActAvg.Targ":    "0.06",
-					"Layer.Inhib.ActAvg.AdaptGi": "true", // try false?
+					"Layer.Inhib.ActAvg.AdaptGi": "false", // try false?
 				}},
 			{Sel: ".V3", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":        "true",
 					"Layer.Inhib.Pool.Gi":        "1.1",
-					"Layer.Inhib.ActAvg.Init":    "0.06",
-					"Layer.Inhib.ActAvg.Targ":    "0.06",
-					"Layer.Inhib.ActAvg.AdaptGi": "true",
-				}},
-			{Sel: ".V4", Desc: "pool inhib, initial activity, less avgl.gain",
-				Params: params.Params{
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.05",
-					"Layer.Inhib.ActAvg.Targ":    "0.05",
+					"Layer.Inhib.ActAvg.Init":    "0.08", // was .06
+					"Layer.Inhib.ActAvg.Targ":    "0.08",
 					"Layer.Inhib.ActAvg.AdaptGi": "false",
 				}},
 			{Sel: ".DP", Desc: "no pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":        "false",
-					"Layer.Inhib.ActAvg.Init":    "0.06",
+					"Layer.Inhib.ActAvg.Init":    "0.1", // .3 with gi1.1, DPCT .06
+					"Layer.Inhib.ActAvg.Targ":    "0.1",
+					"Layer.Inhib.ActAvg.AdaptGi": "false",
+				}},
+			{Sel: "#DP", Desc: "no pool inhib, initial activity",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "1.3", // actavg .3 with 1.1
+				}},
+			{Sel: ".V4", Desc: "pool inhib, initial activity",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":        "true",
+					"Layer.Inhib.ActAvg.Init":    "0.06", // .06 once DP, TEO fixed
 					"Layer.Inhib.ActAvg.Targ":    "0.06",
 					"Layer.Inhib.ActAvg.AdaptGi": "false",
 				}},
-			{Sel: ".TEO", Desc: "pool inhib, initial activity, less avgl.gain",
+			{Sel: ".TEO", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Layer.On":       "false",
 					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.06",
-					"Layer.Inhib.ActAvg.Targ":    "0.06",
-					"Layer.Inhib.ActAvg.AdaptGi": "true", // adapt > not still better v34
+					"Layer.Inhib.ActAvg.Init":    "0.1", // .1 for 1.2, .08 for 1.3
+					"Layer.Inhib.ActAvg.Targ":    "0.1",
+					"Layer.Inhib.ActAvg.AdaptGi": "false", // false works with higher gi
+					"Layer.Inhib.Pool.Gi":        "1.2",
 				}},
-			{Sel: ".TE", Desc: "pool inhib, initial activity, less avgl.gain",
+			{Sel: "#TEO", Desc: "stronger than reg",
+				Params: params.Params{
+					"Layer.Inhib.Pool.Gi": "1.3", // 1.2 or 1.3 > 1.1
+				}},
+			{Sel: ".TE", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Layer.On":       "false",
 					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.06",
-					"Layer.Inhib.ActAvg.Targ":    "0.06",
-					"Layer.Inhib.ActAvg.AdaptGi": "true", // adapt > not still better v34
+					"Layer.Inhib.ActAvg.Init":    "0.1",
+					"Layer.Inhib.ActAvg.Targ":    "0.1",
+					"Layer.Inhib.ActAvg.AdaptGi": "false", // false ok with higher gi
+					"Layer.Inhib.Pool.Gi":        "1.1",
+				}},
+			{Sel: "#TE", Desc: "stronger than reg",
+				Params: params.Params{
+					"Layer.Inhib.Pool.Gi": "1.2", // 1.2 > 1.1
 				}},
 			{Sel: "#LIPCT", Desc: "special",
 				Params: params.Params{
@@ -211,6 +225,17 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "0.2",
 				}},
+			{Sel: ".Inhib", Desc: "inhibitory projection",
+				Params: params.Params{
+					"Prjn.Learn.Learn":      "true",   // learned decorrel is good
+					"Prjn.Learn.Lrate.Base": "0.0001", // .0001 > .001 -- slower better!
+					"Prjn.SWt.Init.Var":     "0.0",
+					"Prjn.SWt.Init.Mean":    "0.1",
+					"Prjn.SWt.Adapt.On":     "false",
+					"Prjn.PrjnScale.Init":   "0.1", // .1 = .2, slower blowup
+					"Prjn.PrjnScale.Adapt":  "false",
+					"Prjn.IncGain":          "1", // .5 def
+				}},
 
 			{Sel: ".V1V2", Desc: "special SWt params",
 				Params: params.Params{
@@ -245,6 +270,16 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.Rel": "0.2", // .1 > .2, orig .5 -- see BackStrong
 				}},
 
+			{Sel: ".CTToPulv", Desc: "CT to pulvinar needs to be weaker in general, like most prjns",
+				Params: params.Params{
+					"Prjn.PrjnScale.Init": "0.8",
+					"Prjn.PrjnScale.Rel":  "1.25",
+				}},
+			{Sel: "#TECTToTEP", Desc: "not as weak",
+				Params: params.Params{
+					"Prjn.PrjnScale.Init": "0.8",
+					"Prjn.PrjnScale.Rel":  "1.25",
+				}},
 			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "0.1",
