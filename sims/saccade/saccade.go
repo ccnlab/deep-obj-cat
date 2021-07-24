@@ -255,7 +255,7 @@ func (ss *Sim) Defaults() {
 	ss.PrjnSigTopo.Size.Set(1, 1)
 	ss.PrjnSigTopo.Skip.Set(0, 0)
 	ss.PrjnSigTopo.Start.Set(0, 0)
-	ss.PrjnSigTopo.TopoRange.Min = 0.6
+	ss.PrjnSigTopo.TopoRange.Set(0.25, 0.75)
 	ss.PrjnSigTopo.SigFull.On = true
 	ss.PrjnSigTopo.SigFull.Gain = 0.05
 	ss.PrjnSigTopo.SigFull.CtrMove = 0.5
@@ -264,7 +264,7 @@ func (ss *Sim) Defaults() {
 	ss.PrjnGaussTopo.Size.Set(1, 1)
 	ss.PrjnGaussTopo.Skip.Set(0, 0)
 	ss.PrjnGaussTopo.Start.Set(0, 0)
-	ss.PrjnGaussTopo.TopoRange.Min = 0.6
+	ss.PrjnGaussTopo.TopoRange.Set(0.25, 0.75)
 	ss.PrjnGaussTopo.GaussInPool.On = false // Full only
 	ss.PrjnGaussTopo.GaussFull.Sigma = 0.6
 	ss.PrjnGaussTopo.GaussFull.Wrap = true
@@ -398,11 +398,30 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// ss.InitWts(net) // too slow
 }
 
+func (ss *Sim) SetTopoSWts(net *deep.Network, send, recv string, pooltile *prjn.PoolTile) {
+	slay := net.LayerByName(send)
+	rlay := net.LayerByName(recv)
+	pj := rlay.RecvPrjns().SendName(send).(axon.AxonPrjn).AsAxon()
+	scales := &etensor.Float32{}
+	pooltile.TopoWts(slay.Shape(), rlay.Shape(), scales)
+	pj.SetSWtsRPool(scales)
+}
+
 func (ss *Sim) InitWts(net *deep.Network) {
 	if len(net.Layers) == 0 {
 		return
 	}
 	net.InitWts()
+	net.InitTopoSWts() //  sets all wt scales
+
+	// these are not set automatically b/c prjn is Full, not PoolTile
+	ss.SetTopoSWts(net, "EyePos", "LIP", ss.PrjnGaussTopo)
+	ss.SetTopoSWts(net, "SacPlan", "LIP", ss.PrjnSigTopo)
+	ss.SetTopoSWts(net, "ObjVel", "LIP", ss.PrjnSigTopo)
+
+	ss.SetTopoSWts(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
+	ss.SetTopoSWts(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
+	ss.SetTopoSWts(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1790,7 +1809,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	gi.SetAppName("saccade")
 	gi.SetAppAbout(`saccade does deep predictive learning on saccade eye movements. See <a href="https://github.com/ccnlab/deep-obj-cat/blob/master/sims/saccade/README.md">README.md on GitHub</a>.</p>`)
 
-	win := gi.NewMainWindow("saccade", "WWI 3D", width, height)
+	win := gi.NewMainWindow("saccade", "Saccade", width, height)
 	ss.Win = win
 
 	vp := win.WinViewport2D()

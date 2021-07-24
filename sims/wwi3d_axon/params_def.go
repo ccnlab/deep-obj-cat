@@ -43,7 +43,7 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi":  "1.1",
 					"Layer.Act.KNa.On":      "true",
 					"Layer.Act.NMDA.Gbar":   "0.03", // larger not better
-					"Layer.Act.GABAB.Gbar":  "0.005",
+					"Layer.Act.GABAB.Gbar":  "0.2",
 					"Layer.Act.Decay.Act":   "0.0",
 					"Layer.Act.Decay.Glong": "0.0",
 				}},
@@ -52,8 +52,8 @@ var ParamSets = params.Sets{
 					"Layer.TRC.NoTopo":      "false", //
 					"Layer.TRC.AvgMix":      "0.5",   //
 					"Layer.TRC.DriveScale":  "0.05",  // LIP .1 > .05 -- too high might = too much plus phase
-					"Layer.Act.GABAB.Gbar":  "0.005", //
 					"Layer.Act.NMDA.Gbar":   "0.03",  // 0.1 > .05 / .03 > .2 -- much stronger!
+					"Layer.Act.GABAB.Gbar":  "0.2",   //
 					"Layer.Act.Decay.Act":   "0.5",
 					"Layer.Act.Decay.Glong": "1", // clear long
 				}},
