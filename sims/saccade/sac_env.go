@@ -78,7 +78,7 @@ func (sc *SacEnv) Desc() string { return sc.Dsc }
 
 // Defaults sets generic defaults -- use ParamSet to override
 func (sc *SacEnv) Defaults() {
-	sc.TrajLenRange.Set(4, 4)
+	sc.TrajLenRange.Set(8, 8)
 	sc.FixDurRange.Set(2, 2)
 	sc.SacGenMax = 0.4
 	sc.VelGenMax = 0.4
@@ -96,16 +96,16 @@ func (sc *SacEnv) Defaults() {
 	sc.V1Pop.Defaults()
 	sc.V1Pop.Min.Set(-0.9, -0.9)
 	sc.V1Pop.Max.Set(0.9, 0.9)
-	sc.V1Pop.Sigma.Set(0.1, 0.1)
+	sc.V1Pop.Sigma.Set(0.2, 0.2) // 0.1
 
-	sc.V1Tsr.SetShape([]int{21, 21}, nil, yx)
+	sc.V1Tsr.SetShape([]int{11, 11}, nil, yx)
 
 	sc.EyePop.Defaults()
 	sc.EyePop.Min.Set(-1.1, -1.1)
 	sc.EyePop.Max.Set(1.1, 1.1)
-	sc.EyePop.Sigma.Set(0.1, 0.1)
+	sc.EyePop.Sigma.Set(0.2, 0.2) // 0.1 orig
 
-	sc.EyePosTsr.SetShape([]int{21, 21}, nil, yx)
+	sc.EyePosTsr.SetShape([]int{11, 11}, nil, yx)
 
 	sc.SacPop.Defaults()
 	sc.SacPop.Min.Set(-0.45, -0.45)
@@ -402,6 +402,9 @@ func (sc *SacEnv) Step() bool {
 	// if we will exceed traj next time, prepare new trajectory
 	if sc.Tick.Cur+1 >= sc.Tick.Max {
 		sc.NextTraj()
+		if sc.Trial.Incr() {
+			sc.Epoch.Incr()
+		}
 	} else { // otherwise, move object along and see if we need to plan saccade
 		sc.ObjPosNext = sc.ObjPos.Add(sc.ObjVel)
 		if sc.SacTick.Cur+1 >= sc.SacTick.Max {

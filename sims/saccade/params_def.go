@@ -39,21 +39,21 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
-					"Layer.CtxtGeGain":      "0.3",
+					"Layer.CtxtGeGain":      "0.1",
 					"Layer.Inhib.Layer.Gi":  "1.1",
 					"Layer.Act.KNa.On":      "true",
 					"Layer.Act.NMDA.Gbar":   "0.03", // larger not better
-					"Layer.Act.GABAB.Gbar":  "0.2",
-					"Layer.Act.Decay.Act":   "0.0",
+					"Layer.Act.GABAB.Gbar":  "0.005",
+					"Layer.Act.Decay.Act":   "0.5",
 					"Layer.Act.Decay.Glong": "0.0",
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
 					"Layer.TRC.NoTopo":      "false", //
 					"Layer.TRC.AvgMix":      "0.5",   //
-					"Layer.TRC.DriveScale":  "0.05",  // LIP .1 > .05 -- too high might = too much plus phase
+					"Layer.TRC.DriveScale":  "0.1",   // LIP .1 > .05 -- too high might = too much plus phase
 					"Layer.Act.GABAB.Gbar":  "0.005", //
-					"Layer.Act.NMDA.Gbar":   "0.1",   // 0.1 > .05 / .03 > .2 -- much stronger!
+					"Layer.Act.NMDA.Gbar":   "0.03",  // 0.1 > .05 / .03 > .2 -- much stronger!
 					"Layer.Act.Decay.Act":   "0.5",
 					"Layer.Act.Decay.Glong": "1", // clear long
 				}},
@@ -76,6 +76,10 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.ActAvg.Init": "0.05",
 					"Layer.Inhib.ActAvg.Targ": "0.05",
 				}},
+			{Sel: "#LIPP", Desc: "high, pool inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "1.1",
+				}},
 			{Sel: ".PopIn", Desc: "pop-code input",
 				Params: params.Params{
 					"Layer.Inhib.ActAvg.Init": "0.06",
@@ -83,8 +87,8 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#EyePos", Desc: "eyeposition input",
 				Params: params.Params{
-					"Layer.Inhib.ActAvg.Init": "0.02",
-					"Layer.Inhib.ActAvg.Targ": "0.02",
+					"Layer.Inhib.ActAvg.Init": "0.06",
+					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 
 			// prjn classes, specifics
@@ -98,13 +102,13 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
 					"Prjn.PrjnScale.Adapt":      "false", // adapt bad maybe?  put GeMax at 1.2, adjust to avoid
 					"Prjn.SWt.Adapt.On":         "true",  // true > false, esp in cosdiff
-					"Prjn.SWt.Adapt.Lrate":      "0.001", //
+					"Prjn.SWt.Adapt.Lrate":      "0.1",   //
 					"Prjn.SWt.Adapt.SigGain":    "6",
-					"Prjn.SWt.Adapt.DreamVar":   "0.02", // 0.02 good in lvis
-					"Prjn.SWt.Init.SPct":        "1",    // 1 > lower
-					"Prjn.SWt.Init.Mean":        "0.5",  // .5 > .4 -- key, except v2?
-					"Prjn.SWt.Limit.Min":        "0.2",  // .2-.8 == .1-.9; .3-.7 not better
-					"Prjn.SWt.Limit.Max":        "0.8",  //
+					"Prjn.SWt.Adapt.DreamVar":   "0.0", // 0.02 good in lvis
+					"Prjn.SWt.Init.SPct":        "1",   // 1 > lower
+					"Prjn.SWt.Init.Mean":        "0.5", // .5 > .4 -- key, except v2?
+					"Prjn.SWt.Limit.Min":        "0.2", // .2-.8 == .1-.9; .3-.7 not better
+					"Prjn.SWt.Limit.Max":        "0.8", //
 				}},
 			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
 				Params: params.Params{

@@ -76,7 +76,6 @@ const LogPrec = 4
 // for the fields which provide hints to how things should be displayed).
 type Sim struct {
 	Net              *deep.Network   `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
-	LIPOnly          bool            `desc:"if true, only build, train the LIP portion"`
 	BinarizeV1       bool            `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
 	TrnTrlLog        *etable.Table   `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table   `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
@@ -296,11 +295,7 @@ func (ss *Sim) ConfigEnv() {
 		ss.MaxRuns = 1
 	}
 	if ss.MaxEpcs == 0 { // allow user override
-		if ss.LIPOnly {
-			ss.MaxEpcs = 50
-		} else {
-			ss.MaxEpcs = 999 // 500
-		}
+		ss.MaxEpcs = 50
 		ss.NZeroStop = -1
 	}
 	if ss.MaxTrls == 0 { // allow user override
@@ -328,14 +323,14 @@ func (ss *Sim) ConfigEnv() {
 func (ss *Sim) ConfigNet(net *deep.Network) {
 	net.InitName(net, "SacNet")
 
-	v1 := net.AddLayer4D("V1", 21, 21, 1, 1, emer.Input)
+	v1 := net.AddLayer4D("V1", 11, 11, 1, 1, emer.Input)
 
-	lip, lipct, lipp := net.AddDeep4D("LIP", 8, 8, 2, 2) // 4, 4 tiny bit better than 2,2
-	lipp.Shape().SetShape([]int{21, 21, 1, 1}, nil, nil)
+	lip, lipct, lipp := net.AddDeep4D("LIP", 11, 11, 2, 2) // 4, 4 tiny bit better than 2,2
+	lipp.Shape().SetShape([]int{11, 11, 1, 1}, nil, nil)
 
 	lipp.(*deep.TRCLayer).Drivers.Add("V1")
 
-	eyepos := net.AddLayer2D("EyePos", 21, 21, emer.Input)
+	eyepos := net.AddLayer2D("EyePos", 11, 11, emer.Input)
 	sacplan := net.AddLayer2D("SacPlan", 11, 11, emer.Input)
 	sac := net.AddLayer2D("Saccade", 11, 11, emer.Input)
 	objvel := net.AddLayer2D("ObjVel", 11, 11, emer.Input)
@@ -445,7 +440,7 @@ func (ss *Sim) NewRndSeed() {
 // and add a few tabs at the end to allow for expansion..
 func (ss *Sim) Counters(train bool) string {
 	if train {
-		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TrainEnv.Trial.Cur, ss.Time.Cycle, ss.TrainEnv.String())
+		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tTick:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TrainEnv.Trial.Cur, ss.TrainEnv.Tick.Cur, ss.Time.Cycle, ss.TrainEnv.String())
 	} else {
 		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TestEnv.Trial.Cur, ss.Time.Cycle, ss.TestEnv.String())
 	}
@@ -547,6 +542,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 
 		if cyc == plusCyc-1 { // do before view update
 			ss.Net.PlusPhase(&ss.Time)
+			ss.Net.CTCtxt(&ss.Time) // update context at end
 		}
 		if ss.ViewOn {
 			ss.UpdateViewTime(train, viewUpdt)
@@ -663,7 +659,7 @@ func (ss *Sim) InitStats() {
 	ss.PulvLays = []string{}
 	ss.HidLays = []string{}
 	ss.InLays = []string{}
-	ss.SuperLays = []string{"V1m"}
+	ss.SuperLays = []string{"V1"}
 	net := ss.Net
 	for _, ly := range net.Layers {
 		if ly.IsOff() {
@@ -699,7 +695,7 @@ func (ss *Sim) TrialStats(train bool) {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		ss.PulvCosDiff[li] = float64(ly.CosDiff.Cos)
 		ss.PulvUnitErr[li] = ly.PctUnitErr()
-		if (ss.LIPOnly && lnm == "LIPP") || (!ss.LIPOnly && lnm == "V2P") {
+		if lnm == "LIPP" {
 			ss.TrlCosDiff = float64(ly.CosDiff.Cos)
 		}
 	}
@@ -1121,7 +1117,7 @@ func (ss *Sim) ConfigTrnTrlLog(dt *etable.Table) {
 }
 
 func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D {
-	plt.Params.Title = "What-Where-Integration 3DObj Train Trial Plot"
+	plt.Params.Title = "Saccade Predictive Learning Train Trial Plot"
 	plt.Params.XAxisCol = "Idx"
 	plt.SetTable(dt)
 	// order of params: on, fixMin, min, fixMax, max
@@ -1467,6 +1463,10 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 					break
 				}
 			}
+			if ln < 11 {
+				fmt.Printf("hid lay < 11: %d  %s\n", ln, lnm)
+				continue
+			}
 			var top5, next5 float64
 			for i := 0; i < 5; i++ {
 				top5 += ss.PCA.Values[ln-1-i]
@@ -1537,12 +1537,6 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
 		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
 	}
-	for _, lnm := range ss.SuperLays {
-		sch = append(sch, etable.Column{lnm + "_V1Sim", etensor.FLOAT64, nil, nil})
-	}
-	for _, lnm := range ss.SuperLays {
-		sch = append(sch, etable.Column{lnm + "_CatDst", etensor.FLOAT64, nil, nil})
-	}
 	for _, lnm := range ss.InLays {
 		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
 	}
@@ -1563,7 +1557,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 }
 
 func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D {
-	plt.Params.Title = "What-Where-Integration 3DObj Epoch Plot"
+	plt.Params.Title = "Saccade Predictive Learning Epoch Plot"
 	plt.Params.XAxisCol = "Epoch"
 	plt.SetTable(dt)
 	// order of params: on, fixMin, min, fixMax, max
@@ -1582,11 +1576,6 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	for _, lnm := range ss.PulvLays {
 		plt.SetColParams(lnm+"_TrlCosDiff", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
 		plt.SetColParams(lnm+"_TrlCosDiff0", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
-	}
-	for _, lnm := range ss.SuperLays {
-		on := lnm == "TE"
-		plt.SetColParams(lnm+"_V1Sim", on, eplot.FixMin, 0, eplot.FixMax, 1)
-		plt.SetColParams(lnm+"_CatDst", on, eplot.FixMin, 0, eplot.FixMax, 1)
 	}
 	for _, lnm := range ss.InLays {
 		plt.SetColParams(lnm+"_ActAvg", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 1)
@@ -1654,7 +1643,7 @@ func (ss *Sim) ConfigTstTrlLog(dt *etable.Table) {
 }
 
 func (ss *Sim) ConfigTstTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D {
-	plt.Params.Title = "What-Where-Integration 3DObj Test Trial Plot"
+	plt.Params.Title = "Saccade Predictive Learning Test Trial Plot"
 	plt.Params.XAxisCol = "Trial"
 	plt.SetTable(dt)
 	// order of params: on, fixMin, min, fixMax, max
@@ -1710,7 +1699,7 @@ func (ss *Sim) ConfigTstEpcLog(dt *etable.Table) {
 }
 
 func (ss *Sim) ConfigTstEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D {
-	plt.Params.Title = "What-Where-Integration 3DObj Testing Epoch Plot"
+	plt.Params.Title = "Saccade Predictive Learning Testing Epoch Plot"
 	plt.Params.XAxisCol = "Obj"
 	plt.Params.Type = eplot.Bar
 	plt.SetTable(dt)
@@ -1774,7 +1763,7 @@ func (ss *Sim) ConfigRunLog(dt *etable.Table) {
 }
 
 func (ss *Sim) ConfigRunPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D {
-	plt.Params.Title = "What-Where-Integration 3DObj Run Plot"
+	plt.Params.Title = "Saccade Predictive Learning Run Plot"
 	plt.Params.XAxisCol = "Run"
 	plt.SetTable(dt)
 	// order of params: on, fixMin, min, fixMax, max
@@ -1798,10 +1787,10 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	width := 1600
 	height := 1200
 
-	gi.SetAppName("wwi3d")
-	gi.SetAppAbout(`wwi3d does deep predictive learning of 3D objects tumbling through space, with periodic saccadic eye movements, providing plenty of opportunity for prediction errors. wwi = what, where integration: both pathways combine to predict object -- *where* (dorsal) pathway is trained first and residual prediction error trains *what* pathway. See <a href="https://github.com/ccnlab/deep-obj-cat/blob/master/sims/wwi3d/README.md">README.md on GitHub</a>.</p>`)
+	gi.SetAppName("saccade")
+	gi.SetAppAbout(`saccade does deep predictive learning on saccade eye movements. See <a href="https://github.com/ccnlab/deep-obj-cat/blob/master/sims/saccade/README.md">README.md on GitHub</a>.</p>`)
 
-	win := gi.NewMainWindow("wwi3d", "WWI 3D", width, height)
+	win := gi.NewMainWindow("saccade", "WWI 3D", width, height)
 	ss.Win = win
 
 	vp := win.WinViewport2D()
@@ -1975,7 +1964,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 
 	tbar.AddAction(gi.ActOpts{Label: "README", Icon: "file-markdown", Tooltip: "Opens your browser on the README file that contains instructions for how to run this model."}, win.This(),
 		func(recv, send ki.Ki, sig int64, data interface{}) {
-			gi.OpenURL("https://github.com/ccnlab/deep-obj-cat/blob/master/sims/wwi3d/README.md")
+			gi.OpenURL("https://github.com/ccnlab/deep-obj-cat/blob/master/sims/saccade/README.md")
 		})
 
 	vp.UpdateEndNoSig(updt)

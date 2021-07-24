@@ -39,11 +39,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
-					"Layer.CtxtGeGain":      "0.3",
+					"Layer.CtxtGeGain":      "0.1",
 					"Layer.Inhib.Layer.Gi":  "1.1",
 					"Layer.Act.KNa.On":      "true",
 					"Layer.Act.NMDA.Gbar":   "0.03", // larger not better
-					"Layer.Act.GABAB.Gbar":  "0.2",
+					"Layer.Act.GABAB.Gbar":  "0.005",
 					"Layer.Act.Decay.Act":   "0.0",
 					"Layer.Act.Decay.Glong": "0.0",
 				}},
@@ -53,7 +53,7 @@ var ParamSets = params.Sets{
 					"Layer.TRC.AvgMix":      "0.5",   //
 					"Layer.TRC.DriveScale":  "0.05",  // LIP .1 > .05 -- too high might = too much plus phase
 					"Layer.Act.GABAB.Gbar":  "0.005", //
-					"Layer.Act.NMDA.Gbar":   "0.1",   // 0.1 > .05 / .03 > .2 -- much stronger!
+					"Layer.Act.NMDA.Gbar":   "0.03",  // 0.1 > .05 / .03 > .2 -- much stronger!
 					"Layer.Act.Decay.Act":   "0.5",
 					"Layer.Act.Decay.Glong": "1", // clear long
 				}},
@@ -122,7 +122,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#DP", Desc: "no pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "1.3", // actavg .3 with 1.1
+					"Layer.Inhib.Layer.Gi": "1.2", // 1.2 > 1.3 probably; actavg .3 with 1.1
 				}},
 			{Sel: ".V4", Desc: "pool inhib, initial activity",
 				Params: params.Params{

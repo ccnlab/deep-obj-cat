@@ -945,6 +945,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 
 		if cyc == plusCyc-1 { // do before view update
 			ss.Net.PlusPhase(&ss.Time)
+			ss.Net.CTCtxt(&ss.Time) // update context at end
 		}
 		if ss.ViewOn {
 			ss.UpdateViewTime(train, viewUpdt)
