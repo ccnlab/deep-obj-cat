@@ -81,7 +81,7 @@ func (sc *SacEnv) Defaults() {
 	sc.TrajLenRange.Set(8, 8)
 	sc.FixDurRange.Set(2, 2)
 	sc.SacGenMax = 0.4
-	sc.VelGenMax = 0 // 0.4
+	sc.VelGenMax = 0 // 0.4 // motion requires more of an object position tracking rep.
 	sc.ZeroVelP = 0
 	sc.Margin = 0.05
 	sc.ViewPct = 0.5
