@@ -47,9 +47,9 @@ type SacEnv struct {
 	WorldTsr    etensor.Float32 `desc:"tensor state showing world position of obj"`
 	ViewTsr     etensor.Float32 `desc:"tensor state showing view position of obj"`
 	V1Tsr       etensor.Float32 `desc:"pop-code rendered view position"`
-	S1eTsr      etensor.Float32 `desc:"eye position popcode"`
-	FEFPlanTsr  etensor.Float32 `desc:"saccade plan popcode"`
-	FEFTsr      etensor.Float32 `desc:"saccade popcode "`
+	EyePosTsr   etensor.Float32 `desc:"eye position popcode"`
+	SacPlanTsr  etensor.Float32 `desc:"saccade plan popcode"`
+	SaccadeTsr  etensor.Float32 `desc:"saccade popcode "`
 	ObjVelTsr   etensor.Float32 `desc:"object velocity"`
 	TrajLen     int             `inactive:"+" desc:"current trajectory length"`
 	FixDur      int             `inactive:"+" desc:"current fixation duration"`
@@ -65,9 +65,9 @@ type SacEnv struct {
 	ObjVel      mat32.Vec2      `inactive:"+" desc:"object velocity, in world coordinates"`
 	ObjPosNext  mat32.Vec2      `inactive:"+" desc:"next object position, in world coordinates"`
 	ObjVelNext  mat32.Vec2      `inactive:"+" desc:"next object velocity, in world coordinates"`
-	S1e         mat32.Vec2      `inactive:"+" desc:"eye position, in world coordinates"`
-	FEFPlan     mat32.Vec2      `inactive:"+" desc:"eye movement plan, in world coordinates"`
-	FEF         mat32.Vec2      `inactive:"+" desc:"current trial eye movement, in world coordinates"`
+	EyePos      mat32.Vec2      `inactive:"+" desc:"eye position, in world coordinates"`
+	SacPlan     mat32.Vec2      `inactive:"+" desc:"eye movement plan, in world coordinates"`
+	Saccade     mat32.Vec2      `inactive:"+" desc:"current trial eye movement, in world coordinates"`
 	NewTraj     bool            `inactive:"+" desc:"true if new trajectory started on this trial"`
 	NewSac      bool            `inactive:"+" desc:"true if new saccade was made on this trial"`
 	NewTrajNext bool            `inactive:"+" desc:"true if next trial will be a new trajectory"`
@@ -105,14 +105,14 @@ func (sc *SacEnv) Defaults() {
 	sc.EyePop.Max.Set(1.1, 1.1)
 	sc.EyePop.Sigma.Set(0.2, 0.2) // 0.1 orig
 
-	sc.S1eTsr.SetShape([]int{11, 11}, nil, yx)
+	sc.EyePosTsr.SetShape([]int{11, 11}, nil, yx)
 
 	sc.SacPop.Defaults()
 	sc.SacPop.Min.Set(-0.45, -0.45)
 	sc.SacPop.Max.Set(0.45, 0.45)
 
-	sc.FEFPlanTsr.SetShape([]int{11, 11}, nil, yx)
-	sc.FEFTsr.SetShape([]int{11, 11}, nil, yx)
+	sc.SacPlanTsr.SetShape([]int{11, 11}, nil, yx)
+	sc.SaccadeTsr.SetShape([]int{11, 11}, nil, yx)
 
 	sc.ObjVelPop.Defaults()
 	sc.ObjVelPop.Min.Set(-0.45, -0.45)
@@ -160,9 +160,9 @@ func (sc *SacEnv) ConfigTable(dt *etable.Table) {
 		{"ObjViewPos", etensor.FLOAT32, []int{2}, nil},
 		{"ObjVel", etensor.FLOAT32, []int{2}, nil},
 		{"ObjPosNext", etensor.FLOAT32, []int{2}, nil},
-		{"S1e", etensor.FLOAT32, []int{2}, nil},
-		{"FEFPlan", etensor.FLOAT32, []int{2}, nil},
-		{"FEF", etensor.FLOAT32, []int{2}, nil},
+		{"EyePos", etensor.FLOAT32, []int{2}, nil},
+		{"SacPlan", etensor.FLOAT32, []int{2}, nil},
+		{"Saccade", etensor.FLOAT32, []int{2}, nil},
 	}
 	dt.SetFromSchema(sch, 0)
 }
@@ -211,12 +211,12 @@ func (sc *SacEnv) WriteToTable(dt *etable.Table) {
 	dt.SetCellTensorFloat1D("ObjVel", row, 1, float64(sc.ObjVel.Y))
 	dt.SetCellTensorFloat1D("ObjPosNext", row, 0, float64(sc.ObjPosNext.X))
 	dt.SetCellTensorFloat1D("ObjPosNext", row, 1, float64(sc.ObjPosNext.Y))
-	dt.SetCellTensorFloat1D("S1e", row, 0, float64(sc.S1e.X))
-	dt.SetCellTensorFloat1D("S1e", row, 1, float64(sc.S1e.Y))
-	dt.SetCellTensorFloat1D("FEFPlan", row, 0, float64(sc.FEFPlan.X))
-	dt.SetCellTensorFloat1D("FEFPlan", row, 1, float64(sc.FEFPlan.Y))
-	dt.SetCellTensorFloat1D("FEF", row, 0, float64(sc.FEF.X))
-	dt.SetCellTensorFloat1D("FEF", row, 1, float64(sc.FEF.Y))
+	dt.SetCellTensorFloat1D("EyePos", row, 0, float64(sc.EyePos.X))
+	dt.SetCellTensorFloat1D("EyePos", row, 1, float64(sc.EyePos.Y))
+	dt.SetCellTensorFloat1D("SacPlan", row, 0, float64(sc.SacPlan.X))
+	dt.SetCellTensorFloat1D("SacPlan", row, 1, float64(sc.SacPlan.Y))
+	dt.SetCellTensorFloat1D("Saccade", row, 0, float64(sc.Saccade.X))
+	dt.SetCellTensorFloat1D("Saccade", row, 1, float64(sc.Saccade.Y))
 }
 
 func (sc *SacEnv) LimitVel(vel, start, trials float32) float32 {
@@ -280,11 +280,11 @@ func (sc *SacEnv) LimitSac(sacDev, start, objPos, objVel, trials float32) float3
 func (sc *SacEnv) NextTraj() {
 	sc.TrajLen = sc.TrajLenRange.Min + rand.Intn(sc.TrajLenRange.Range()+1)
 	zeroVel := erand.BoolProb(sc.ZeroVelP, -1)
-	// NOTE: this represents an invisible translation
+	// keep same position
 	// sc.ObjPosNext.X = sc.World.Min + rand.Float32()*sc.World.Range()
 	// sc.ObjPosNext.Y = sc.World.Min + rand.Float32()*sc.World.Range()
-	sc.ObjPosNext.X = sc.World.Min + .5*sc.World.Range()
-	sc.ObjPosNext.Y = sc.World.Min + .5*sc.World.Range()
+	// sc.ObjPosNext.X = sc.World.Min + .5*sc.World.Range()
+	// sc.ObjPosNext.Y = sc.World.Min + .5*sc.World.Range()
 	if zeroVel {
 		sc.ObjVelNext.SetZero()
 	} else {
@@ -295,8 +295,9 @@ func (sc *SacEnv) NextTraj() {
 	}
 	// saccade directly to position of new object at start -- set duration too
 	sc.FixDur = sc.FixDurRange.Min + rand.Intn(sc.FixDurRange.Range()+1)
-	sc.FEFPlan.X = sc.ObjPosNext.X - sc.S1e.X
-	sc.FEFPlan.Y = sc.ObjPosNext.Y - sc.S1e.Y
+	// sc.SacPlan.X = sc.ObjPosNext.X - sc.EyePos.X
+	// sc.SacPlan.Y = sc.ObjPosNext.Y - sc.EyePos.Y
+	sc.NextSaccade()
 	sc.SacTick.Cur = sc.SacTick.Max - 1 // ensure that we saccade next time
 	sc.NewTrajNext = true
 }
@@ -304,26 +305,26 @@ func (sc *SacEnv) NextTraj() {
 // NextSaccade generates next saccade plan
 func (sc *SacEnv) NextSaccade() {
 	sc.FixDur = sc.FixDurRange.Min + rand.Intn(sc.FixDurRange.Range()+1)
-	sc.FEFPlan.X = -sc.SacGenMax + 2*rand.Float32()*sc.SacGenMax
-	sc.FEFPlan.Y = -sc.SacGenMax + 2*rand.Float32()*sc.SacGenMax
-	sc.FEFPlan.X = sc.LimitSac(sc.FEFPlan.X, sc.S1e.X, sc.ObjPosNext.X, sc.ObjVelNext.X, float32(sc.FixDur))
-	sc.FEFPlan.Y = sc.LimitSac(sc.FEFPlan.Y, sc.S1e.Y, sc.ObjPosNext.Y, sc.ObjVelNext.Y, float32(sc.FixDur))
+	sc.SacPlan.X = -sc.SacGenMax + 2*rand.Float32()*sc.SacGenMax
+	sc.SacPlan.Y = -sc.SacGenMax + 2*rand.Float32()*sc.SacGenMax
+	sc.SacPlan.X = sc.LimitSac(sc.SacPlan.X, sc.EyePos.X, sc.ObjPosNext.X, sc.ObjVelNext.X, float32(sc.FixDur))
+	sc.SacPlan.Y = sc.LimitSac(sc.SacPlan.Y, sc.EyePos.Y, sc.ObjPosNext.Y, sc.ObjVelNext.Y, float32(sc.FixDur))
 }
 
 // DoSaccade updates current eye position with planned saccade, resets plan
 func (sc *SacEnv) DoSaccade() {
-	sc.S1e.X = sc.S1e.X + sc.FEFPlan.X
-	sc.S1e.Y = sc.S1e.Y + sc.FEFPlan.Y
-	sc.FEF.X = sc.FEFPlan.X
-	sc.FEF.Y = sc.FEFPlan.Y
-	sc.FEFPlan.X = 0
-	sc.FEFPlan.Y = 0
+	sc.EyePos.X = sc.EyePos.X + sc.SacPlan.X
+	sc.EyePos.Y = sc.EyePos.Y + sc.SacPlan.Y
+	sc.Saccade.X = sc.SacPlan.X
+	sc.Saccade.Y = sc.SacPlan.Y
+	sc.SacPlan.X = 0
+	sc.SacPlan.Y = 0
 }
 
 // DoneSaccade clears saccade state
 func (sc *SacEnv) DoneSaccade() {
-	sc.FEF.X = 0
-	sc.FEF.Y = 0
+	sc.Saccade.X = 0
+	sc.Saccade.Y = 0
 }
 
 func (sc *SacEnv) String() string {
@@ -346,12 +347,12 @@ func (sc *SacEnv) Counter(scale env.TimeScales) (cur, prv int, chg bool) {
 
 func (sc *SacEnv) State(element string) etensor.Tensor {
 	switch element {
-	case "S1e":
-		return &sc.S1eTsr
-	case "FEFPlan":
-		return &sc.FEFPlanTsr
-	case "FEF":
-		return &sc.FEFTsr
+	case "EyePos":
+		return &sc.EyePosTsr
+	case "SacPlan":
+		return &sc.SacPlanTsr
+	case "Saccade":
+		return &sc.SaccadeTsr
 	case "ObjVel":
 		return &sc.ObjVelTsr
 	case "V1":
@@ -367,9 +368,9 @@ func (sc *SacEnv) Action(element string, input etensor.Tensor) {
 // EncodePops encodes population codes from current row data
 func (sc *SacEnv) EncodePops() {
 	sc.V1Pop.Encode(&sc.V1Tsr, sc.ObjViewPos, popcode.Set)
-	sc.EyePop.Encode(&sc.S1eTsr, sc.S1e, popcode.Set)
-	sc.SacPop.Encode(&sc.FEFPlanTsr, sc.FEFPlan, popcode.Set)
-	sc.SacPop.Encode(&sc.FEFTsr, sc.FEF, popcode.Set)
+	sc.EyePop.Encode(&sc.EyePosTsr, sc.EyePos, popcode.Set)
+	sc.SacPop.Encode(&sc.SacPlanTsr, sc.SacPlan, popcode.Set)
+	sc.SacPop.Encode(&sc.SaccadeTsr, sc.Saccade, popcode.Set)
 	sc.ObjVelPop.Encode(&sc.ObjVelTsr, sc.ObjVel, popcode.Set)
 }
 
@@ -398,7 +399,7 @@ func (sc *SacEnv) Step() bool {
 	}
 	// increment state -- next has already been computed
 	sc.ObjPos = sc.ObjPosNext
-	sc.ObjViewPos = sc.ObjPos.Sub(sc.S1e)
+	sc.ObjViewPos = sc.ObjPos.Sub(sc.EyePos)
 
 	// now make new plans
 

@@ -39,7 +39,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
-					"Layer.CtxtGeGain":      "0.2", // .2 > .15 > .1 > .05
+					"Layer.CtxtGeGain":      "0.15", // .1 > .05
 					"Layer.Inhib.Layer.Gi":  "1.1",
 					"Layer.Act.KNa.On":      "true",
 					"Layer.Act.NMDA.Gbar":   "0.03",

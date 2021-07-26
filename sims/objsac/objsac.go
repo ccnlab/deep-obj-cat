@@ -326,12 +326,9 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	v1 := net.AddLayer4D("V1", 11, 11, 1, 1, emer.Input)
 
-	s1e, s1ect, s1ep := net.AddDeep4D("S1e", 11, 11, 2, 2) // 4, 4 tiny bit better than 2,2
-	lipp.Shape().SetShape([]int{11, 11, 1, 1}, nil, nil)
-	lipp.(*deep.TRCLayer).Drivers.Add("V1")
-
 	lip, lipct, lipp := net.AddDeep4D("LIP", 11, 11, 2, 2) // 4, 4 tiny bit better than 2,2
 	lipp.Shape().SetShape([]int{11, 11, 1, 1}, nil, nil)
+
 	lipp.(*deep.TRCLayer).Drivers.Add("V1")
 
 	eyepos := net.AddLayer2D("EyePos", 11, 11, emer.Input)
