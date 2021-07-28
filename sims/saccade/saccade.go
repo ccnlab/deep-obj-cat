@@ -330,25 +330,33 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	v1 := net.AddLayer4D("V1", vsz, vsz, 1, 1, emer.Input)
 	s1e := net.AddLayer4D("S1e", dsz, asz, 1, 1, emer.Input)
-	fefplan := net.AddLayer2D("FEFPlan", 11, 11, emer.Input)
-	fef := net.AddLayer2D("FEF", 11, 11, emer.Input)
+	scs := net.AddLayer4D("SCs", dsz, asz, 1, 1, emer.Input)
+	scd := net.AddLayer4D("SCd", dsz, asz, 1, 1, emer.Input)
+	md := net.AddLayer4D("MDe", dsz, asz, 1, 1, emer.Target)
 
-	lip, lipct, lipp := net.AddDeep4D("LIP", vsz, vsz, 2, 2) // 4, 4 tiny bit better than 2,2
+	lip, lipct, lipp := net.AddDeep4D("LIP", vsz, vsz, 2, 2)
 	lipp.Shape().SetShape([]int{vsz * 2, vsz, 1, 1}, nil, nil)
 	lipp.(*deep.TRCLayer).Drivers.Add("V1", "S1e")
 
-	sef, sefct, sefp := net.AddDeep4D("SEF", vsz, vsz, 2, 2)
-	sefp.Shape().SetShape([]int{dsz, asz, 1, 1}, nil, nil)
+	fef := net.AddLayer4D("FEF", dsz, asz, 2, 2, emer.Hidden)
+
+	sef, sefct, sefp := net.AddDeep4D("SEF", dsz, asz, 2, 2)
+	sefp.Shape().SetShape([]int{dsz, asz, 2, 2}, nil, nil)
 	sefp.(*deep.TRCLayer).Drivers.Add("FEF")
 
 	v1.SetClass("V1")
 	s1e.SetClass("V1")
+	scs.SetClass("PopIn")
+	scd.SetClass("PopIn")
+	md.SetClass("PopIn")
 
 	lip.SetClass("LIP")
 	lipct.SetClass("LIP")
 	lipp.SetClass("LIP")
-	fefplan.SetClass("PopIn")
-	fef.SetClass("PopIn")
+
+	sef.SetClass("SEF")
+	sefct.SetClass("SEF")
+	sefp.SetClass("SEF")
 
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
@@ -356,7 +364,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	net.ConnectLayers(v1, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
 	net.ConnectLayers(s1e, lip, full, emer.Forward)
 	net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
-	// net.ConnectCtxtToCT(fefplan, lipct, full).SetClass("CTSelfLIP")
+	// net.ConnectCtxtToCT(sc, lipct, full).SetClass("CTSelfLIP")
 
 	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full) // full > pone2one
 	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
@@ -364,12 +372,15 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
 	// InitWts optionally sets ss.PrjnSigTopo
-	net.ConnectLayers(fefplan, lip, full, emer.Forward)
+	// net.ConnectLayers(sc, lip, full, emer.Forward)
 
 	// lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn3x3Skp1)
 
+	net.BidirConnectLayers(md, fef, full)
 	net.ConnectLayers(s1e, lipct, full, emer.Forward)
-	net.ConnectLayers(fef, lipct, full, emer.Forward)
+	net.BidirConnectLayers(fef, lip, full)
+	net.BidirConnectLayers(sef, lip, full)
+	net.BidirConnectLayers(fef, sef, full)
 
 	net.LateralConnectLayerPrjn(lip, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
 	net.LateralConnectLayerPrjn(lipct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
@@ -377,8 +388,10 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	//	Position
 
 	s1e.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1.Name(), YAlign: relpos.Front, Space: 2})
-	fef.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: s1e.Name(), YAlign: relpos.Front, Space: 2})
-	fefplan.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: fef.Name(), XAlign: relpos.Left, Space: 10})
+	scd.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: s1e.Name(), XAlign: relpos.Left, Space: 10})
+	scs.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: scd.Name(), XAlign: relpos.Left, Space: 10})
+	md.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: s1e.Name(), YAlign: relpos.Front, Space: 2})
+	fef.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: md.Name(), XAlign: relpos.Left, Space: 10})
 
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
 	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
@@ -427,12 +440,12 @@ func (ss *Sim) InitWts(net *deep.Network) {
 
 	// these are not set automatically b/c prjn is Full, not PoolTile
 	ss.SetTopoSWts(net, "EyePos", "LIP", ss.PrjnGaussTopo)
-	ss.SetTopoSWts(net, "FefPlan", "LIP", ss.PrjnSigTopo)
+	ss.SetTopoSWts(net, "SC", "LIP", ss.PrjnSigTopo)
 	ss.SetTopoSWts(net, "ObjVel", "LIP", ss.PrjnSigTopo)
 
 	ss.SetTopoSWts(net, "EyePos", "LIPCT", ss.PrjnGaussTopo)
 	ss.SetTopoSWts(net, "Saccade", "LIPCT", ss.PrjnSigTopo)
-	// ss.SetTopoSWts(net, "FefPlan", "LIPCT", ss.PrjnSigTopo)
+	// ss.SetTopoSWts(net, "SC", "LIPCT", ss.PrjnSigTopo)
 	ss.SetTopoSWts(net, "ObjVel", "LIPCT", ss.PrjnSigTopo)
 }
 
@@ -553,6 +566,11 @@ func (ss *Sim) ThetaCyc(train bool) {
 		}
 
 		if cyc == minusCyc-1 { // do before view update
+			if train {
+				ss.DoAction(&ss.TrainEnv)
+			} else {
+				ss.DoAction(&ss.TestEnv)
+			}
 			ss.Net.MinusPhase(&ss.Time)
 		}
 		if ss.ViewOn {
@@ -600,7 +618,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"V1", "S1e", "FEFPlan", "FEF"}
+	lays := []string{"V1", "S1e", "SCs", "SCd"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		pats := en.State(ly.Nm)
@@ -609,6 +627,25 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 		}
 	}
 }
+
+func (ss *Sim) DoAction(en env.Env) {
+	tick, _, _ := en.Counter(env.Tick)
+	if tick != 0 {
+		return
+	}
+	mdacts := ss.ValsTsr("MDe")
+	md := ss.Net.LayerByName("MDe").(axon.AxonLayer).AsAxon()
+	md.UnitValsTensor(mdacts, "Act")
+	en.Action("MD", mdacts)
+	scd := ss.Net.LayerByName("SCd").(axon.AxonLayer).AsAxon()
+	pats := en.State(scd.Nm)
+	if pats != nil {
+		scd.ApplyExt(pats)
+		md.ApplyExt(pats)
+	}
+}
+
+// todo: action, plus phase apply SCd
 
 // TrainTrial runs one trial of training using TrainEnv
 func (ss *Sim) TrainTrial() {

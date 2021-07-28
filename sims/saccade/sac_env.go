@@ -9,6 +9,7 @@ import (
 	"math/rand"
 
 	"github.com/emer/emergent/env"
+	"github.com/emer/emergent/erand"
 	"github.com/emer/emergent/popcode"
 	"github.com/emer/etable/etable"
 	"github.com/emer/etable/etensor"
@@ -17,12 +18,15 @@ import (
 )
 
 // SacEnv implements saccading logic for generating visual saccades
-// around a 2D World plane, with a moving object that must remain
-// in view.  Generates the track of the object.
-// World size is defined as -1..1 in normalized units.
+// toward one target object out of multiple possible objects.
+// V1 = visual blob scene input; S1e = somatosensory eye position
+// SCs = superior colliculus superficial "reflexive" motor plan
+// SCd = superior colliculus deep layer actual motor output.
+// PMD = probability of using MD from Action for actual eye command.
 type SacEnv struct {
 	Nm        string       `desc:"name of this environment"`
 	Dsc       string       `desc:"description of this environment"`
+	PMD       float64      `desc:"probability of using MD action"`
 	NObjRange minmax.Int   `desc:"range for number of objects"`
 	VisSize   int          `desc:"size of the visual input in each axis -- for visualization table too"`
 	AngSize   int          `desc:"number of angle units for representing angle of polar coordinates"`
@@ -32,22 +36,26 @@ type SacEnv struct {
 	VisPop    popcode.TwoD `desc:"2d population code for visualization gaussian bump rendering of XY"`
 
 	// State below here
-	NObjs      int             `inactive:"-" desc:"number of objects"`
-	TargObj    int             `inactive:"-" desc:"index of target object"`
-	ObjsPos    []mat32.Vec2    `inactive:"+" desc:"object positions, in retinotopic coordinates when generated"`
-	TargPos    mat32.Vec2      `inactive:"+" desc:"target position, in XY coordinates"`
-	EyePos     mat32.Vec2      `inactive:"+" desc:"eye position, in XY coordinates"`
-	FEFPlan    mat32.Vec2      `inactive:"+" desc:"eye movement plan for next Step, XY coords"`
-	FEF        mat32.Vec2      `inactive:"+" desc:"current step eye movement, XY coords"`
-	Table      etable.Table    `desc:"table showing visualization of state"`
-	V1Tsr      etensor.Float32 `desc:"pop-code object blob(s)"`
-	S1eTsr     etensor.Float32 `desc:"S1 primary somatosensory eye position polar popcode map"`
-	FEFPlanTsr etensor.Float32 `desc:"FEF saccade plan polar popcode map"`
-	FEFTsr     etensor.Float32 `desc:"FEF saccade popcode popcode map"`
-	Run        env.Ctr         `view:"inline" desc:"current run of model as provided during Init"`
-	Epoch      env.Ctr         `view:"inline" desc:"arbitrary aggregation of trials, for stats etc"`
-	Trial      env.Ctr         `view:"inline" desc:"each object trajectory is one trial"`
-	Tick       env.Ctr         `inactive:"+" desc:"tick counter within trajectory, counts up from 0..TrajLen-1"`
+	NObjs    int             `inactive:"-" desc:"number of objects"`
+	TargObj  int             `inactive:"-" desc:"index of target object"`
+	ObjsPos  []mat32.Vec2    `inactive:"+" desc:"object positions, in retinotopic coordinates when generated"`
+	TargPos  mat32.Vec2      `inactive:"+" desc:"target position, in XY coordinates"`
+	EyePos   mat32.Vec2      `inactive:"+" desc:"eye position, in XY coordinates"`
+	SCs      mat32.Vec2      `inactive:"+" desc:"superior colliculus eye movement plan for next Step, XY coords"`
+	SCdPolar mat32.Vec2      `inactive:"+" desc:"SCd current step actual eye movement action, polar coords"`
+	SCdXY    mat32.Vec2      `inactive:"+" desc:"SCd current step actual eye movement action, XY coords"`
+	MDPolar  mat32.Vec2      `inactive:"+" desc:"MD decoded polar coords"`
+	MDXY     mat32.Vec2      `inactive:"+" desc:"SCd current step eye movement action, XY coords"`
+	Table    etable.Table    `desc:"table showing visualization of state"`
+	V1Tsr    etensor.Float32 `desc:"pop-code object blob(s)"`
+	S1eTsr   etensor.Float32 `desc:"S1 primary somatosensory eye position polar popcode map"`
+	SCsTsr   etensor.Float32 `desc:"SCs saccade plan polar popcode map"`
+	SCdTsr   etensor.Float32 `desc:"SCd saccade actual executed action popcode map"`
+	MDTsr    etensor.Float32 `desc:"MD corollary discharge Action taken by cortex"`
+	Run      env.Ctr         `view:"inline" desc:"current run of model as provided during Init"`
+	Epoch    env.Ctr         `view:"inline" desc:"arbitrary aggregation of trials, for stats etc"`
+	Trial    env.Ctr         `view:"inline" desc:"each object trajectory is one trial"`
+	Tick     env.Ctr         `inactive:"+" desc:"tick counter within trajectory, counts up from 0..TrajLen-1"`
 }
 
 func (sc *SacEnv) Name() string { return sc.Nm }
@@ -80,8 +88,9 @@ func (sc *SacEnv) Defaults() {
 	da := []string{"Dist", "Ang"}
 	sc.V1Tsr.SetShape([]int{sc.VisSize, sc.VisSize}, nil, yx)
 	sc.S1eTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
-	sc.FEFPlanTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
-	sc.FEFTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
+	sc.SCsTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
+	sc.SCdTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
+	sc.MDTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
 }
 
 // Init must be called at start prior to generating saccades
@@ -106,14 +115,16 @@ func (sc *SacEnv) Validate() error {
 
 func (sc *SacEnv) ConfigTable(dt *etable.Table) {
 	yx := []string{"Y", "X"}
+	da := []string{"Dist", "Ang"}
 	sch := etable.Schema{
 		{"TrialName", etensor.STRING, nil, nil},
 		{"Tick", etensor.INT64, nil, nil},
 		{"V1", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
 		{"Target", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
-		{"EyePos", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
-		{"FEFPlan", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
-		{"FEF", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
+		{"S1e", etensor.FLOAT32, []int{sc.DistSize, sc.AngSize}, da},
+		{"SCs", etensor.FLOAT32, []int{sc.DistSize, sc.AngSize}, da},
+		{"SCd", etensor.FLOAT32, []int{sc.DistSize, sc.AngSize}, da},
+		{"MD", etensor.FLOAT32, []int{sc.DistSize, sc.AngSize}, da},
 		{"TargPos", etensor.FLOAT32, []int{2}, nil},
 	}
 	dt.SetFromSchema(sch, 0)
@@ -130,9 +141,10 @@ func (sc *SacEnv) WriteToTable(dt *etable.Table) {
 
 	dt.SetCellTensor("V1", row, &sc.V1Tsr)
 	sc.VisPop.Encode(sc.Table.CellTensor("Target", row).(*etensor.Float32), sc.TargPos, popcode.Set)
-	sc.VisPop.Encode(sc.Table.CellTensor("EyePos", row).(*etensor.Float32), sc.EyePos, popcode.Set)
-	sc.VisPop.Encode(sc.Table.CellTensor("FEFPlan", row).(*etensor.Float32), sc.FEFPlan, popcode.Set)
-	sc.VisPop.Encode(sc.Table.CellTensor("FEF", row).(*etensor.Float32), sc.FEF, popcode.Set)
+	sc.PolarPop.Encode(sc.Table.CellTensor("S1e", row).(*etensor.Float32), sc.EyePos, popcode.Set)
+	sc.PolarPop.Encode(sc.Table.CellTensor("SCs", row).(*etensor.Float32), sc.SCs, popcode.Set)
+	sc.PolarPop.Encode(sc.Table.CellTensor("SCd", row).(*etensor.Float32), sc.SCdPolar, popcode.Set)
+	dt.SetCellTensor("MD", row, &sc.MDTsr)
 
 	dt.SetCellTensorFloat1D("TargPos", row, 0, float64(sc.TargPos.X))
 	dt.SetCellTensorFloat1D("TargPos", row, 1, float64(sc.TargPos.Y))
@@ -174,25 +186,18 @@ func (sc *SacEnv) NewScene() {
 
 	// todo: random initial eye position
 	sc.EyePos.Set(0, 0)
+	sc.SCs = sc.TargPos
+	sc.SCdXY.SetZero()
+	sc.SCdPolar.SetZero()
 }
 
-// PlanSaccadeToTarget generates next saccade plan to target object
-func (sc *SacEnv) PlanSaccadeToTarget() {
-	sc.FEFPlan = sc.TargPos
-	sc.FEF.SetZero()
-}
-
-// DoSaccade updates current eye position with planned saccade, resets plan
+// DoSaccade updates current eye position, vis targets with actual saccade, resets plan
 func (sc *SacEnv) DoSaccade() {
-	sc.EyePos.SetAdd(sc.FEFPlan)
-	sc.FEF = sc.FEFPlan
-	sc.FEFPlan.SetZero()
-}
-
-// DoneSaccade clears saccade state
-func (sc *SacEnv) DoneSaccade() {
-	sc.FEF.X = 0
-	sc.FEF.Y = 0
+	sc.EyePos.SetAdd(sc.SCdXY)
+	sc.SCs.SetZero()
+	sc.SCdXY.SetZero()
+	sc.SCdPolar.SetZero()
+	// eyepos drives render of V1, so obj pos not updated
 }
 
 func (sc *SacEnv) String() string {
@@ -219,16 +224,12 @@ func (sc *SacEnv) State(element string) etensor.Tensor {
 		return &sc.V1Tsr
 	case "S1e":
 		return &sc.S1eTsr
-	case "FEFPlan":
-		return &sc.FEFPlanTsr
-	case "FEF":
-		return &sc.FEFTsr
+	case "SCs":
+		return &sc.SCsTsr
+	case "SCd":
+		return &sc.SCdTsr
 	}
 	return nil
-}
-
-func (sc *SacEnv) Action(element string, input etensor.Tensor) {
-	// nop
 }
 
 // EncodeObjs encodes objects with given offset into V1, omitting any out of range
@@ -250,7 +251,7 @@ func (sc *SacEnv) EncodeObjs(off mat32.Vec2) {
 // EncodePolar encodes polar coords from given xy value
 func (sc *SacEnv) EncodePolar(tsr *etensor.Float32, xy mat32.Vec2) {
 	plr := XYToPolar(xy)
-	ang := mat32.RadToDeg(plr.X) - 90 // vertical is 0 point
+	ang := mat32.RadToDeg(plr.X) + 90 // vertical is 0 point
 	if xy.X == 0 && xy.Y == 0 {
 		ang = 0
 	}
@@ -265,10 +266,10 @@ func (sc *SacEnv) EncodePolar(tsr *etensor.Float32, xy mat32.Vec2) {
 
 // Encode encodes values into tensors
 func (sc *SacEnv) Encode() {
-	sc.EncodeObjs(sc.EyePos)
+	sc.EncodeObjs(sc.EyePos.Negate())
 	sc.EncodePolar(&sc.S1eTsr, sc.EyePos)
-	sc.EncodePolar(&sc.FEFPlanTsr, sc.FEFPlan)
-	sc.EncodePolar(&sc.FEFTsr, sc.FEF)
+	sc.EncodePolar(&sc.SCsTsr, sc.SCs)
+	sc.EncodePolar(&sc.SCdTsr, sc.SCdXY)
 }
 
 // Step is primary method to call -- generates next state and
@@ -280,7 +281,6 @@ func (sc *SacEnv) Step() bool {
 	sc.Tick.Incr()
 	if sc.Tick.Cur == 0 {
 		sc.NewScene()
-		sc.PlanSaccadeToTarget()
 	} else {
 		sc.DoSaccade()
 	}
@@ -290,4 +290,25 @@ func (sc *SacEnv) Step() bool {
 	sc.WriteToTable(&sc.Table)
 
 	return true
+}
+
+func (sc *SacEnv) Action(element string, input etensor.Tensor) {
+	// only MD accepted
+	sc.MDTsr.CopyFrom(input)
+	var err error
+	sc.MDPolar, err = sc.PolarPop.Decode(&sc.MDTsr)
+	if err != nil {
+		fmt.Printf("MD Decoding error: %s\n", err)
+	} else {
+		sc.MDXY = PolarToXY(sc.MDPolar)
+	}
+	if erand.BoolProb(sc.PMD, -1) {
+		sc.SCdPolar = sc.MDPolar
+		sc.SCdXY = sc.MDXY
+	} else {
+		sc.SCdXY = sc.SCs // use SC
+		sc.SCdPolar = XYToPolar(sc.SCdXY)
+	}
+	sc.EncodePolar(&sc.SCdTsr, sc.SCdXY)
+	sc.WriteToTable(&sc.Table)
 }
