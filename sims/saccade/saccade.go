@@ -335,7 +335,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	md := net.AddLayer4D("MDe", dsz, asz, 1, 1, emer.Target)
 
 	lip, lipct, lipp := net.AddDeep4D("LIP", vsz, vsz, 2, 2)
-	lipp.Shape().SetShape([]int{vsz * 2, vsz, 1, 1}, nil, nil)
+	lipp.Shape().SetShape([]int{vsz, vsz, 2, 1}, nil, nil)
 	lipp.(*deep.TRCLayer).Drivers.Add("V1", "S1e")
 
 	fef := net.AddLayer4D("FEF", dsz, asz, 2, 2, emer.Hidden)
@@ -349,6 +349,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	scs.SetClass("PopIn")
 	scd.SetClass("PopIn")
 	md.SetClass("PopIn")
+	fef.SetClass("PopIn")
 
 	lip.SetClass("LIP")
 	lipct.SetClass("LIP")
@@ -361,10 +362,13 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
 
-	net.ConnectLayers(v1, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
+	net.ConnectLayers(v1, lip, ss.Prjn3x3Skp1, emer.Forward) // .SetClass("Fixed") // has .5 wtscale in Params
 	net.ConnectLayers(s1e, lip, full, emer.Forward)
 	net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
-	// net.ConnectCtxtToCT(sc, lipct, full).SetClass("CTSelfLIP")
+
+	net.ConnectLayers(s1e, lipct, full, emer.Forward)
+	net.BidirConnectLayers(md, lip, full)
+	net.BidirConnectLayers(sef, lip, full)
 
 	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full) // full > pone2one
 	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
@@ -376,11 +380,10 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	// lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn3x3Skp1)
 
-	net.BidirConnectLayers(md, fef, full)
-	net.ConnectLayers(s1e, lipct, full, emer.Forward)
-	net.BidirConnectLayers(fef, lip, full)
-	net.BidirConnectLayers(sef, lip, full)
-	net.BidirConnectLayers(fef, sef, full)
+	net.BidirConnectLayers(fef, md, ss.Prjn3x3Skp1)
+	net.BidirConnectLayers(lip, fef, full)
+
+	net.BidirConnectLayers(fef, sef, ss.Prjn3x3Skp1)
 
 	net.LateralConnectLayerPrjn(lip, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
 	net.LateralConnectLayerPrjn(lipct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)

@@ -85,10 +85,19 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.ActAvg.Init": "0.06",
 					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
-			{Sel: "#EyePos", Desc: "eyeposition input",
+			{Sel: "#FEF", Desc: "",
 				Params: params.Params{
-					"Layer.Inhib.ActAvg.Init": "0.02", // .02 > .06 -- needs to be stronger
-					"Layer.Inhib.ActAvg.Targ": "0.02",
+					"Layer.Inhib.Layer.Gi":    "1.1",
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.ActAvg.Init": "0.06",
+					"Layer.Inhib.ActAvg.Targ": "0.06",
+				}},
+			{Sel: ".SEF", Desc: "",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi":    "1.1",
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.ActAvg.Init": "0.06",
+					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 
 			// prjn classes, specifics
