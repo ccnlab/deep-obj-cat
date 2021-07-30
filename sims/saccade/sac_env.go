@@ -283,6 +283,9 @@ func (sc *SacEnv) Step() bool {
 		sc.NewScene()
 	} else {
 		sc.DoSaccade()
+		if sc.Trial.Incr() {
+			sc.Epoch.Incr()
+		}
 	}
 
 	// write current state to table

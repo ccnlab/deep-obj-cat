@@ -301,7 +301,7 @@ func (ss *Sim) ConfigEnv() {
 	}
 	if ss.MaxTrls == 0 { // allow user override
 		ss.MaxTrls = 64
-		ss.MaxTicks = 8
+		ss.MaxTicks = 2
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
@@ -368,6 +368,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	net.ConnectLayers(s1e, lipct, full, emer.Forward)
 	net.BidirConnectLayers(md, lip, full)
+	net.ConnectLayers(md, lipct, full, emer.Forward)
 	net.BidirConnectLayers(sef, lip, full)
 
 	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full) // full > pone2one
@@ -531,9 +532,13 @@ func (ss *Sim) UpdateViewTime(train bool, viewUpdt axon.TimeScales) {
 func (ss *Sim) ThetaCyc(train bool) {
 	// ss.Win.PollEvents() // this can be used instead of running in a separate goroutine
 	viewUpdt := ss.TrainUpdt
+	ev := &ss.TrainEnv
 	if !train {
 		viewUpdt = ss.TestUpdt
+		ev = &ss.TestEnv
 	}
+
+	tick, _, _ := ev.Counter(env.Tick)
 
 	// update prior weight changes at start, so any DWt values remain visible at end
 	// you might want to do this less frequently to achieve a mini-batch update
@@ -569,11 +574,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 		}
 
 		if cyc == minusCyc-1 { // do before view update
-			if train {
-				ss.DoAction(&ss.TrainEnv)
-			} else {
-				ss.DoAction(&ss.TestEnv)
-			}
+			ss.DoAction(ev)
 			ss.Net.MinusPhase(&ss.Time)
 		}
 		if ss.ViewOn {
@@ -601,9 +602,9 @@ func (ss *Sim) ThetaCyc(train bool) {
 		}
 	}
 
-	ss.TrialStats(train)
+	ss.TrialStats(train, tick)
 
-	if train && ss.TrainEnv.Tick.Cur > 0 { // important: don't learn on first tick!
+	if train {
 		ss.ErrLrMod.LrateMod(ss.Net.AsAxon(), float32(1-ss.TrlCosDiff))
 		ss.Net.DWt()
 	}
@@ -618,6 +619,17 @@ func (ss *Sim) ThetaCyc(train bool) {
 // args so that it can be used for various different contexts
 // (training, testing, etc).
 func (ss *Sim) ApplyInputs(en env.Env) {
+	tick, _, _ := en.Counter(env.Tick)
+	lipp := ss.Net.LayerByName("LIPP").(axon.AxonLayer).(*deep.TRCLayer)
+	md := ss.Net.LayerByName("MDe").(axon.AxonLayer).AsAxon()
+	switch tick {
+	case 0:
+		lipp.TRC.DriversOff = true
+		md.SetType(emer.Target)
+	case 1:
+		lipp.TRC.DriversOff = false
+		md.SetType(emer.Input)
+	}
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
@@ -730,7 +742,7 @@ func (ss *Sim) InitStats() {
 	if len(ss.PulvLays) > 0 {
 		return
 	}
-	ss.PulvLays = []string{}
+	ss.PulvLays = []string{"MDe"}
 	ss.HidLays = []string{}
 	ss.InLays = []string{}
 	ss.SuperLays = []string{"V1"}
@@ -764,13 +776,20 @@ func (ss *Sim) InitStats() {
 }
 
 // TrialStats computes the trial-level statistics.
-func (ss *Sim) TrialStats(train bool) {
+func (ss *Sim) TrialStats(train bool, tick int) {
 	for li, lnm := range ss.PulvLays {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		ss.PulvCosDiff[li] = float64(ly.CosDiff.Cos)
 		ss.PulvUnitErr[li] = ly.PctUnitErr()
-		if lnm == "LIPP" {
-			ss.TrlCosDiff = float64(ly.CosDiff.Cos)
+		switch tick {
+		case 0:
+			if lnm == "MDe" {
+				ss.TrlCosDiff = float64(ly.CosDiff.Cos)
+			}
+		case 1:
+			if lnm == "LIPP" {
+				ss.TrlCosDiff = float64(ly.CosDiff.Cos)
+			}
 		}
 	}
 	ss.TrialCosDiff()
