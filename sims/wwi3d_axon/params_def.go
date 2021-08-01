@@ -191,9 +191,8 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.Learn.Lrate.Base": "0.02", // .02 > .04 here & lvis
 					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
-					"Prjn.PrjnScale.ScaleLrate": "2",   // 2 = fast response, effective
-					"Prjn.PrjnScale.LoTol":      "0.8", // good now...
-					"Prjn.PrjnScale.Init":       "1",
+					"Prjn.PrjnScale.ScaleLrate": "2",     // 2 = fast response, effective
+					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
 					"Prjn.PrjnScale.Adapt":      "false", // adapt bad maybe?  put GeMax at 1.2, adjust to avoid
 					"Prjn.SWt.Adapt.On":         "true",  // true > false, esp in cosdiff
@@ -219,7 +218,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".Forward", Desc: "std feedforward",
 				Params: params.Params{
-					// "Prjn.PrjnScale.Init": "0.8", // weaker?
+					// "Prjn.PrjnScale.Abs": "0.8", // weaker?
 				}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
@@ -232,18 +231,18 @@ var ParamSets = params.Sets{
 					"Prjn.SWt.Init.Var":     "0.0",
 					"Prjn.SWt.Init.Mean":    "0.1",
 					"Prjn.SWt.Adapt.On":     "false",
-					"Prjn.PrjnScale.Init":   "0.1", // .1 = .2, slower blowup
+					"Prjn.PrjnScale.Abs":    "0.1", // .1 = .2, slower blowup
 					"Prjn.PrjnScale.Adapt":  "false",
 					"Prjn.IncGain":          "1", // .5 def
 				}},
 
 			{Sel: ".V1V2", Desc: "special SWt params",
 				Params: params.Params{
-					"Prjn.SWt.Init.Mean":  "0.4", // .4 here is key!
-					"Prjn.SWt.Limit.Min":  "0.1", // .1-.7
-					"Prjn.SWt.Limit.Max":  "0.7", //
-					"Prjn.PrjnScale.Init": "0.5", // .5 = 1.5 MaxGeM
-					"Prjn.PrjnScale.Rel":  "2",   //
+					"Prjn.SWt.Init.Mean": "0.4", // .4 here is key!
+					"Prjn.SWt.Limit.Min": "0.1", // .1-.7
+					"Prjn.SWt.Limit.Max": "0.7", //
+					"Prjn.PrjnScale.Abs": "0.5", // .5 = 1.5 MaxGeM
+					"Prjn.PrjnScale.Rel": "2",   //
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
@@ -272,13 +271,13 @@ var ParamSets = params.Sets{
 
 			{Sel: ".CTToPulv", Desc: "CT to pulvinar needs to be weaker in general, like most prjns",
 				Params: params.Params{
-					"Prjn.PrjnScale.Init": "0.8",
-					"Prjn.PrjnScale.Rel":  "1.25",
+					"Prjn.PrjnScale.Abs": "0.8",
+					"Prjn.PrjnScale.Rel": "1.25",
 				}},
 			{Sel: "#TECTToTEP", Desc: "not as weak",
 				Params: params.Params{
-					"Prjn.PrjnScale.Init": "0.8",
-					"Prjn.PrjnScale.Rel":  "1.25",
+					"Prjn.PrjnScale.Abs": "0.8",
+					"Prjn.PrjnScale.Rel": "1.25",
 				}},
 			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
 				Params: params.Params{
@@ -355,28 +354,28 @@ var ParamSets = params.Sets{
 
 			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
 				Params: params.Params{
-					"Prjn.PrjnScale.Init": "0.5",
-					"Prjn.PrjnScale.Rel":  "2",
+					"Prjn.PrjnScale.Abs": "0.5",
+					"Prjn.PrjnScale.Rel": "2",
 				}},
 			{Sel: "#V2ToV4", Desc: "otherwise V2 too strong",
 				Params: params.Params{
-					"Prjn.PrjnScale.Init": "0.5",
-					"Prjn.PrjnScale.Rel":  "2",
+					"Prjn.PrjnScale.Abs": "0.5",
+					"Prjn.PrjnScale.Rel": "2",
 				}},
 			{Sel: "#V3ToDP", Desc: "too weak full from topo",
 				Params: params.Params{
-					"Prjn.PrjnScale.Init": "1",
-					"Prjn.PrjnScale.Rel":  "1",
+					"Prjn.PrjnScale.Abs": "1",
+					"Prjn.PrjnScale.Rel": "1",
 				}},
 			{Sel: "#V4ToTEO", Desc: "too weak full from topo",
 				Params: params.Params{
-					"Prjn.PrjnScale.Init": ".5",
-					"Prjn.PrjnScale.Rel":  "2",
+					"Prjn.PrjnScale.Abs": ".5",
+					"Prjn.PrjnScale.Rel": "2",
 				}},
 			{Sel: "#TEOToTE", Desc: "too weak full from topo",
 				Params: params.Params{
-					"Prjn.PrjnScale.Init": "1",
-					"Prjn.PrjnScale.Rel":  "1",
+					"Prjn.PrjnScale.Abs": "1",
+					"Prjn.PrjnScale.Rel": "1",
 				}},
 
 			// {Sel: "#TEToTEO", Desc: "weaker top-down than std .1",

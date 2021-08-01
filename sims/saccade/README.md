@@ -6,7 +6,7 @@ This does predictive learning of saccade-related signals *only*, in contrast to 
 
 The primary layers in the model are:
 
-* `V1` primary visual cortex, represents the visual image (idealized blobs), on a 2D retinotopic map: one or more blobs, one of which is the target.
+* `V1p` primary visual cortex, peripheral, full-field, represents the visual image (idealized blobs), on a 2D retinotopic map: one or more blobs, one of which is the target.
 
 * `S1e` primary proprioceptive somatosensory eye position map (WangZhangCohenEtAl07) -- cells have gaussian direction and graded slope eccentricity coding, roughly linear from the center out.  Orientation is coded on X axis with vertical in center, angles to the left on the left, etc.  To maintain consistency with FEF motor code, and have a simpler overall activity level profile, eccentricity coding is also gaussian with a preferred eccentricity coding progressively outward across the higher rows.
 
@@ -21,6 +21,10 @@ The primary layers in the model are:
 * `SEF` is supplementary / second-order eye fields, which learns to predict FEF activity, and provides more strategic top-down motor plans to FEF, e.g., for sequencing etc.
 
 * `LIP` receives from and predicts V1, S1e, and FEF, sending activity to FEF and SEF to drive saccades to the attentionally-selected V1 target.
+
+## Circuits
+
+* `V1 -> LIP <-> FEF <-> MDe -> SCd` -- basic sensory-motor pathway, where the visual target represented in LIP drives motor output, with FEF tansforming the retinotopic coordinates of LIP into the polar motor coordinates of MD which is constrained by SCd for its representational structure.  In the model, the MDe plus phase driven by SCd corollary discharge acts like a standard target layer.
 
 # Paradigm
 

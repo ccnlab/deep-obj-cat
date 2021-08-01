@@ -102,6 +102,7 @@ type Sim struct {
 	Prjn2x2Skp2      *prjn.PoolTile  `view:"sparser skip 2 -- no overlap"`
 	Prjn2x2Skp2Recip *prjn.PoolTile  `view:"Reciprocal"`
 	Prjn3x3Skp1      *prjn.PoolTile  `view:"Standard same-to-same size topographic projection"`
+	Prjn5x5Skp1      *prjn.PoolTile  `view:"Standard same-to-same size topographic projection"`
 	PrjnSigTopo      *prjn.PoolTile  `view:"sigmoidal topographic projection used in LIP saccade remapping layers"`
 	PrjnGaussTopo    *prjn.PoolTile  `view:"gaussian topographic projection used in LIP saccade remapping layers"`
 	StartRun         int             `desc:"starting run number -- typically 0 but can be set in command args for parallel runs on a cluster"`
@@ -130,6 +131,7 @@ type Sim struct {
 	PulvUnitErr    []float64 `inactive:"+" desc:"trial stats UnitErr for pulvs"`
 	PulvTrlCosDiff []float64 `inactive:"+" desc:"trial stats trial cos diff for pulvs"`
 	TrlCosDiff     float64   `inactive:"+" desc:"cos diff used for driving ErrLrMod"`
+	MDErr          float64   `inactive:"+" desc:"error in distance from target XY for generated MD minus phase action"`
 	EpcPerTrlMSec  float64   `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	LastTrlMSec    float64   `inactive:"+" desc:"how long did the epoch take to run last trial in wall-clock milliseconds"`
 	PCA            pca.PCA   `view:"-" desc:"pca obj"`
@@ -251,6 +253,12 @@ func (ss *Sim) Defaults() {
 	ss.Prjn3x3Skp1.Start.Set(-1, -1)
 	ss.Prjn3x3Skp1.TopoRange.Min = 0.8 // note: none of these make a very big diff
 
+	ss.Prjn5x5Skp1 = prjn.NewPoolTile()
+	ss.Prjn5x5Skp1.Size.Set(5, 5)
+	ss.Prjn5x5Skp1.Skip.Set(1, 1)
+	ss.Prjn5x5Skp1.Start.Set(-2, -2)
+	ss.Prjn5x5Skp1.TopoRange.Min = 0.8 // note: none of these make a very big diff
+
 	ss.PrjnSigTopo = prjn.NewPoolTile()
 	ss.PrjnSigTopo.GaussOff()
 	ss.PrjnSigTopo.Size.Set(1, 1)
@@ -301,7 +309,7 @@ func (ss *Sim) ConfigEnv() {
 	}
 	if ss.MaxTrls == 0 { // allow user override
 		ss.MaxTrls = 64
-		ss.MaxTicks = 2
+		ss.MaxTicks = 1
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
@@ -328,66 +336,79 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	asz := ss.TrainEnv.AngSize
 	dsz := ss.TrainEnv.DistSize
 
-	v1 := net.AddLayer4D("V1", vsz, vsz, 1, 1, emer.Input)
+	v1 := net.AddLayer4D("V1p", vsz, vsz, 1, 1, emer.Input)
 	s1e := net.AddLayer4D("S1e", dsz, asz, 1, 1, emer.Input)
 	scs := net.AddLayer4D("SCs", dsz, asz, 1, 1, emer.Input)
 	scd := net.AddLayer4D("SCd", dsz, asz, 1, 1, emer.Input)
 	md := net.AddLayer4D("MDe", dsz, asz, 1, 1, emer.Target)
 
-	lip, lipct, lipp := net.AddDeep4D("LIP", vsz, vsz, 2, 2)
-	lipp.Shape().SetShape([]int{vsz, vsz, 2, 1}, nil, nil)
-	lipp.(*deep.TRCLayer).Drivers.Add("V1", "S1e")
-
-	fef := net.AddLayer4D("FEF", dsz, asz, 2, 2, emer.Hidden)
-
-	sef, sefct, sefp := net.AddDeep4D("SEF", dsz, asz, 2, 2)
-	sefp.Shape().SetShape([]int{dsz, asz, 2, 2}, nil, nil)
-	sefp.(*deep.TRCLayer).Drivers.Add("FEF")
-
 	v1.SetClass("V1")
-	s1e.SetClass("V1")
+
+	// lip, lipct, lipp := net.AddDeep4D("LIP", vsz, vsz, 2, 2)
+	// lipp.Shape().SetShape([]int{vsz, vsz, 1, 1}, nil, nil)
+	// lipp.(*deep.TRCLayer).Drivers.Add("V1p")
+	// lipps := deep.AddTRCLayer4D(net.AsAxon(), "LIPPS", dsz, asz, 1, 1)
+	// lipps.Drivers.Add("S1e")
+
+	// lip := net.AddLayer4D("LIP", vsz, vsz, 2, 2, emer.Hidden)
+	// lip.SetClass("LIP")
+	// lipct.SetClass("LIP")
+	// lipp.SetClass("LIP")
+	// lipps.SetClass("LIP")
+
+	fef := net.AddLayer2D("FEF", 15, 15, emer.Hidden)
+
+	// sef, sefct, sefp := net.AddDeep4D("SEF", dsz, asz, 2, 2)
+	// sefp.Shape().SetShape([]int{dsz, asz, 2, 2}, nil, nil)
+	// sefp.(*deep.TRCLayer).Drivers.Add("FEF")
+	// sef.SetClass("SEF")
+	// sefct.SetClass("SEF")
+	// sefp.SetClass("SEF")
+
+	v1.SetClass("V1p")
+	s1e.SetClass("V1p")
 	scs.SetClass("PopIn")
 	scd.SetClass("PopIn")
 	md.SetClass("PopIn")
 	fef.SetClass("PopIn")
 
-	lip.SetClass("LIP")
-	lipct.SetClass("LIP")
-	lipp.SetClass("LIP")
-
-	sef.SetClass("SEF")
-	sefct.SetClass("SEF")
-	sefp.SetClass("SEF")
-
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
+	_ = pone2one
+	_ = full
 
-	net.ConnectLayers(v1, lip, ss.Prjn3x3Skp1, emer.Forward) // .SetClass("Fixed") // has .5 wtscale in Params
-	net.ConnectLayers(s1e, lip, full, emer.Forward)
-	net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
+	// net.ConnectLayers(v1, lip, full, emer.Forward) // .SetClass("Fixed") // has .5 wtscale in Params
+	// net.ConnectLayers(s1e, lip, full, emer.Forward)
+	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
 
-	net.ConnectLayers(s1e, lipct, full, emer.Forward)
-	net.BidirConnectLayers(md, lip, full)
-	net.ConnectLayers(md, lipct, full, emer.Forward)
-	net.BidirConnectLayers(sef, lip, full)
+	// net.ConnectLayers(lipct, lipps, full, emer.Forward).SetClass("CTToPulv") // pone2one
+	// net.ConnectLayers(lipps, lip, pone2one, emer.Back).SetClass("FmPulv")
+	// net.ConnectLayers(lipps, lipct, pone2one, emer.Back).SetClass("FmPulv")
 
-	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full) // full > pone2one
-	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
-	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
-	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
+	// net.ConnectLayers(s1e, lipct, full, emer.Forward)
+	// net.ConnectLayers(md, lip, full, emer.Forward)
+	// net.ConnectLayers(md, lipct, full, emer.Forward)
+	// net.BidirConnectLayers(sef, lip, full)
+
+	// lipp.RecvPrjns().SendName("LIPCT").SetPattern(full) // full > pone2one
+	// lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
+	// lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
+	// lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
 	// InitWts optionally sets ss.PrjnSigTopo
 	// net.ConnectLayers(sc, lip, full, emer.Forward)
 
 	// lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn3x3Skp1)
 
-	net.BidirConnectLayers(fef, md, ss.Prjn3x3Skp1)
-	net.BidirConnectLayers(lip, fef, full)
+	net.ConnectLayers(v1, fef, full, emer.Forward) // .SetClass("Fixed") // has .5 wtscale in Params
 
-	net.BidirConnectLayers(fef, sef, ss.Prjn3x3Skp1)
+	net.BidirConnectLayers(fef, md, full) // fef gets topo from md -- but sig worse learning
+	// net.BidirConnectLayers(lip, fef, full)
 
-	net.LateralConnectLayerPrjn(lip, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
-	net.LateralConnectLayerPrjn(lipct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	// net.BidirConnectLayers(fef, sef, ss.Prjn3x3Skp1)
+
+	// net.LateralConnectLayerPrjn(lip, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
+	// net.LateralConnectLayerPrjn(lipct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
 
 	//	Position
 
@@ -397,14 +418,15 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	md.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: s1e.Name(), YAlign: relpos.Front, Space: 2})
 	fef.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: md.Name(), XAlign: relpos.Left, Space: 10})
 
-	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
-	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
-	lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
+	// lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
+	// lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
+	// lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
+	// lipps.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 2})
 
-	sef.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
-	sefct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sef.Name(), XAlign: relpos.Left, Space: 10})
-	sefp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sefct.Name(), XAlign: relpos.Left, Space: 10})
-
+	// sef.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
+	// sefct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sef.Name(), XAlign: relpos.Left, Space: 10})
+	// sefp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sefct.Name(), XAlign: relpos.Left, Space: 10})
+	//
 	net.Defaults()
 	ss.SetParams("Network", false) // only set Network params
 	err := net.Build()
@@ -602,7 +624,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 		}
 	}
 
-	ss.TrialStats(train, tick)
+	ss.TrialStats(ev, tick)
 
 	if train {
 		ss.ErrLrMod.LrateMod(ss.Net.AsAxon(), float32(1-ss.TrlCosDiff))
@@ -620,20 +642,20 @@ func (ss *Sim) ThetaCyc(train bool) {
 // (training, testing, etc).
 func (ss *Sim) ApplyInputs(en env.Env) {
 	tick, _, _ := en.Counter(env.Tick)
-	lipp := ss.Net.LayerByName("LIPP").(axon.AxonLayer).(*deep.TRCLayer)
+	// lipp := ss.Net.LayerByName("LIPP").(axon.AxonLayer).(*deep.TRCLayer)
 	md := ss.Net.LayerByName("MDe").(axon.AxonLayer).AsAxon()
 	switch tick {
 	case 0:
-		lipp.TRC.DriversOff = true
+		// lipp.TRC.DriversOff = true
 		md.SetType(emer.Target)
 	case 1:
-		lipp.TRC.DriversOff = false
-		md.SetType(emer.Input)
+		// lipp.TRC.DriversOff = false
+		md.SetType(emer.Hidden)
 	}
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"V1", "S1e", "SCs", "SCd"}
+	lays := []string{"V1p", "S1e", "SCs", "SCd"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		pats := en.State(ly.Nm)
@@ -700,9 +722,9 @@ func (ss *Sim) TrainTrial() {
 	ss.ApplyInputs(&ss.TrainEnv)
 	ss.ThetaCyc(true) // train
 	ss.LogTrnTrl(ss.TrnTrlLog)
-	// if ss.RepsInterval > 0 && epc%ss.RepsInterval == 0 {
-	// 	ss.LogTrnRepTrl(ss.TrnTrlRepLog)
-	// }
+	if ss.RepsInterval > 0 && epc%ss.RepsInterval == 0 {
+		ss.LogTrnRepTrl(ss.TrnTrlRepLog)
+	}
 	if ss.CurImgGrid != nil {
 		ss.CurImgGrid.UpdateSig()
 	}
@@ -745,7 +767,7 @@ func (ss *Sim) InitStats() {
 	ss.PulvLays = []string{"MDe"}
 	ss.HidLays = []string{}
 	ss.InLays = []string{}
-	ss.SuperLays = []string{"V1"}
+	ss.SuperLays = []string{"V1p"}
 	net := ss.Net
 	for _, ly := range net.Layers {
 		if ly.IsOff() {
@@ -776,7 +798,7 @@ func (ss *Sim) InitStats() {
 }
 
 // TrialStats computes the trial-level statistics.
-func (ss *Sim) TrialStats(train bool, tick int) {
+func (ss *Sim) TrialStats(ev *SacEnv, tick int) {
 	for li, lnm := range ss.PulvLays {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		ss.PulvCosDiff[li] = float64(ly.CosDiff.Cos)
@@ -793,6 +815,7 @@ func (ss *Sim) TrialStats(train bool, tick int) {
 		}
 	}
 	ss.TrialCosDiff()
+	ss.MDErr = float64(ev.MDErr)
 }
 
 func (ss *Sim) TrialCosDiffLay(lnm string, varnm string) float64 {
@@ -1151,6 +1174,7 @@ func (ss *Sim) LogTrnTrl(dt *etable.Table) {
 	dt.SetCellFloat("Idx", row, float64(row))
 	dt.SetCellString("Obj", row, "na")
 	dt.SetCellString("TrialName", row, ss.TrainEnv.String())
+	dt.SetCellFloat("MDErr", row, float64(ss.MDErr))
 
 	for li, lnm := range ss.PulvLays {
 		dt.SetCellFloat(lnm+"_CosDiff", row, ss.PulvCosDiff[li])
@@ -1196,6 +1220,7 @@ func (ss *Sim) ConfigTrnTrlLog(dt *etable.Table) {
 		{"Idx", etensor.INT64, nil, nil},
 		{"Obj", etensor.STRING, nil, nil},
 		{"TrialName", etensor.STRING, nil, nil},
+		{"MDErr", etensor.FLOAT64, nil, nil},
 	}
 	for _, lnm := range ss.PulvLays {
 		sch = append(sch, etable.Column{lnm + "_CosDiff", etensor.FLOAT64, nil, nil})
@@ -1221,6 +1246,7 @@ func (ss *Sim) ConfigTrnTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("Idx", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("Obj", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("TrialName", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
+	plt.SetColParams("MDErr", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 
 	for _, lnm := range ss.PulvLays {
 		plt.SetColParams(lnm+"_CosDiff", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
@@ -1440,6 +1466,8 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 		empi.GatherTableRows(ss.TrnTrlLogAll, ss.TrnTrlLog, ss.Comm)
 		trl = ss.TrnTrlLogAll
 	}
+	tix := etable.NewIdxView(trl)
+	spl := split.GroupBy(tix, []string{"Tick"})
 
 	epc := ss.TrainEnv.Epoch.Prv // this is triggered by increment so use previous value
 	nt := float64(trl.Rows)
@@ -1455,6 +1483,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("Run", row, float64(ss.TrainEnv.Run.Cur))
 	dt.SetCellFloat("Epoch", row, float64(epc))
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
+	dt.SetCellFloat("MDErr", row, agg.Agg(tix, "MDErr", agg.AggMean)[0])
 
 	for _, lnm := range ss.HidLays {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
@@ -1470,9 +1499,6 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		dt.SetCellFloat(lnm+"_ActAvg", row, float64(ly.ActAvg.ActMAvg))
 	}
-
-	tix := etable.NewIdxView(trl)
-	spl := split.GroupBy(tix, []string{"Tick"})
 
 	// average trial cos diff
 	t2tix := etable.NewIdxView(trl)
@@ -1612,6 +1638,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		{"Run", etensor.INT64, nil, nil},
 		{"Epoch", etensor.INT64, nil, nil},
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
+		{"MDErr", etensor.FLOAT64, nil, nil},
 	}
 	for _, lnm := range ss.HidLays {
 		sch = append(sch, etable.Column{lnm + "_Dead", etensor.FLOAT64, nil, nil})
@@ -1657,6 +1684,7 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("Run", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("Epoch", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("PerTrlMSec", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
+	plt.SetColParams("MDErr", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 
 	for _, lnm := range ss.HidLays {
 		plt.SetColParams(lnm+"_Dead", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
@@ -1714,7 +1742,7 @@ func (ss *Sim) LogTstTrl(dt *etable.Table) {
 }
 
 func (ss *Sim) ConfigTstTrlLog(dt *etable.Table) {
-	// inp := ss.Net.LayerByName("V1").(axon.AxonLayer).AsAxon()
+	// inp := ss.Net.LayerByName("V1p").(axon.AxonLayer).AsAxon()
 	// out := ss.Net.LayerByName("Output").(axon.AxonLayer).AsAxon()
 
 	dt.SetMetaData("name", "TstTrlLog")
