@@ -350,8 +350,8 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// lipps := deep.AddTRCLayer4D(net.AsAxon(), "LIPPS", dsz, asz, 1, 1)
 	// lipps.Drivers.Add("S1e")
 
-	// lip := net.AddLayer4D("LIP", vsz, vsz, 2, 2, emer.Hidden)
-	// lip.SetClass("LIP")
+	lip := net.AddLayer4D("LIP", vsz, vsz, 2, 2, emer.Hidden)
+	lip.SetClass("LIP")
 	// lipct.SetClass("LIP")
 	// lipp.SetClass("LIP")
 	// lipps.SetClass("LIP")
@@ -377,7 +377,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	_ = pone2one
 	_ = full
 
-	// net.ConnectLayers(v1, lip, full, emer.Forward) // .SetClass("Fixed") // has .5 wtscale in Params
+	net.ConnectLayers(v1, lip, ss.Prjn5x5Skp1, emer.Forward)
 	// net.ConnectLayers(s1e, lip, full, emer.Forward)
 	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
 
@@ -400,10 +400,10 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	// lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn3x3Skp1)
 
-	net.ConnectLayers(v1, fef, full, emer.Forward) // .SetClass("Fixed") // has .5 wtscale in Params
+	// net.ConnectLayers(v1, fef, full, emer.Forward)
 
 	net.BidirConnectLayers(fef, md, full) // fef gets topo from md -- but sig worse learning
-	// net.BidirConnectLayers(lip, fef, full)
+	net.BidirConnectLayers(lip, fef, full)
 
 	// net.BidirConnectLayers(fef, sef, ss.Prjn3x3Skp1)
 

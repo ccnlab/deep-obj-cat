@@ -85,11 +85,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":       "1.1",
-					"Layer.Inhib.Pool.Gi":        "0.9",
-					"Layer.Inhib.Pool.On":        "false", // false > true
-					"Layer.Inhib.ActAvg.Init":    "0.06",
-					"Layer.Inhib.ActAvg.Targ":    "0.06",
+					"Layer.Inhib.Layer.Gi":       "20",
+					"Layer.Inhib.Pool.Gi":        "0.8",
+					"Layer.Inhib.Pool.On":        "true",
+					"Layer.Inhib.ActAvg.Init":    "0.01",
+					"Layer.Inhib.ActAvg.Targ":    "0.01",
 					"Layer.Learn.TrgAvgAct.Pool": "false", // pool sizes too small for trgs!
 				}},
 			{Sel: "#LIPP", Desc: "high, pool inhib",
@@ -100,9 +100,9 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":       "1.1",
 					"Layer.Inhib.Pool.Gi":        "0.9",
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.05",
-					"Layer.Inhib.ActAvg.Targ":    "0.05",
+					"Layer.Inhib.Pool.On":        "false", // full layer best
+					"Layer.Inhib.ActAvg.Init":    "0.04",
+					"Layer.Inhib.ActAvg.Targ":    "0.04",
 					"Layer.Learn.TrgAvgAct.Pool": "false", // pool sizes too small for trgs!
 				}},
 			{Sel: ".SEF", Desc: "",
@@ -242,6 +242,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": ".5",
 				}},
+			{Sel: "#FEFToLIP", Desc: "weaker",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": ".5",
+				}},
 			{Sel: "#MDeToFEF", Desc: "weaker",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": ".1",
@@ -251,9 +255,17 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "3", // this pathway is too weak
 				}},
-			{Sel: "#FEFToMDe", Desc: "weaker",
+			{Sel: "#V1pToLIP", Desc: "stronger",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1", // this pathway is too weak
+				}},
+			{Sel: "#LIPToFEF", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "1",
+				}},
+			{Sel: "#FEFToMDe", Desc: "stronger with LIP -> FEF",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1.0",
 				}},
 		},
 	}},
