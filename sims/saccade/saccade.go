@@ -309,7 +309,6 @@ func (ss *Sim) ConfigEnv() {
 	}
 	if ss.MaxTrls == 0 { // allow user override
 		ss.MaxTrls = 64
-		ss.MaxTicks = 1
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
@@ -327,6 +326,8 @@ func (ss *Sim) ConfigEnv() {
 	ss.TestEnv.Init(0)
 	ss.TrainEnv.Validate()
 	ss.TestEnv.Validate()
+
+	ss.MaxTicks = ss.TrainEnv.Tick.Max
 }
 
 func (ss *Sim) ConfigNet(net *deep.Network) {
@@ -336,7 +337,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	asz := ss.TrainEnv.AngSize
 	dsz := ss.TrainEnv.DistSize
 
-	v1 := net.AddLayer4D("V1p", vsz, vsz, 1, 1, emer.Input)
+	v1 := net.AddLayer4D("V1f", vsz, vsz, 1, 1, emer.Input)
 	s1e := net.AddLayer4D("S1e", dsz, asz, 1, 1, emer.Input)
 	scs := net.AddLayer4D("SCs", dsz, asz, 1, 1, emer.Input)
 	scd := net.AddLayer4D("SCd", dsz, asz, 1, 1, emer.Input)
@@ -346,7 +347,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	// lip, lipct, lipp := net.AddDeep4D("LIP", vsz, vsz, 2, 2)
 	// lipp.Shape().SetShape([]int{vsz, vsz, 1, 1}, nil, nil)
-	// lipp.(*deep.TRCLayer).Drivers.Add("V1p")
+	// lipp.(*deep.TRCLayer).Drivers.Add("V1f")
 	// lipps := deep.AddTRCLayer4D(net.AsAxon(), "LIPPS", dsz, asz, 1, 1)
 	// lipps.Drivers.Add("S1e")
 
@@ -356,7 +357,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// lipp.SetClass("LIP")
 	// lipps.SetClass("LIP")
 
-	fef := net.AddLayer2D("FEF", 15, 15, emer.Hidden)
+	fef := net.AddLayer2D("FEF", vsz, vsz, emer.Hidden)
 
 	// sef, sefct, sefp := net.AddDeep4D("SEF", dsz, asz, 2, 2)
 	// sefp.Shape().SetShape([]int{dsz, asz, 2, 2}, nil, nil)
@@ -365,8 +366,8 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// sefct.SetClass("SEF")
 	// sefp.SetClass("SEF")
 
-	v1.SetClass("V1p")
-	s1e.SetClass("V1p")
+	v1.SetClass("V1f")
+	s1e.SetClass("V1f")
 	scs.SetClass("PopIn")
 	scd.SetClass("PopIn")
 	md.SetClass("PopIn")
@@ -404,6 +405,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	net.BidirConnectLayers(fef, md, full) // fef gets topo from md -- but sig worse learning
 	net.BidirConnectLayers(lip, fef, full)
+	// net.ConnectLayers(md, lip, full, emer.Forward)
 
 	// net.BidirConnectLayers(fef, sef, ss.Prjn3x3Skp1)
 
@@ -418,7 +420,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	md.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: s1e.Name(), YAlign: relpos.Front, Space: 2})
 	fef.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: md.Name(), XAlign: relpos.Left, Space: 10})
 
-	// lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
+	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
 	// lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
 	// lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
 	// lipps.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 2})
@@ -453,6 +455,7 @@ func (ss *Sim) SetTopoSWts(net *deep.Network, send, recv string, pooltile *prjn.
 	pj := rlay.RecvPrjns().SendName(send).(axon.AxonPrjn).AsAxon()
 	scales := &etensor.Float32{}
 	pooltile.TopoWts(slay.Shape(), rlay.Shape(), scales)
+	// fmt.Printf("scales: %v\n", scales)
 	pj.SetSWtsRPool(scales)
 }
 
@@ -461,8 +464,11 @@ func (ss *Sim) InitWts(net *deep.Network) {
 		return
 	}
 	net.InitWts()
+
 	return
 	net.InitTopoSWts() //  sets all wt scales
+
+	ss.SetTopoSWts(net, "FEF", "LIP", ss.PrjnGaussTopo)
 
 	// these are not set automatically b/c prjn is Full, not PoolTile
 	ss.SetTopoSWts(net, "EyePos", "LIP", ss.PrjnGaussTopo)
@@ -650,12 +656,12 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 		md.SetType(emer.Target)
 	case 1:
 		// lipp.TRC.DriversOff = false
-		md.SetType(emer.Hidden)
+		md.SetType(emer.Target)
 	}
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"V1p", "S1e", "SCs", "SCd"}
+	lays := []string{"V1f", "S1e", "SCs", "SCd"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		pats := en.State(ly.Nm)
@@ -667,11 +673,13 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 
 func (ss *Sim) DoAction(en env.Env) {
 	tick, _, _ := en.Counter(env.Tick)
+	md := ss.Net.LayerByName("MDe").(axon.AxonLayer).AsAxon()
 	if tick != 0 {
+		pats := en.State("SCs") // applying previous action doesn't work!
+		md.ApplyExt(pats)
 		return
 	}
 	mdacts := ss.ValsTsr("MDe")
-	md := ss.Net.LayerByName("MDe").(axon.AxonLayer).AsAxon()
 	md.UnitValsTensor(mdacts, "Act")
 	en.Action("MD", mdacts)
 	scd := ss.Net.LayerByName("SCd").(axon.AxonLayer).AsAxon()
@@ -681,8 +689,6 @@ func (ss *Sim) DoAction(en env.Env) {
 		md.ApplyExt(pats)
 	}
 }
-
-// todo: action, plus phase apply SCd
 
 // TrainTrial runs one trial of training using TrainEnv
 func (ss *Sim) TrainTrial() {
@@ -767,7 +773,7 @@ func (ss *Sim) InitStats() {
 	ss.PulvLays = []string{"MDe"}
 	ss.HidLays = []string{}
 	ss.InLays = []string{}
-	ss.SuperLays = []string{"V1p"}
+	ss.SuperLays = []string{"V1f"}
 	net := ss.Net
 	for _, ly := range net.Layers {
 		if ly.IsOff() {
@@ -803,16 +809,16 @@ func (ss *Sim) TrialStats(ev *SacEnv, tick int) {
 		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
 		ss.PulvCosDiff[li] = float64(ly.CosDiff.Cos)
 		ss.PulvUnitErr[li] = ly.PctUnitErr()
-		switch tick {
-		case 0:
-			if lnm == "MDe" {
-				ss.TrlCosDiff = float64(ly.CosDiff.Cos)
-			}
-		case 1:
-			if lnm == "LIPP" {
-				ss.TrlCosDiff = float64(ly.CosDiff.Cos)
-			}
+		// switch tick {
+		// case 0:
+		if lnm == "MDe" {
+			ss.TrlCosDiff = float64(ly.CosDiff.Cos)
 		}
+		// case 1:
+		// 	if lnm == "LIPP" {
+		// 		ss.TrlCosDiff = float64(ly.CosDiff.Cos)
+		// 	}
+		// }
 	}
 	ss.TrialCosDiff()
 	ss.MDErr = float64(ev.MDErr)
@@ -910,6 +916,10 @@ func (ss *Sim) SaveWeights() {
 // EpochSched implements the epoch-wise schedule
 func (ss *Sim) EpochSched(epc int) {
 	switch epc {
+	case 30:
+		ss.TrainEnv.PMD = .8
+	case 40:
+		ss.TrainEnv.PMD = .9
 	case 100:
 		ss.SaveWeights()
 	case 250:
@@ -1742,7 +1752,7 @@ func (ss *Sim) LogTstTrl(dt *etable.Table) {
 }
 
 func (ss *Sim) ConfigTstTrlLog(dt *etable.Table) {
-	// inp := ss.Net.LayerByName("V1p").(axon.AxonLayer).AsAxon()
+	// inp := ss.Net.LayerByName("V1f").(axon.AxonLayer).AsAxon()
 	// out := ss.Net.LayerByName("Output").(axon.AxonLayer).AsAxon()
 
 	dt.SetMetaData("name", "TstTrlLog")

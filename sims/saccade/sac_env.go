@@ -19,7 +19,7 @@ import (
 
 // SacEnv implements saccading logic for generating visual saccades
 // toward one target object out of multiple possible objects.
-// V1p = whole visual field (peripheral) blob scene input; S1e = somatosensory eye position
+// V1f = full visual field (peripheral) blob scene input; S1e = somatosensory eye position
 // SCs = superior colliculus superficial "reflexive" motor plan
 // SCd = superior colliculus deep layer actual motor output.
 // PMD = probability of using MD from Action for actual eye command.
@@ -56,6 +56,7 @@ type SacEnv struct {
 	S1eTsr    etensor.Float32 `desc:"S1 primary somatosensory eye position polar popcode map"`
 	SCsTsr    etensor.Float32 `desc:"SCs saccade plan polar popcode map"`
 	SCdTsr    etensor.Float32 `desc:"SCd saccade actual executed action popcode map"`
+	SCdPrvTsr etensor.Float32 `desc:"previous SCd saccade actual executed action popcode map"`
 	MDTsr     etensor.Float32 `desc:"MD corollary discharge Action taken by cortex"`
 	Run       env.Ctr         `view:"inline" desc:"current run of model as provided during Init"`
 	Epoch     env.Ctr         `view:"inline" desc:"arbitrary aggregation of trials, for stats etc"`
@@ -70,9 +71,9 @@ func (sc *SacEnv) Desc() string { return sc.Dsc }
 func (sc *SacEnv) Defaults() {
 	sc.UsePolar = true
 	sc.NObjRange.Set(1, 1)
-	sc.VisSize = 15 // 11, 15, 21 for small, med, large..
-	sc.AngSize = 15
-	sc.DistSize = 15
+	sc.VisSize = 16 // 11, 16, 21 for small, med, large..
+	sc.AngSize = 16
+	sc.DistSize = 16
 
 	sc.V1Pop.Defaults()
 	sc.V1Pop.Min.Set(-1.1, -1.1)
@@ -100,17 +101,19 @@ func (sc *SacEnv) Defaults() {
 	sc.S1eTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
 	sc.SCsTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
 	sc.SCdTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
+	sc.SCdPrvTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
 	sc.MDTsr.SetShape([]int{sc.DistSize, sc.AngSize}, nil, da)
 }
 
 // Init must be called at start prior to generating saccades
 func (sc *SacEnv) Init(run int) {
+	sc.PMD = 0 // always start with full sc
 	sc.Table.SetNumRows(1)
 	sc.Run.Scale = env.Run
 	sc.Epoch.Scale = env.Epoch
 	sc.Trial.Scale = env.Trial
 	sc.Tick.Scale = env.Tick
-	sc.Tick.Max = 1
+	sc.Tick.Max = 2
 	sc.Run.Init()
 	sc.Epoch.Init()
 	sc.Trial.Init()
@@ -129,7 +132,7 @@ func (sc *SacEnv) ConfigTable(dt *etable.Table) {
 	sch := etable.Schema{
 		{"TrialName", etensor.STRING, nil, nil},
 		{"Tick", etensor.INT64, nil, nil},
-		{"V1p", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
+		{"V1f", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
 		{"Target", etensor.FLOAT32, []int{sc.VisSize, sc.VisSize}, yx},
 		{"S1e", etensor.FLOAT32, []int{sc.DistSize, sc.AngSize}, da},
 		{"SCs", etensor.FLOAT32, []int{sc.DistSize, sc.AngSize}, da},
@@ -149,7 +152,7 @@ func (sc *SacEnv) WriteToTable(dt *etable.Table) {
 	dt.SetCellString("TrialName", row, nm)
 	dt.SetCellFloat("Tick", row, float64(sc.Tick.Cur))
 
-	dt.SetCellTensor("V1p", row, &sc.V1Tsr)
+	dt.SetCellTensor("V1f", row, &sc.V1Tsr)
 	sc.VisPop.Encode(sc.Table.CellTensor("Target", row).(*etensor.Float32), sc.TargPos, popcode.Set)
 	sc.PolarPop.Encode(sc.Table.CellTensor("S1e", row).(*etensor.Float32), sc.EyePos, popcode.Set)
 	sc.PolarPop.Encode(sc.Table.CellTensor("SCs", row).(*etensor.Float32), sc.SCs, popcode.Set)
@@ -246,7 +249,7 @@ func (sc *SacEnv) Counter(scale env.TimeScales) (cur, prv int, chg bool) {
 
 func (sc *SacEnv) State(element string) etensor.Tensor {
 	switch element {
-	case "V1p":
+	case "V1f":
 		return &sc.V1Tsr
 	case "S1e":
 		return &sc.S1eTsr
@@ -254,6 +257,8 @@ func (sc *SacEnv) State(element string) etensor.Tensor {
 		return &sc.SCsTsr
 	case "SCd":
 		return &sc.SCdTsr
+	case "SCdPrv":
+		return &sc.SCdPrvTsr
 	}
 	return nil
 }
@@ -262,7 +267,7 @@ func (sc *SacEnv) State(element string) etensor.Tensor {
 func (sc *SacEnv) EncodeObjs(off mat32.Vec2) {
 	for i := 0; i < sc.NObjs; i++ {
 		op := sc.ObjsPos[i]
-		// op.SetAdd(off)
+		op.SetAdd(off)
 		if op.X > 1 || op.X < -1 || op.Y > 1 || op.Y < -1 {
 			continue
 		}
@@ -315,9 +320,6 @@ func (sc *SacEnv) Step() bool {
 	sc.Tick.Incr()
 	if sc.Tick.Cur == 0 {
 		sc.NewScene()
-		if sc.Trial.Incr() {
-			sc.Epoch.Incr()
-		}
 	} else {
 		sc.DoSaccade()
 		if sc.Trial.Incr() {
@@ -346,5 +348,6 @@ func (sc *SacEnv) Action(element string, input etensor.Tensor) {
 		sc.SCdPolar = sc.SCsPolar
 	}
 	sc.EncodePolar(&sc.SCdTsr, sc.SCdXY)
+	sc.SCdPrvTsr.CopyFrom(&sc.SCdTsr)
 	sc.WriteToTable(&sc.Table)
 }

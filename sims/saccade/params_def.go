@@ -23,8 +23,8 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.ActAvg.Init":            "0.06",
 					"Layer.Inhib.ActAvg.Targ":            "0.06",
 					"Layer.Act.Gbar.L":                   "0.2", // 0.2 now best
-					"Layer.Act.Decay.Act":                "0.0", // 0 best
-					"Layer.Act.Decay.Glong":              "0.0", // 0.5 > 0.2
+					"Layer.Act.Decay.Act":                "0.2", // 0 best
+					"Layer.Act.Decay.Glong":              "0.6", // 0.5 > 0.2
 					"Layer.Act.KNa.Fast.Max":             "0.1", // fm both .2 worse
 					"Layer.Act.KNa.Med.Max":              "0.2", // 0.2 > 0.1 def
 					"Layer.Act.KNa.Slow.Max":             "0.2", // 0.2 > higher
@@ -85,12 +85,14 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":       "20",
-					"Layer.Inhib.Pool.Gi":        "0.8",
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.01",
-					"Layer.Inhib.ActAvg.Targ":    "0.01",
-					"Layer.Learn.TrgAvgAct.Pool": "false", // pool sizes too small for trgs!
+					"Layer.Inhib.Layer.Gi":               "10",
+					"Layer.Inhib.Pool.Gi":                "0.8",
+					"Layer.Inhib.Pool.On":                "true",
+					"Layer.Inhib.ActAvg.Init":            "0.02",
+					"Layer.Inhib.ActAvg.Targ":            "0.02",
+					"Layer.Learn.TrgAvgAct.TrgRange.Min": "0.5",
+					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",   // reducing does not help anything
+					"Layer.Learn.TrgAvgAct.Pool":         "false", // pool sizes too small for trgs!
 				}},
 			{Sel: "#LIPP", Desc: "high, pool inhib",
 				Params: params.Params{
@@ -101,8 +103,8 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi":       "1.1",
 					"Layer.Inhib.Pool.Gi":        "0.9",
 					"Layer.Inhib.Pool.On":        "false", // full layer best
-					"Layer.Inhib.ActAvg.Init":    "0.04",
-					"Layer.Inhib.ActAvg.Targ":    "0.04",
+					"Layer.Inhib.ActAvg.Init":    "0.09",
+					"Layer.Inhib.ActAvg.Targ":    "0.09",
 					"Layer.Learn.TrgAvgAct.Pool": "false", // pool sizes too small for trgs!
 				}},
 			{Sel: ".SEF", Desc: "",
@@ -238,9 +240,9 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": ".5",
 				}},
-			{Sel: "#LIPToFEF", Desc: "weaker",
+			{Sel: "#LIPToFEF", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": ".5",
+					"Prjn.PrjnScale.Abs": "1.2",
 				}},
 			{Sel: "#FEFToLIP", Desc: "weaker",
 				Params: params.Params{
@@ -251,21 +253,17 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.Rel": ".1",
 					"Prjn.PrjnScale.Abs": "1", // 5x5 elevates rel vs. full -- need to recompensate
 				}},
-			{Sel: "#V1pToFEF", Desc: "stronger",
+			{Sel: "#V1fToFEF", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "3", // this pathway is too weak
 				}},
-			{Sel: "#V1pToLIP", Desc: "stronger",
+			{Sel: "#V1fToLIP", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "1", // this pathway is too weak
+					"Prjn.PrjnScale.Abs": "1", // this pathway is too weak with full prjn, fine with 5x5s1
 				}},
-			{Sel: "#LIPToFEF", Desc: "stronger",
+			{Sel: "#FEFToMDe", Desc: "sensitive",
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "1",
-				}},
-			{Sel: "#FEFToMDe", Desc: "stronger with LIP -> FEF",
-				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "1.0",
 				}},
 		},
 	}},

@@ -6,7 +6,7 @@ This does predictive learning of saccade-related signals *only*, in contrast to 
 
 The primary layers in the model are:
 
-* `V1p` primary visual cortex, peripheral, full-field, represents the visual image (idealized blobs), on a 2D retinotopic map: one or more blobs, one of which is the target.
+* `V1f` primary visual cortex, full-field (peripheral), represents the visual image (idealized blobs), on a 2D retinotopic map: one or more blobs, one of which is the target.
 
 * `S1e` primary proprioceptive somatosensory eye position map (WangZhangCohenEtAl07) -- cells have gaussian direction and graded slope eccentricity coding, roughly linear from the center out.  Orientation is coded on X axis with vertical in center, angles to the left on the left, etc.  To maintain consistency with FEF motor code, and have a simpler overall activity level profile, eccentricity coding is also gaussian with a preferred eccentricity coding progressively outward across the higher rows.
 
@@ -35,3 +35,14 @@ Multiple blobs in the input, fixate on an attentionally-selected one in the peri
 * T0: visual input presented, saccade planned (FEF super) then executed in plus phase (-> FEF deep).  can have random initial eye position.
 
 * T1: new visual input, based on actual saccade, predicted vs. actual for all things like eye position etc
+
+# Goal-learning
+
+Key idea for turning predictive learning into prospective action selection is to learn sensory outcome state + motor action at the same time.  However, in saccade case, and more generally, the sensory pre-conditions for driving the saccade (i.e., V1 / LIP blob somewhere off-center) are incompatible with sensory conditions post-saccade (blob in center), so it is just not clear how this is supposed to work.
+
+Also, just letting the FEF / MD be hidden layers and do their own thing in 2nd tick is not working at all.
+
+Alternative ideas:
+
+* Really need the *higher order* layers to learn sensory + motor states -- is there a way to do the outer-loop, longer-time-scale prediction story here, in higher layers?
+
