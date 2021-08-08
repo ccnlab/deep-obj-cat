@@ -94,9 +94,20 @@ var ParamSets = params.Sets{
 					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",   // reducing does not help anything
 					"Layer.Learn.TrgAvgAct.Pool":         "false", // pool sizes too small for trgs!
 				}},
-			{Sel: "#LIPP", Desc: "high, pool inhib",
+			{Sel: "#LIPCT", Desc: "strong inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "1.1",
+					"Layer.Inhib.Layer.Gi": "5",
+					"Layer.Inhib.Pool.On":  "true",
+				}},
+			{Sel: "#LIPP", Desc: "strong inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "5",
+					"Layer.Inhib.Pool.On":  "false",
+				}},
+			{Sel: "#LIPPS", Desc: "strong inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "5",
+					"Layer.Inhib.Pool.On":  "false",
 				}},
 			{Sel: "#FEF", Desc: "",
 				Params: params.Params{
@@ -136,6 +147,7 @@ var ParamSets = params.Sets{
 			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "1",
+					"Prjn.SWt.Init.Var":  "0.25",
 				}},
 			{Sel: ".Fixed", Desc: "fixed weights",
 				Params: params.Params{
@@ -172,7 +184,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".FmLIP", Desc: "no random weights here",
 				Params: params.Params{
-					"Prjn.SWt.Init.Var": "0.05", // was 0 -- trying .05
+					"Prjn.SWt.Init.Var": "0.25", // was 0 -- trying .05
 					"Prjn.SWt.Init.Sym": "false",
 				}},
 			{Sel: ".BackStrong", Desc: "stronger",
@@ -186,8 +198,9 @@ var ParamSets = params.Sets{
 
 			{Sel: ".CTToPulv", Desc: "CT to pulvinar needs to be weaker in general, like most prjns",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "0.8",
-					"Prjn.PrjnScale.Rel": "1.25",
+					"Prjn.PrjnScale.Abs": ".5",
+					"Prjn.PrjnScale.Rel": "1",
+					"Prjn.SWt.Init.Var":  "0.25",
 				}},
 			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
 				Params: params.Params{
@@ -200,6 +213,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
 				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "0.2",
 					"Prjn.PrjnScale.Rel": "0.2", // .2 > .1 > .05 still true
 				}},
 			{Sel: ".Lateral", Desc: "default for lateral",
