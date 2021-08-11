@@ -14,13 +14,13 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Inhib.FBAct.Tau":              "30",  // 30 > 20 >> 1 definitively
-					"Layer.Act.Dt.IntTau":                "40",  // 40 > 20
-					"Layer.Inhib.Layer.Gi":               "1.1", // general default
-					"Layer.Inhib.Pool.Gi":                "1.1", // general default
-					"Layer.Inhib.ActAvg.LoTol":           "1.1", // no low adapt
-					"Layer.Inhib.ActAvg.AdaptRate":       "0.2", // 0.5 default
-					"Layer.Inhib.ActAvg.Init":            "0.06",
+					"Layer.Inhib.FBAct.Tau":              "30",   // 30 > 20 >> 1 definitively
+					"Layer.Act.Dt.IntTau":                "40",   // 40 > 20
+					"Layer.Inhib.Layer.Gi":               "1.1",  // general default
+					"Layer.Inhib.Pool.Gi":                "1.1",  // general default
+					"Layer.Inhib.ActAvg.LoTol":           "1.1",  // no low adapt
+					"Layer.Inhib.ActAvg.AdaptRate":       "0.2",  // 0.5 default
+					"Layer.Inhib.ActAvg.Init":            "0.06", // .06 = sigma .2, .04 = sigma .15, .02 = sigma .1
 					"Layer.Inhib.ActAvg.Targ":            "0.06",
 					"Layer.Act.Gbar.L":                   "0.2", // 0.2 now best
 					"Layer.Act.Decay.Act":                "0.2", // 0 best
@@ -64,58 +64,67 @@ var ParamSets = params.Sets{
 					"Layer.Burst.ThrRel": "0.1", // not big diffs
 					"Layer.Burst.ThrAbs": "0.1",
 				}},
-			{Sel: ".V1", Desc: "pool inhib, initial activity",
+			{Sel: ".V1f", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.1",
+					"Layer.Inhib.Layer.Gi":    "1.2",
 					"Layer.Inhib.Pool.On":     "false",
-					"Layer.Inhib.ActAvg.Init": "0.02", // .02 for .1 sigma, .04 for .15
-					"Layer.Inhib.ActAvg.Targ": "0.02",
+					"Layer.Inhib.ActAvg.Init": "0.06", // .06 = sigma .2, .04 = sigma .15, .02 = sigma .1
+					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 			{Sel: ".PopIn", Desc: "pop-code input",
 				Params: params.Params{
-					"Layer.Inhib.ActAvg.Init": "0.02",
-					"Layer.Inhib.ActAvg.Targ": "0.02",
+					"Layer.Inhib.Layer.Gi":    "1.2",
+					"Layer.Inhib.ActAvg.Init": "0.06", // .06 = sigma .2, .04 = sigma .15, .02 = sigma .1
+					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 			{Sel: "#MDe", Desc: "",
 				Params: params.Params{
+					"Layer.Inhib.Layer.Gi":    "1.3", // 1.3 > 1.4 > 1.2 > 1.1
 					"Layer.Act.Clamp.Ge":      "0.6", // 0.6 > 0.8?
-					"Layer.Inhib.ActAvg.Init": "0.02",
-					"Layer.Inhib.ActAvg.Targ": "0.02",
-					"Layer.Inhib.Layer.Gi":    "1.3", // 1.3 > 1.2 > 1.1
+					"Layer.Inhib.ActAvg.Init": "0.06",
+					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":               "10",
+					"Layer.Inhib.Layer.Gi":               "1.4",
 					"Layer.Inhib.Pool.Gi":                "0.8",
 					"Layer.Inhib.Pool.On":                "true",
-					"Layer.Inhib.ActAvg.Init":            "0.02",
-					"Layer.Inhib.ActAvg.Targ":            "0.02",
+					"Layer.Inhib.ActAvg.Init":            "0.06",
+					"Layer.Inhib.ActAvg.Targ":            "0.06",
 					"Layer.Learn.TrgAvgAct.TrgRange.Min": "0.5",
 					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",   // reducing does not help anything
 					"Layer.Learn.TrgAvgAct.Pool":         "false", // pool sizes too small for trgs!
 				}},
-			{Sel: "#LIPCT", Desc: "strong inhib",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "5",
-					"Layer.Inhib.Pool.On":  "true",
-				}},
+			// {Sel: "#LIPCT", Desc: "strong inhib",
+			// 	Params: params.Params{
+			// 		"Layer.Inhib.Pool.On":     "true",
+			// 		"Layer.Inhib.ActAvg.Init": "0.06",
+			// 		"Layer.Inhib.ActAvg.Targ": "0.06",
+			// 	}},
+			// {Sel: "#LIP", Desc: "strong inhib",
+			// 	Params: params.Params{
+			// 		"Layer.Inhib.ActAvg.Init": "0.06",
+			// 		"Layer.Inhib.ActAvg.Targ": "0.06",
+			// 	}},
 			{Sel: "#LIPP", Desc: "strong inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "5",
-					"Layer.Inhib.Pool.On":  "false",
+					"Layer.Inhib.Layer.Gi":       "1.2",
+					"Layer.Inhib.Pool.On":        "false",
+					"Layer.Inhib.ActAvg.Init":    "0.06",
+					"Layer.Inhib.ActAvg.Targ":    "0.06",
+					"Layer.Inhib.ActAvg.AdaptGi": "true", // gets overly active
 				}},
 			{Sel: "#LIPPS", Desc: "strong inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "5",
-					"Layer.Inhib.Pool.On":  "false",
+					"Layer.Inhib.Pool.On": "false",
 				}},
 			{Sel: "#FEF", Desc: "",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":       "1.1",
+					"Layer.Inhib.Layer.Gi":       "1.2", // 1.2 > 1.3 > 1.1
 					"Layer.Inhib.Pool.Gi":        "0.9",
 					"Layer.Inhib.Pool.On":        "false", // full layer best
-					"Layer.Inhib.ActAvg.Init":    "0.09",
-					"Layer.Inhib.ActAvg.Targ":    "0.09",
+					"Layer.Inhib.ActAvg.Init":    "0.07",
+					"Layer.Inhib.ActAvg.Targ":    "0.07",
 					"Layer.Learn.TrgAvgAct.Pool": "false", // pool sizes too small for trgs!
 				}},
 			{Sel: ".SEF", Desc: "",
@@ -129,9 +138,9 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base": "0.04",
+					"Prjn.Learn.Lrate.Base": "0.04", // .04 > .02 probably
 					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
-					"Prjn.PrjnScale.ScaleLrate": "2",     // 2 = fast response, effective
+					"Prjn.PrjnScale.ScaleLrate": "0.5",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
 					"Prjn.PrjnScale.Adapt":      "false", // adapt bad maybe?  put GeMax at 1.2, adjust to avoid
@@ -198,7 +207,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".CTToPulv", Desc: "CT to pulvinar needs to be weaker in general, like most prjns",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": ".5",
+					"Prjn.PrjnScale.Abs": "1",
 					"Prjn.PrjnScale.Rel": "1",
 					"Prjn.SWt.Init.Var":  "0.25",
 				}},
@@ -213,7 +222,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "0.2",
+					"Prjn.PrjnScale.Abs": "1",
 					"Prjn.PrjnScale.Rel": "0.2", // .2 > .1 > .05 still true
 				}},
 			{Sel: ".Lateral", Desc: "default for lateral",
@@ -256,7 +265,15 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#LIPToFEF", Desc: "stronger",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "1.2",
+					"Prjn.PrjnScale.Abs": "1",
+				}},
+			{Sel: "#LIPCTToLIPP", Desc: "stronger",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1",
+				}},
+			{Sel: "#LIPToLIPCT", Desc: "stronger",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1",
 				}},
 			{Sel: "#FEFToLIP", Desc: "weaker",
 				Params: params.Params{
@@ -264,16 +281,21 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#MDeToFEF", Desc: "weaker",
 				Params: params.Params{
-					"Prjn.PrjnScale.Rel": ".1",
+					"Prjn.PrjnScale.Rel": ".1", // .1 = worse!
+					"Prjn.PrjnScale.Abs": "1",  // 5x5 elevates rel vs. full -- need to recompensate
+				}},
+			{Sel: "#MDeToLIP", Desc: "weaker",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "1", // 1 > .5 > .1
 					"Prjn.PrjnScale.Abs": "1", // 5x5 elevates rel vs. full -- need to recompensate
 				}},
-			{Sel: "#V1fToFEF", Desc: "stronger",
+			{Sel: "#V1fToFEF", Desc: "adjust",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "3", // this pathway is too weak
+					"Prjn.PrjnScale.Abs": "0.8", // this pathway is too weak
 				}},
-			{Sel: "#V1fToLIP", Desc: "stronger",
+			{Sel: "#V1fToLIP", Desc: "adjust",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "1", // this pathway is too weak with full prjn, fine with 5x5s1
+					"Prjn.PrjnScale.Abs": "0.5", // this pathway is too weak with full prjn, to strong with 5x5s1
 				}},
 			{Sel: "#FEFToMDe", Desc: "sensitive",
 				Params: params.Params{

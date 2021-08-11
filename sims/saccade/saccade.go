@@ -380,7 +380,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	net.ConnectLayers(v1, lip, ss.Prjn5x5Skp1, emer.Forward)
 	net.ConnectLayers(s1e, lip, full, emer.Forward)
-	net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
+	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
 
 	// net.ConnectLayers(lipct, lipps, ss.Prjn5x5Skp1, emer.Forward).SetClass("CTToPulv") // pone2one
 	// net.ConnectLayers(lipps, lip, ss.Prjn5x5Skp1, emer.Back).SetClass("FmPulv")
@@ -391,9 +391,9 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// net.ConnectLayers(md, lipct, full, emer.Forward)
 	// net.BidirConnectLayers(sef, lip, full)
 
-	lipp.RecvPrjns().SendName("LIPCT").SetPattern(ss.Prjn5x5Skp1) // was full
-	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(ss.Prjn5x5Skp1)
-	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(ss.Prjn5x5Skp1)
+	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)                          // ss.Prjn5x5Skp1)
+	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full)   // ss.Prjn5x5Skp1)
+	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full) // ss.Prjn5x5Skp1)
 	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
 	lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn5x5Skp1)
@@ -405,7 +405,10 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	net.BidirConnectLayers(fef, md, full) // fef gets topo from md -- but sig worse learning
 	net.BidirConnectLayers(lip, fef, full)
-	// net.ConnectLayers(md, lip, full, emer.Forward)
+	// net.ConnectLayers(s1e, fef, full, emer.Back) // this should be useful but isn't
+	net.ConnectCtxtToCT(md, lipct, full)
+	// net.ConnectLayers(fef, lipct, fef, full)
+	net.ConnectLayers(md, lip, full, emer.Back)
 
 	// net.BidirConnectLayers(fef, sef, ss.Prjn3x3Skp1)
 
@@ -919,10 +922,10 @@ func (ss *Sim) SaveWeights() {
 // EpochSched implements the epoch-wise schedule
 func (ss *Sim) EpochSched(epc int) {
 	switch epc {
-	case 30:
-		ss.TrainEnv.PMD = .5
-	case 40:
-		ss.TrainEnv.PMD = .9
+	// case 30:
+	// 	ss.TrainEnv.PMD = .5
+	// case 40:
+	// 	ss.TrainEnv.PMD = .9
 	case 100:
 		ss.SaveWeights()
 	case 250:

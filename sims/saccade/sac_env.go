@@ -78,7 +78,7 @@ func (sc *SacEnv) Defaults() {
 	sc.V1Pop.Defaults()
 	sc.V1Pop.Min.Set(-1.1, -1.1)
 	sc.V1Pop.Max.Set(1.1, 1.1)
-	sc.V1Pop.Sigma.Set(0.1, 0.1)
+	sc.V1Pop.Sigma.Set(0.2, 0.2) // .1 maybe too small?
 
 	sc.VisPop.Defaults()
 	sc.VisPop.Min.Set(-1.1, -1.1)
@@ -91,7 +91,7 @@ func (sc *SacEnv) Defaults() {
 	sc.PolarPop.Defaults()
 	sc.PolarPop.Min.Set(-180, logmin)
 	sc.PolarPop.Max.Set(180, logmax)
-	sc.PolarPop.Sigma.Set(0.1, 0.1)
+	sc.PolarPop.Sigma.Set(0.2, 0.2)
 	sc.PolarPop.WrapX = true
 
 	sc.ConfigTable(&sc.Table)

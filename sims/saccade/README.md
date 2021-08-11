@@ -46,3 +46,8 @@ Alternative ideas:
 
 * Really need the *higher order* layers to learn sensory + motor states -- is there a way to do the outer-loop, longer-time-scale prediction story here, in higher layers?
 
+# Parameters
+
+The `sac_env` specifies the width of the popcode bumps -- it is better to have these relatively wide -- narrow bumps require more inhibition to restrict activity to the bumps, which makes the thing unstable.  Also wider bumps support more units voting and, in principle, better accuracy overall.
+
+
