@@ -405,7 +405,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	net.BidirConnectLayers(fef, md, full) // fef gets topo from md -- but sig worse learning
 	net.BidirConnectLayers(lip, fef, full)
-	// net.ConnectLayers(s1e, fef, full, emer.Back) // this should be useful but isn't
+	net.ConnectLayers(s1e, fef, full, emer.Back) // actually, is useful!
 	net.ConnectCtxtToCT(md, lipct, full)
 	// net.ConnectLayers(fef, lipct, fef, full)
 	net.ConnectLayers(md, lip, full, emer.Back)

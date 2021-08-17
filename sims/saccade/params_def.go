@@ -38,6 +38,10 @@ var ParamSets = params.Sets{
 					"Layer.Learn.TrgAvgAct.SynScaleRate": "0.005",   // 0.005 orig > 0.01
 					"Layer.Learn.TrgAvgAct.TrgRange.Min": "0.5",     // .5 > .2 overall
 					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",     // objrec 2 > 1.8
+					"Layer.Learn.RLrate.On":              "true",
+					"Layer.Learn.RLrate.ActThr":          "0.1",
+					"Layer.Learn.RLrate.ActDifThr":       "0.0",  // 0 best -- built into function anyway
+					"Layer.Learn.RLrate.Min":             "0.01", // .01 best
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
@@ -80,7 +84,7 @@ var ParamSets = params.Sets{
 			{Sel: "#MDe", Desc: "",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":    "1.3", // 1.3 > 1.4 > 1.2 > 1.1
-					"Layer.Act.Clamp.Ge":      "0.6", // 0.6 > 0.8?
+					"Layer.Act.Clamp.Ge":      "0.5", // 0.4 > 0.6 > 0.8?
 					"Layer.Inhib.ActAvg.Init": "0.06",
 					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
@@ -138,7 +142,7 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base": "0.04", // .04 > .02 probably
+					"Prjn.Learn.Lrate.Base": "0.2", // .04 > .02 probably
 					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
 					"Prjn.PrjnScale.ScaleLrate": "0.5",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
@@ -283,6 +287,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": ".1", // .1 = worse!
 					"Prjn.PrjnScale.Abs": "1",  // 5x5 elevates rel vs. full -- need to recompensate
+				}},
+			{Sel: "#S1eToFEF", Desc: "weaker",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": ".5",
 				}},
 			{Sel: "#MDeToLIP", Desc: "weaker",
 				Params: params.Params{
