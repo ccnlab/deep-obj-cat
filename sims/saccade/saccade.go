@@ -198,7 +198,7 @@ func (ss *Sim) New() {
 	ss.SubPools = false
 	ss.RepsInterval = 10
 	ss.ErrLrMod.Defaults()
-	ss.ErrLrMod.Base = .2 // 0.2 > 0.1
+	ss.ErrLrMod.Base = 0.2 // 0.2 > 0.1
 	ss.ErrLrMod.Range.Set(0.2, 0.8)
 
 	ss.Params = ParamSets
@@ -416,7 +416,6 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// net.LateralConnectLayerPrjn(lipct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
 
 	//	Position
-
 	s1e.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1.Name(), YAlign: relpos.Front, Space: 2})
 	scd.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: s1e.Name(), XAlign: relpos.Left, Space: 10})
 	scs.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: scd.Name(), XAlign: relpos.Left, Space: 10})
@@ -581,10 +580,19 @@ func (ss *Sim) ThetaCyc(train bool) {
 
 	minusCyc := ss.MinusCycles
 	plusCyc := ss.PlusCycles
+	elapsedCyc := tick * (minusCyc + plusCyc)
 
 	ss.Net.NewState()
 	ss.Time.NewState()
+	fmt.Println("tick", tick)
+	fmt.Println("EyePos before theta", ev.EyePos)
 	for cyc := 0; cyc < minusCyc; cyc++ { // do the minus phase
+		change := ev.DoEvents(cyc+elapsedCyc)
+		if change {
+			ss.ApplyInputs(ev)
+			fmt.Println("change, tick", tick)
+		}
+
 		ss.Net.Cycle(&ss.Time)
 		// ss.LogTrnCyc(ss.TrnCycLog, ss.Time.Cycle)
 		// if !ss.NoGui {
@@ -617,6 +625,12 @@ func (ss *Sim) ThetaCyc(train bool) {
 		ss.UpdateView(train)
 	}
 	for cyc := 0; cyc < plusCyc; cyc++ { // do the plus phase
+		change := ev.DoEvents(cyc+minusCyc+elapsedCyc)
+		if change {
+			ss.ApplyInputs(ev)
+			// fmt.Println("change, tick", tick)
+		}
+
 		ss.Net.Cycle(&ss.Time)
 		// ss.LogTrnCyc(ss.TrnCycLog, ss.Time.Cycle)
 		// if !ss.NoGui {
@@ -643,6 +657,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 	if viewUpdt == axon.Phase || viewUpdt == axon.AlphaCycle || viewUpdt == axon.ThetaCycle {
 		ss.UpdateView(train)
 	}
+	fmt.Println("EyePos after theta", ev.EyePos)
 }
 
 // ApplyInputs applies input patterns from given envirbonment.
@@ -683,7 +698,7 @@ func (ss *Sim) DoAction(en env.Env) {
 	if tick != 0 {
 		pats := en.State("SCs") // applying previous action doesn't work!
 		md.ApplyExt(pats)
-		return
+		// return // not sure why Randy had this return here, which prevents actions past tick 0
 	}
 	mdacts := ss.ValsTsr("MDe")
 	md.UnitValsTensor(mdacts, "Act")

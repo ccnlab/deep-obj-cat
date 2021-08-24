@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 
 	"github.com/emer/emergent/env"
@@ -16,6 +17,13 @@ import (
 	"github.com/emer/etable/minmax"
 	"github.com/goki/mat32"
 )
+
+// EventStruct encodes a single object event
+type EventStruct struct {
+	ObjID int
+	name string  // "onset", "offset", "move"
+	xy mat32.Vec2
+}
 
 // SacEnv implements saccading logic for generating visual saccades
 // toward one target object out of multiple possible objects.
@@ -38,6 +46,8 @@ type SacEnv struct {
 	VisPop    popcode.TwoD `desc:"2d population code for visualization gaussian bump rendering of XY"`
 
 	// State below here
+	Events    map[int][]EventStruct `inactive:"-" desc:"Events for task"` 
+	ObjTrack  bool            `inactive:"-" desc:"Whether saccade target location is being driven by a target object. Otherwise target position must be arbitrarily set."`
 	NObjs     int             `inactive:"-" desc:"number of objects"`
 	TargObj   int             `inactive:"-" desc:"index of target object"`
 	ObjsPos   []mat32.Vec2    `desc:"object positions, in retinotopic coordinates when generated"`
@@ -69,6 +79,33 @@ func (sc *SacEnv) Desc() string { return sc.Dsc }
 
 // Defaults sets generic defaults -- use ParamSet to override
 func (sc *SacEnv) Defaults() {
+	sc.Events = make(map[int][]EventStruct)
+	temp := math.NaN()
+	fmt.Println(temp)
+
+	// TODO write event docstrings
+
+	// single-step saccade task
+	// nobjs := 1
+	// sc.Events[0] = []EventStruct{EventStruct{0, "onset", mat32.Vec2{0.5, 0.0}},
+	// 							 EventStruct{0, "targ_loc_change", mat32.Vec2{0.5, 0.0}}}
+	// sc.Events[130] = []EventStruct{EventStruct{0, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
+
+	// double-step saccade task
+	nobjs := 2
+	sc.Events[0] = []EventStruct{EventStruct{0, "onset", mat32.Vec2{0.5, 0.0}},
+								 EventStruct{0, "targ_loc_change", mat32.Vec2{0.5, 0.0}}}
+	sc.Events[130] = []EventStruct{EventStruct{0, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
+	sc.Events[150] = []EventStruct{EventStruct{1, "onset", mat32.Vec2{0.5, 0.5}}}
+	sc.Events[180] = []EventStruct{EventStruct{1, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
+	sc.Events[200] = []EventStruct{EventStruct{-1, "targ_loc_change", mat32.Vec2{0.5, 0.5}}}
+
+	if len(sc.Events) > 0 {
+		sc.NObjs = nobjs
+	}
+
+	sc.ObjTrack = true
+
 	sc.UsePolar = true
 	sc.NObjRange.Set(1, 1)
 	sc.VisSize = 16 // 11, 16, 21 for small, med, large..
@@ -113,7 +150,7 @@ func (sc *SacEnv) Init(run int) {
 	sc.Epoch.Scale = env.Epoch
 	sc.Trial.Scale = env.Trial
 	sc.Tick.Scale = env.Tick
-	sc.Tick.Max = 2
+	sc.Tick.Max = 3
 	sc.Run.Init()
 	sc.Epoch.Init()
 	sc.Trial.Init()
@@ -195,7 +232,9 @@ func PolarToXY(plr mat32.Vec2) mat32.Vec2 {
 
 // NewScene generates new scene of object(s) and eye positions
 func (sc *SacEnv) NewScene() {
-	sc.NObjs = sc.NObjRange.Min + rand.Intn(sc.NObjRange.Range()+1)
+	if len(sc.Events) == 0 {
+		sc.NObjs = sc.NObjRange.Min + rand.Intn(sc.NObjRange.Range()+1)
+	}
 	sc.TargObj = rand.Intn(sc.NObjs)
 	if cap(sc.ObjsPos) < sc.NObjs {
 		sc.ObjsPos = make([]mat32.Vec2, sc.NObjs)
@@ -204,20 +243,125 @@ func (sc *SacEnv) NewScene() {
 	}
 	for i := 0; i < sc.NObjs; i++ {
 		var op mat32.Vec2
-		op.X = -1 + rand.Float32()*2
-		op.Y = -1 + rand.Float32()*2
+		if len(sc.Events) > 0 {  // initialize objects off-screen
+			op.X = -100
+			op.Y = -100
+			fmt.Println("NewScene in events")
+		} else { // if no events, just randomly sample positions
+			op.X = -1 + rand.Float32()*2
+			op.Y = -1 + rand.Float32()*2
+		}
 		// todo: exclude if too close
 		sc.ObjsPos[i] = op
 	}
+
 	sc.TargPos = sc.ObjsPos[sc.TargObj]
 	sc.TargPolar = XYToPolar(sc.TargPos)
 
 	// todo: random initial eye position
+	// 		 but keep (0,0) initial fixation for event sequences, eventually extend to other fixations
 	sc.EyePos.Set(0, 0)
 	sc.SCs = sc.TargPos
 	sc.SCsPolar = XYToPolar(sc.SCs)
 	sc.SCdXY.SetZero()
 	sc.SCdPolar.SetZero()
+}
+
+
+// will also need to update target object(s) at arbitrary times
+// complete task timing might be harder to emulate, real timing on order of seconds, not 100-200 ms
+
+// could make the program object oriented or event oriented
+// stim oriented would still require iterating through events for each object, each of which could have multiple events (even beyond just onset/offset)
+// event oriented would be simpler to program, just iterate through events
+
+// might want to check in with Randy on what he thinks would be an effective way to do this/how to best fit in, otherwise he'll just redo it
+
+// could specify objects and events together. For now all objects are the same, so I can just implement events
+// should also allow for extending to multiple sequences which would be randomly perturbed.
+// 		might want random perturbations of sequence order and of object position  within a sequence
+
+// event-based
+// index lists of events by times, iterate through lists to execute events at specific time
+//		need to be able to test for the presence of a key in a dictionary/map
+// events consist of either making an object appear, moving an object, making an object disappear. each event updates inputs
+// config file contains
+// num objects
+// list of events pertaining to objects
+
+// then just need Config func to set up 
+// map[time int]->list[events EventStruct] for each sequence
+
+
+// make saccade target position changes into events to allow for a decoupling between stimuli and object events 
+// (e.g., two targets appear, one becomes saccade target after the other, or else the target offset occurs before the saccade movement)
+// would make things harder with random position jitter... could add an event to reset target object index
+// need to make events into map[int][]EventStruct to allow for multiple events in a single cycle
+
+// when do saccades occur relative to offsets in the double-step saccade task? what are typical reaction times?
+// Sommer and Wurtz state ~180 ms is min reaction time for first saccade. Just make second saccade occur at theta cycle at start of third tick
+
+// what to do once model (cortical system rather than subcortical system) takes over action selection?
+// then TargPos is ignored anyways? yes, then mdxy is used instead to set saccade in current code
+
+
+// then a list of sequences is needed for randomization. Can just assume uniform random to start.
+
+// EventStruct: {ObjID int, event_type str, xy mat32.Vec2}  // could xy a (lambda) function to easily allow for randomization of position
+
+// assume eyes start at fixation point of (0, 0)
+
+// extensions:	allow for saccading at arbitrary times, (e.g., on disappearance of a fixation point)
+//					instead, might want to stop saccading until appropriate ticks. For now, just set stimuli events to occur within one to two ticks
+// 					durations in double-step saccade task all within 200 ms (180 ms)
+//				different object types/features. Could be separately included in the config file, might want to look into what PsychoPy does
+
+// func (sc.SacEnv) ConfigTask(conf_file string) {
+// 	// set up task events from configuration file <conf_file>
+// }
+
+func (sc *SacEnv) UpdateSaccTargetLoc(pos mat32.Vec2) {
+	sc.TargPos = pos
+	sc.TargPolar = XYToPolar(sc.TargPos)
+	sc.SCs = mat32.Vec2{sc.TargPos.X - sc.EyePos.X, sc.TargPos.Y - sc.EyePos.Y}
+	sc.SCsPolar = XYToPolar(sc.SCs)
+}
+
+func (sc *SacEnv) DoEvents(cyc int) bool {
+	evts, change := sc.Events[cyc]
+	if change {
+		for _, evt := range evts {
+			switch evt.name {
+			case "onset":
+				sc.ObjsPos[evt.ObjID] = evt.xy
+				fmt.Println("onset placeholder")
+			case "offset":
+				sc.ObjsPos[evt.ObjID] = mat32.Vec2{-10, -10}
+				sc.V1Tsr.SetZeros()
+				fmt.Println("offset placeholder")
+			case "move":
+				sc.ObjsPos[evt.ObjID] = evt.xy
+				if sc.ObjTrack && evt.ObjID == sc.TargObj {
+					sc.UpdateSaccTargetLoc(sc.ObjsPos[sc.TargObj])
+				}
+				fmt.Println("move placeholder")
+			case "targ_obj_change":  // track new target object
+				sc.TargObj = evt.ObjID
+				sc.UpdateSaccTargetLoc(sc.ObjsPos[sc.TargObj])
+				sc.ObjTrack = true
+				fmt.Println("targ_obj_change placeholder")
+			case "targ_loc_change":  // change target location to fixed arbitrary position (may not correspond to an object)
+				sc.UpdateSaccTargetLoc(evt.xy)
+				sc.ObjTrack = false
+				fmt.Println("targ_loc_change placeholder")
+			default:
+				fmt.Println("Event type '%s' not implemented.", evt.name)
+			}
+		}
+		sc.Encode(false)
+		fmt.Println("cyc: %d", cyc)
+	}
+	return change
 }
 
 // DoSaccade updates current eye position, vis targets with actual saccade, resets plan
@@ -265,14 +409,19 @@ func (sc *SacEnv) State(element string) etensor.Tensor {
 
 // EncodeObjs encodes objects with given offset into V1, omitting any out of range
 func (sc *SacEnv) EncodeObjs(off mat32.Vec2) {
+	set := true
 	for i := 0; i < sc.NObjs; i++ {
 		op := sc.ObjsPos[i]
+		if op.X < -50 || op.Y < -50 { // objects in this range are not displayed and should not be updated with the eye position
+			continue
+		}
 		op.SetAdd(off)
 		if op.X > 1 || op.X < -1 || op.Y > 1 || op.Y < -1 {
 			continue
 		}
-		if i == 0 {
+		if set {
 			sc.V1Pop.Encode(&sc.V1Tsr, op, popcode.Set)
+			set = false
 		} else {
 			sc.V1Pop.Encode(&sc.V1Tsr, op, popcode.Add)
 		}
@@ -304,8 +453,12 @@ func (sc *SacEnv) DecodePolar(tsr *etensor.Float32) (plr, xy mat32.Vec2) {
 }
 
 // Encode encodes values into tensors
-func (sc *SacEnv) Encode() {
-	sc.EncodeObjs(sc.EyePos.Negate())
+func (sc *SacEnv) Encode(eye bool) {
+	if eye {
+		sc.EncodeObjs(sc.EyePos.Negate())  // TODO won't this shift the objects on each tick even if an eye position != (0,0) remains the same?
+	} else {
+		sc.EncodeObjs(mat32.Vec2{0, 0})
+	}
 	sc.EncodePolar(&sc.S1eTsr, sc.EyePos)
 	sc.EncodePolar(&sc.SCsTsr, sc.SCs)
 	sc.EncodePolar(&sc.SCdTsr, sc.SCdXY)
@@ -321,6 +474,9 @@ func (sc *SacEnv) Step() bool {
 	if sc.Tick.Cur == 0 {
 		sc.NewScene()
 	} else {
+		fmt.Println("do saccade tick ", sc.Tick.Cur)
+		fmt.Println("SCs", sc.SCs)
+		fmt.Println("SCdXY", sc.SCdXY)
 		sc.DoSaccade()
 		if sc.Trial.Incr() {
 			sc.Epoch.Incr()
@@ -328,7 +484,7 @@ func (sc *SacEnv) Step() bool {
 	}
 
 	// write current state to table
-	sc.Encode()
+	sc.Encode(true)
 	sc.WriteToTable(&sc.Table)
 
 	return true
