@@ -301,14 +301,14 @@ func (ss *Sim) Config() {
 
 func (ss *Sim) ConfigEnv() {
 	if ss.MaxRuns == 0 { // allow user override
-		ss.MaxRuns = 1
+		ss.MaxRuns = 5
 	}
 	if ss.MaxEpcs == 0 { // allow user override
-		ss.MaxEpcs = 50
+		ss.MaxEpcs = 4  //50
 		ss.NZeroStop = -1
 	}
 	if ss.MaxTrls == 0 { // allow user override
-		ss.MaxTrls = 64
+		ss.MaxTrls = 5  //64
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
@@ -584,13 +584,13 @@ func (ss *Sim) ThetaCyc(train bool) {
 
 	ss.Net.NewState()
 	ss.Time.NewState()
-	fmt.Println("tick", tick)
-	fmt.Println("EyePos before theta", ev.EyePos)
+	// fmt.Println("tick", tick)
+	// fmt.Println("EyePos before theta", ev.EyePos)
 	for cyc := 0; cyc < minusCyc; cyc++ { // do the minus phase
 		change := ev.DoEvents(cyc+elapsedCyc)
 		if change {
 			ss.ApplyInputs(ev)
-			fmt.Println("change, tick", tick)
+			// fmt.Println("change, tick", tick)
 		}
 
 		ss.Net.Cycle(&ss.Time)
@@ -657,7 +657,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 	if viewUpdt == axon.Phase || viewUpdt == axon.AlphaCycle || viewUpdt == axon.ThetaCycle {
 		ss.UpdateView(train)
 	}
-	fmt.Println("EyePos after theta", ev.EyePos)
+	// fmt.Println("EyePos after theta", ev.EyePos)
 }
 
 // ApplyInputs applies input patterns from given envirbonment.
@@ -698,7 +698,7 @@ func (ss *Sim) DoAction(en env.Env) {
 	if tick != 0 {
 		pats := en.State("SCs") // applying previous action doesn't work!
 		md.ApplyExt(pats)
-		// return // not sure why Randy had this return here, which prevents actions past tick 0
+		// return // not sure why Randy had this return statement, which prevents actions past tick 0
 	}
 	mdacts := ss.ValsTsr("MDe")
 	md.UnitValsTensor(mdacts, "Act")
@@ -1872,8 +1872,10 @@ func (ss *Sim) LogRun(dt *etable.Table) {
 
 	epclog := ss.TrnEpcLog
 	epcix := etable.NewIdxView(epclog)
+	fmt.Println(epclog)
+
 	// compute mean over last N epochs for run level
-	nlast := 5
+	nlast := 2  // 5
 	if nlast > epcix.Len()-1 {
 		nlast = epcix.Len() - 1
 	}
@@ -1882,15 +1884,53 @@ func (ss *Sim) LogRun(dt *etable.Table) {
 	// params := ss.Params.Name
 	params := "params"
 
-	// todo: fix or will crash..
 	dt.SetCellFloat("Run", row, float64(run))
 	dt.SetCellString("Params", row, params)
+	dt.SetCellFloat("MDErr", row, agg.Mean(epcix, "MDErr")[0])
+	for _, lnm := range ss.HidLays {
+		// cdif := agg.Agg(t2tix, lnm+"_TrlCosDiff", agg.AggMean)
+		fmt.Println(lnm)
+		dt.SetCellFloat(lnm+"_TrlCosDiff", row, agg.Mean(epcix, lnm+"_TrlCosDiff")[0])
+		dt.SetCellFloat(lnm + "_Dead", row, agg.Mean(epcix, lnm+"_Dead")[0])
+		dt.SetCellFloat(lnm + "_Hog", row, agg.Mean(epcix, lnm+"_Hog")[0])
+		dt.SetCellFloat(lnm + "_MaxGeM", row, agg.Mean(epcix, lnm+"_MaxGeM")[0])
+		dt.SetCellFloat(lnm+"_ActAvg", row, agg.Mean(epcix, lnm+"_ActAvg")[0])
+		dt.SetCellFloat(lnm+"_GiMult", row, agg.Mean(epcix, lnm+"_GiMult")[0])
+		dt.SetCellFloat(lnm+"_TrlCosDiff", row, agg.Mean(epcix, lnm+"_TrlCosDiff")[0])
+		dt.SetCellFloat(lnm+"_TrlCosDiff0", row, agg.Mean(epcix, lnm+"_TrlCosDiff0")[0])
+		dt.SetCellFloat(lnm+"_PCA_NStrong", row, agg.Mean(epcix, lnm+"_PCA_NStrong")[0])
+		dt.SetCellFloat(lnm+"_PCA_Top5", row, agg.Mean(epcix, lnm+"_PCA_Top5")[0])
+		dt.SetCellFloat(lnm+"_PCA_Next5", row, agg.Mean(epcix, lnm+"_PCA_Next5")[0])
+		dt.SetCellFloat(lnm+"_PCA_Rest", row, agg.Mean(epcix, lnm+"_PCA_Rest")[0])
+		fmt.Println(dt)
+	}
 
-	// runix := etable.NewIdxView(dt)
-	// spl := split.GroupBy(runix, []string{"Params"})
-	// split.Desc(spl, "FirstZero")
-	// split.Desc(spl, "PctCor")
-	// ss.RunStats = spl.AggsToTable(etable.AddAggName)
+	for _, lnm := range ss.PulvLays {
+		dt.SetCellFloat(lnm+"_TrlCosDiff", row, agg.Mean(epcix, lnm+"_TrlCosDiff")[0])
+		dt.SetCellFloat(lnm+"_TrlCosDiff0", row, agg.Mean(epcix, lnm+"_TrlCosDiff0")[0])
+	}
+	for _, lnm := range ss.InLays {
+		dt.SetCellFloat(lnm+"_ActAvg", row, agg.Mean(epcix, lnm+"_ActAvg")[0])
+	}
+
+	for _, lnm := range ss.PulvLays {
+		dt.SetCellFloat(lnm+"_MaxGeM", row, agg.Mean(epcix, lnm+"_MaxGeM")[0])
+		dt.SetCellFloat(lnm+"_ActAvg", row, agg.Mean(epcix, lnm+"_ActAvg")[0])
+		dt.SetCellFloat(lnm+"_GiMult", row, agg.Mean(epcix, lnm+"_GiMult")[0])
+	}
+
+	for tck := 0; tck < ss.MaxTicks; tck++ {
+		for _, lnm := range ss.PulvLays {
+			dt.SetCellFloat(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), row, agg.Mean(epcix, fmt.Sprintf("%s_CosDiff_%d", lnm, tck))[0])
+		}
+	}
+
+	runix := etable.NewIdxView(dt)
+	spl := split.GroupBy(runix, []string{"Params"})
+	for _, lnm := range ss.HidLays {
+		split.Desc(spl, lnm+"_TrlCosDiff")
+	}
+	ss.RunStats = spl.AggsToTable(etable.AddAggName)
 
 	// note: essential to use Go version of update when called from another goroutine
 	ss.RunPlot.GoUpdate()
@@ -1908,10 +1948,120 @@ func (ss *Sim) ConfigRunLog(dt *etable.Table) {
 	dt.SetMetaData("read-only", "true")
 	dt.SetMetaData("precision", strconv.Itoa(LogPrec))
 
-	dt.SetFromSchema(etable.Schema{
+	sch := etable.Schema{
 		{"Run", etensor.INT64, nil, nil},
 		{"Params", etensor.STRING, nil, nil},
-	}, 0)
+	}
+	for _, lnm := range ss.HidLays {
+		sch = append(sch, etable.Column{lnm + "_Dead", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_Hog", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_MaxGeM", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_GiMult", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_NStrong", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_Top5", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_Next5", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_PCA_Rest", etensor.FLOAT64, nil, nil})
+	}
+	for _, lnm := range ss.PulvLays {
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_TrlCosDiff0", etensor.FLOAT64, nil, nil})
+	}
+	for _, lnm := range ss.InLays {
+		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
+	}
+
+	for _, lnm := range ss.PulvLays {
+		sch = append(sch, etable.Column{lnm + "_MaxGeM", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_ActAvg", etensor.FLOAT64, nil, nil})
+		sch = append(sch, etable.Column{lnm + "_GiMult", etensor.FLOAT64, nil, nil})
+	}
+
+	for tck := 0; tck < ss.MaxTicks; tck++ {
+		for _, lnm := range ss.PulvLays {
+			sch = append(sch, etable.Column{fmt.Sprintf("%s_CosDiff_%d", lnm, tck), etensor.FLOAT64, nil, nil})
+		}
+	}
+	dt.SetFromSchema(sch, 0)
+	// dt.SetFromSchema(etable.Schema{
+	// 	{"Run", etensor.INT64, nil, nil},
+	// 	{"Params", etensor.STRING, nil, nil},
+	// 	// hidden layers
+	// 	{"LIP_Dead", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_Dead", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_Dead", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_Hog", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_Hog", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_Hog", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_MaxGeM", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_MaxGeM", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_MaxGeM", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_ActAvg", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_ActAvg", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_ActAvg", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_GiMult", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_GiMult", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_GiMult", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_TrlCosDiff", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_TrlCosDiff", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_TrlCosDiff", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_TrlCosDiff0", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_TrlCosDiff0", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_TrlCosDiff0", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_PCA_NStrong", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_PCA_NStrong", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_PCA_NStrong", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_PCA_Top5", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_PCA_Top5", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_PCA_Top5", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_PCA_Next5", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_PCA_Next5", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_PCA_Next5", etensor.FLOAT64, nil, nil},
+
+	// 	{"LIP_PCA_Rest", etensor.FLOAT64, nil, nil},
+	// 	{"LIPCT_PCA_Rest", etensor.FLOAT64, nil, nil},
+	// 	{"FEF_PCA_Rest", etensor.FLOAT64, nil, nil},
+	// 	// pulvinar layers
+	// 	{"MDe_TrlCosDiff", etensor.FLOAT64, nil, nil},
+	// 	{"LIPP_TrlCosDiff", etensor.FLOAT64, nil, nil},
+
+	// 	{"MDe_TrlCosDiff0", etensor.FLOAT64, nil, nil},
+	// 	{"LIPP_TrlCosDiff0", etensor.FLOAT64, nil, nil},
+
+	// 	{"V1f_ActAvg", etensor.FLOAT64, nil, nil},
+	// 	{"S1e_ActAvg", etensor.FLOAT64, nil, nil},
+	// 	{"SCs_ActAvg", etensor.FLOAT64, nil, nil},
+	// 	{"SCd_ActAvg", etensor.FLOAT64, nil, nil},
+
+	// 	{"MDe_MaxGeM", etensor.FLOAT64, nil, nil},
+	// 	{"LIPP_MaxGeM", etensor.FLOAT64, nil, nil},
+
+	// 	{"MDe_ActAvg", etensor.FLOAT64, nil, nil},
+	// 	{"LIPP_ActAvg", etensor.FLOAT64, nil, nil},
+
+	// 	{"MDe_GiMult", etensor.FLOAT64, nil, nil},
+	// 	{"LIPP_GiMult", etensor.FLOAT64, nil, nil},
+
+	// 	{"MDe_CosDiff_", etensor.FLOAT64, nil, nil},
+	// 	{"LIPP_CosDiff_", etensor.FLOAT64, nil, nil},
+	// }, 0)
+
+	// for tck := 0; tck < ss.MaxTicks; tck++ {
+	// 	for _, lnm := range ss.PulvLays {
+	// 		dt.SetCellFloat(fmt.Sprintf("%s_CosDiff_%d", lnm, tck), row, agg.Mean(epcix, fmt.Sprintf("%s_CosDiff_%d", lnm, tck))[0])
+	// 	}
+	// }
 }
 
 func (ss *Sim) ConfigRunPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot2D {
@@ -2224,7 +2374,7 @@ func (ss *Sim) CmdArgs() {
 	flag.StringVar(&ss.Tag, "tag", "", "extra tag to add to file names saved from this run")
 	flag.StringVar(&note, "note", "", "user note -- describe the run params etc")
 	flag.IntVar(&ss.StartRun, "run", 0, "starting run number -- determines the random seed -- runs counts from there -- can do all runs in parallel by launching separate jobs with each run, runs = 1")
-	flag.IntVar(&ss.MaxRuns, "runs", 1, "number of runs to do (note that MaxEpcs is in paramset)")
+	flag.IntVar(&ss.MaxRuns, "runs", 0, "number of runs to do (note that MaxEpcs is in paramset)")
 	flag.BoolVar(&ss.LogSetParams, "setparams", false, "if true, print a record of each parameter that is set")
 	flag.BoolVar(&ss.SaveWts, "wts", false, "if true, save final weights after each run")
 	flag.BoolVar(&saveEpcLog, "epclog", true, "if true, save train epoch log to file")

@@ -21,8 +21,8 @@ import (
 // EventStruct encodes a single object event
 type EventStruct struct {
 	ObjID int
-	name string  // "onset", "offset", "move"
-	xy mat32.Vec2
+	Name string  // "onset", "offset", "move"
+	XY mat32.Vec2
 }
 
 // SacEnv implements saccading logic for generating visual saccades
@@ -83,7 +83,14 @@ func (sc *SacEnv) Defaults() {
 	temp := math.NaN()
 	fmt.Println(temp)
 
-	// TODO write event docstrings
+	// stimuli event types (EventStruct.type):
+	// "onset": makes object evt.ObjID appear at position xy
+	// "offset": makes object evt.ObjID disappear
+	// "move": moves object evt.ObjID to position evt.xy. If sc.ObjTrack, then 
+	// "targ_obj_change": change target object ID to evt.ObjID, sets sc.ObjTrack = true 
+	//					  (engaging object tracking such that changing moving object changes saccade target position)
+	// "targ_loc_change": change saccade target position to evt.xy, sets sc.ObjTrack = false 
+	// 					  (disengaging object tracking so saccades can go to arbitrary positions that may not have an object)
 
 	// single-step saccade task
 	// nobjs := 1
@@ -91,14 +98,15 @@ func (sc *SacEnv) Defaults() {
 	// 							 EventStruct{0, "targ_loc_change", mat32.Vec2{0.5, 0.0}}}
 	// sc.Events[130] = []EventStruct{EventStruct{0, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
 
+
 	// double-step saccade task
 	nobjs := 2
-	sc.Events[0] = []EventStruct{EventStruct{0, "onset", mat32.Vec2{0.5, 0.0}},
-								 EventStruct{0, "targ_loc_change", mat32.Vec2{0.5, 0.0}}}
-	sc.Events[130] = []EventStruct{EventStruct{0, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
-	sc.Events[150] = []EventStruct{EventStruct{1, "onset", mat32.Vec2{0.5, 0.5}}}
-	sc.Events[180] = []EventStruct{EventStruct{1, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
-	sc.Events[200] = []EventStruct{EventStruct{-1, "targ_loc_change", mat32.Vec2{0.5, 0.5}}}
+	// sc.Events[0] = []EventStruct{EventStruct{0, "onset", mat32.Vec2{0.5, 0.0}},
+	// 							 EventStruct{0, "targ_loc_change", mat32.Vec2{0.5, 0.0}}}
+	// sc.Events[130] = []EventStruct{EventStruct{0, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
+	// sc.Events[150] = []EventStruct{EventStruct{1, "onset", mat32.Vec2{0.5, 0.5}}}
+	// sc.Events[180] = []EventStruct{EventStruct{1, "offset", mat32.Vec2{float32(math.NaN()), float32(math.NaN())}}}
+	// sc.Events[200] = []EventStruct{EventStruct{-1, "targ_loc_change", mat32.Vec2{0.5, 0.5}}}
 
 	if len(sc.Events) > 0 {
 		sc.NObjs = nobjs
@@ -246,7 +254,7 @@ func (sc *SacEnv) NewScene() {
 		if len(sc.Events) > 0 {  // initialize objects off-screen
 			op.X = -100
 			op.Y = -100
-			fmt.Println("NewScene in events")
+			// fmt.Println("NewScene in events")
 		} else { // if no events, just randomly sample positions
 			op.X = -1 + rand.Float32()*2
 			op.Y = -1 + rand.Float32()*2
@@ -331,31 +339,31 @@ func (sc *SacEnv) DoEvents(cyc int) bool {
 	evts, change := sc.Events[cyc]
 	if change {
 		for _, evt := range evts {
-			switch evt.name {
+			switch evt.Name {
 			case "onset":
-				sc.ObjsPos[evt.ObjID] = evt.xy
-				fmt.Println("onset placeholder")
+				sc.ObjsPos[evt.ObjID] = evt.XY
+				// fmt.Println("onset placeholder")
 			case "offset":
 				sc.ObjsPos[evt.ObjID] = mat32.Vec2{-10, -10}
 				sc.V1Tsr.SetZeros()
-				fmt.Println("offset placeholder")
+				// fmt.Println("offset placeholder")
 			case "move":
-				sc.ObjsPos[evt.ObjID] = evt.xy
+				sc.ObjsPos[evt.ObjID] = evt.XY
 				if sc.ObjTrack && evt.ObjID == sc.TargObj {
 					sc.UpdateSaccTargetLoc(sc.ObjsPos[sc.TargObj])
 				}
-				fmt.Println("move placeholder")
+				// fmt.Println("move placeholder")
 			case "targ_obj_change":  // track new target object
 				sc.TargObj = evt.ObjID
 				sc.UpdateSaccTargetLoc(sc.ObjsPos[sc.TargObj])
 				sc.ObjTrack = true
-				fmt.Println("targ_obj_change placeholder")
+				// fmt.Println("targ_obj_change placeholder")
 			case "targ_loc_change":  // change target location to fixed arbitrary position (may not correspond to an object)
-				sc.UpdateSaccTargetLoc(evt.xy)
+				sc.UpdateSaccTargetLoc(evt.XY)
 				sc.ObjTrack = false
-				fmt.Println("targ_loc_change placeholder")
+				// fmt.Println("targ_loc_change placeholder")
 			default:
-				fmt.Println("Event type '%s' not implemented.", evt.name)
+				fmt.Println("Event type '%s' not implemented.", evt.Name)
 			}
 		}
 		sc.Encode(false)
@@ -474,9 +482,9 @@ func (sc *SacEnv) Step() bool {
 	if sc.Tick.Cur == 0 {
 		sc.NewScene()
 	} else {
-		fmt.Println("do saccade tick ", sc.Tick.Cur)
-		fmt.Println("SCs", sc.SCs)
-		fmt.Println("SCdXY", sc.SCdXY)
+		// fmt.Println("do saccade tick ", sc.Tick.Cur)
+		// fmt.Println("SCs", sc.SCs)
+		// fmt.Println("SCdXY", sc.SCdXY)
 		sc.DoSaccade()
 		if sc.Trial.Incr() {
 			sc.Epoch.Incr()
