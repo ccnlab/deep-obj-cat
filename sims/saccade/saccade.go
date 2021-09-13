@@ -301,14 +301,14 @@ func (ss *Sim) Config() {
 
 func (ss *Sim) ConfigEnv() {
 	if ss.MaxRuns == 0 { // allow user override
-		ss.MaxRuns = 5
+		ss.MaxRuns = 1
 	}
 	if ss.MaxEpcs == 0 { // allow user override
-		ss.MaxEpcs = 4  //50
+		ss.MaxEpcs = 50
 		ss.NZeroStop = -1
 	}
 	if ss.MaxTrls == 0 { // allow user override
-		ss.MaxTrls = 5  //64
+		ss.MaxTrls = 64
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
@@ -1875,7 +1875,7 @@ func (ss *Sim) LogRun(dt *etable.Table) {
 	fmt.Println(epclog)
 
 	// compute mean over last N epochs for run level
-	nlast := 2  // 5
+	nlast := 5
 	if nlast > epcix.Len()-1 {
 		nlast = epcix.Len() - 1
 	}
