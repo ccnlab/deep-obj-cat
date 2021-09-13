@@ -202,7 +202,8 @@ def results():
     # important: update this to include any results you want to add to results repo
     print("\n".join(glob.glob('*_epc.*sv')))
     print("\n".join(glob.glob('*_run.*sv')))
-    print("\n".join(glob.glob('*_TEsim.tsv')))
+    print("\n".join(glob.glob('*_tesim.tsv')))
+    print("\n".join(glob.glob('*.wts.gz')))
 
 def status():
     slid = read_string("job.slurmid")
