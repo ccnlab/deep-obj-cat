@@ -158,7 +158,11 @@ func (sc *SacEnv) Init(run int) {
 	sc.Epoch.Scale = env.Epoch
 	sc.Trial.Scale = env.Trial
 	sc.Tick.Scale = env.Tick
-	sc.Tick.Max = 3
+	if len(sc.Events) > 0 {
+		sc.Tick.Max = 3
+	} else {
+		sc.Tick.Max = 2
+	}
 	sc.Run.Init()
 	sc.Epoch.Init()
 	sc.Trial.Init()
@@ -367,7 +371,7 @@ func (sc *SacEnv) DoEvents(cyc int) bool {
 			}
 		}
 		sc.Encode(false)
-		fmt.Println("cyc: %d", cyc)
+		//fmt.Println("cyc: %d", cyc)
 	}
 	return change
 }
