@@ -40,8 +40,9 @@ var ParamSets = params.Sets{
 					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",     // objrec 2 > 1.8
 					"Layer.Learn.RLrate.On":              "true",
 					"Layer.Learn.RLrate.ActThr":          "0.1",
-					"Layer.Learn.RLrate.ActDifThr":       "0.0",  // 0 best -- built into function anyway
-					"Layer.Learn.RLrate.Min":             "0.01", // .01 best
+					"Layer.Learn.RLrate.ActDifThr":       "0.05",
+					"Layer.Learn.RLrate.Min":             "0.002",
+					"Layer.Learn.RLrate.CovarTau":        "500",
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
@@ -83,7 +84,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#MDe", Desc: "",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.3", // 1.3 > 1.4 > 1.2 > 1.1
+					"Layer.Inhib.Layer.Gi":    "1.2", // 1.3 > 1.4 > 1.2 > 1.1
 					"Layer.Act.Clamp.Ge":      "0.5", // 0.4 > 0.6 > 0.8?
 					"Layer.Inhib.ActAvg.Init": "0.06",
 					"Layer.Inhib.ActAvg.Targ": "0.06",
@@ -142,16 +143,17 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base": "0.2", // .04 > .02 probably
+					"Prjn.Learn.Lrate.Base": "0.1", // .04 > .02 probably
 					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
 					"Prjn.PrjnScale.ScaleLrate": "0.5",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
 					"Prjn.PrjnScale.Adapt":      "false", // adapt bad maybe?  put GeMax at 1.2, adjust to avoid
 					"Prjn.SWt.Adapt.On":         "true",  // true > false, esp in cosdiff
-					"Prjn.SWt.Adapt.Lrate":      "0.01",  //
+					"Prjn.SWt.Adapt.Lrate":      "0.1",   // trying faster
 					"Prjn.SWt.Adapt.SigGain":    "6",
 					"Prjn.SWt.Adapt.DreamVar":   "0.0", // 0.02 good in lvis
+					"Prjn.SWt.Adapt.CovarLrate": "0.1", // .1 > lower for RLrate
 					"Prjn.SWt.Init.SPct":        "1",   // 1 > lower
 					"Prjn.SWt.Init.Mean":        "0.5", // .5 > .4 -- key, except v2?
 					"Prjn.SWt.Limit.Min":        "0.2", // .2-.8 == .1-.9; .3-.7 not better

@@ -341,7 +341,6 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	s1e := net.AddLayer4D("S1e", dsz, asz, 1, 1, emer.Input)
 	scs := net.AddLayer4D("SCs", dsz, asz, 1, 1, emer.Input)
 	scd := net.AddLayer4D("SCd", dsz, asz, 1, 1, emer.Input)
-	md := net.AddLayer4D("MDe", dsz, asz, 1, 1, emer.Target)
 
 	v1.SetClass("V1")
 
@@ -365,6 +364,9 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// sef.SetClass("SEF")
 	// sefct.SetClass("SEF")
 	// sefp.SetClass("SEF")
+
+	// add at end, so wtsym gets SWt correctly..
+	md := net.AddLayer4D("MDe", dsz, asz, 1, 1, emer.Target)
 
 	v1.SetClass("V1f")
 	s1e.SetClass("V1f")

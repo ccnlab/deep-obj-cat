@@ -283,6 +283,18 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "0.1",
 				}},
+			{Sel: ".BackToPulv1", Desc: "top-down to pulvinar, strongest",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "1",
+				}},
+			{Sel: ".BackToPulv2", Desc: "top-down to pulvinar, weakest",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.2",
+				}},
+			{Sel: ".BackToPulv5", Desc: "top-down to pulvinar directly",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.5",
+				}},
 			{Sel: ".FwdToPulv", Desc: "feedforward to pulvinar directly",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "0.1",
@@ -291,6 +303,18 @@ var ParamSets = params.Sets{
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "0.2", // .2 > .1 > .05 still true
+				}},
+			{Sel: ".FmPulv2", Desc: "strong",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.2",
+				}},
+			{Sel: ".FmPulv05", Desc: "weak",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.05",
+				}},
+			{Sel: ".FmPulv02", Desc: "weak",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.02",
 				}},
 			{Sel: ".Lateral", Desc: "default for lateral",
 				Params: params.Params{
