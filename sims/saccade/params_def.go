@@ -239,7 +239,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".CTFmSuper", Desc: "CT from main super -- fixed one2one",
 				Params: params.Params{
-					"Prjn.SWt.Init.Mean": "0.5",  // 0.8 > 0.5 with lower S -> CT rel (2 instead of 4)
+					"Prjn.SWt.Init.Mean": "0.5",  // 0.5 with var at 5x5
 					"Prjn.SWt.Init.Var":  "0.25", // 0.25
 					"Prjn.PrjnScale.Rel": "1",    // def 2
 				}},

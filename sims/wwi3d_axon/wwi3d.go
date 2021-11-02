@@ -110,6 +110,7 @@ type Sim struct {
 	Prjn2x2Skp2      *prjn.PoolTile  `view:"sparser skip 2 -- no overlap"`
 	Prjn2x2Skp2Recip *prjn.PoolTile  `view:"Reciprocal"`
 	Prjn3x3Skp1      *prjn.PoolTile  `view:"Standard same-to-same size topographic projection"`
+	Prjn5x5Skp1      *prjn.PoolTile  `view:"Standard same-to-same size topographic projection"`
 	PrjnSigTopo      *prjn.PoolTile  `view:"sigmoidal topographic projection used in LIP saccade remapping layers"`
 	PrjnGaussTopo    *prjn.PoolTile  `view:"gaussian topographic projection used in LIP saccade remapping layers"`
 	StartRun         int             `desc:"starting run number -- typically 0 but can be set in command args for parallel runs on a cluster"`
@@ -275,6 +276,12 @@ func (ss *Sim) Defaults() {
 	ss.Prjn3x3Skp1.Start.Set(-1, -1)
 	ss.Prjn3x3Skp1.TopoRange.Min = 0.8 // note: none of these make a very big diff
 
+	ss.Prjn5x5Skp1 = prjn.NewPoolTile()
+	ss.Prjn5x5Skp1.Size.Set(5, 5)
+	ss.Prjn5x5Skp1.Skip.Set(1, 1)
+	ss.Prjn5x5Skp1.Start.Set(-2, -2)
+	ss.Prjn5x5Skp1.TopoRange.Min = 0.8 // note: none of these make a very big diff
+
 	ss.PrjnSigTopo = prjn.NewPoolTile()
 	ss.PrjnSigTopo.GaussOff()
 	ss.PrjnSigTopo.Size.Set(1, 1)
@@ -400,11 +407,11 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	v1m := net.AddLayer4D("V1m", 8, 8, 5, 4, emer.Input)
 	v1h := net.AddLayer4D("V1h", 16, 16, 5, 4, emer.Input)
 
-	lip, lipct, lipp := net.AddSuperCTTRC4D("LIP", 8, 8, 2, 2) // 4, 4 tiny bit better than 2,2
+	lip, lipct, lipp := net.AddSuperCTTRC4D("LIP", 16, 16, 2, 2) // 4, 4 tiny bit better than 2,2
 	lipp.SetName("LIPP")
-	lipp.Shape().SetShape([]int{8, 8, 1, 1}, nil, nil)
+	lipp.Shape().SetShape([]int{16, 16, 1, 1}, nil, nil)
 
-	mtpos := net.AddLayer4D("MTPos", 8, 8, 1, 1, emer.Hidden)
+	mtpos := net.AddLayer4D("MTPos", 16, 16, 1, 1, emer.Hidden)
 
 	lipp.(*deep.TRCLayer).Driver = "MTPos"
 
@@ -427,13 +434,14 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	full := prjn.NewFull()
 	pone2one := prjn.NewPoolOneToOne()
 
-	net.ConnectLayers(v1m, mtpos, pone2one, emer.Forward).SetClass("Fixed")
-	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
+	net.ConnectLayers(v1h, mtpos, pone2one, emer.Forward).SetClass("V1MT")
+	net.ConnectLayers(v1m, mtpos, ss.Prjn4x4Skp2Recip, emer.Forward).SetClass("V1MT")
+	net.ConnectLayers(mtpos, lip, ss.Prjn3x3Skp1, emer.Forward).SetClass("MTLIP") // was pone2one
 	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")           // only helpful with rel = 2
 
 	net.ConnectLayers(lipct, lipp, full, emer.Forward).SetClass("CTToPulv")
-	net.ConnectLayers(lipp, lipct, full, emer.Forward).SetClass("FmPulv FmLIP")
-	net.ConnectLayers(lipp, lip, full, emer.Forward).SetClass("FmPulv FmLIP")
+	net.ConnectLayers(lipp, lipct, full, emer.Forward).SetClass("FmPulv") //  FmLIP
+	net.ConnectLayers(lipp, lip, full, emer.Forward).SetClass("FmPulv")   //  FmLIP
 
 	// lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
 	// lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP")
@@ -443,7 +451,7 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	net.ConnectLayers(sacplan, lip, full, emer.Forward) // InitWts sets ss.PrjnSigTopo
 	net.ConnectLayers(objvel, lip, full, emer.Forward)  // InitWts sets ss.PrjnSigTopo
 
-	// lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn3x3Skp1)
+	lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn5x5Skp1) // also try 5x5
 
 	net.ConnectLayers(eyepos, lipct, full, emer.Forward) // InitWts sets ss.PrjnGaussTopo
 	net.ConnectLayers(sac, lipct, full, emer.Forward)    // InitWts sets ss.PrjnSigTopo

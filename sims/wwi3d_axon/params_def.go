@@ -82,10 +82,10 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.1",
+					"Layer.Inhib.Layer.Gi":    "1.2",
 					"Layer.Inhib.Pool.On":     "false", // false > true
-					"Layer.Inhib.ActAvg.Init": "0.05",
-					"Layer.Inhib.ActAvg.Targ": "0.05",
+					"Layer.Inhib.ActAvg.Init": "0.1",
+					"Layer.Inhib.ActAvg.Targ": "0.1",
 				}},
 			{Sel: ".PopIn", Desc: "pop-code input",
 				Params: params.Params{
@@ -216,6 +216,22 @@ var ParamSets = params.Sets{
 					"Prjn.SWt.Init.Var":    "0",
 					"Prjn.SWt.Init.Sym":    "false",
 				}},
+			{Sel: ".V1MT", Desc: "fixed weights",
+				Params: params.Params{
+					"Prjn.Learn.Learn":     "false",
+					"Prjn.PrjnScale.Adapt": "false", // key to not adapt!
+					"Prjn.SWt.Init.Mean":   "0.3",   // 0.3 better
+					"Prjn.SWt.Init.Var":    "0",
+					"Prjn.SWt.Init.Sym":    "false",
+				}},
+			{Sel: ".MTLIP", Desc: "fixed weights",
+				Params: params.Params{
+					"Prjn.Learn.Learn":     "false",
+					"Prjn.PrjnScale.Adapt": "false", // key to not adapt!
+					"Prjn.SWt.Init.Mean":   "0.5",
+					"Prjn.SWt.Init.Var":    "0",
+					"Prjn.SWt.Init.Sym":    "false",
+				}},
 			{Sel: ".Forward", Desc: "std feedforward",
 				Params: params.Params{
 					// "Prjn.PrjnScale.Abs": "0.8", // weaker?
@@ -326,8 +342,9 @@ var ParamSets = params.Sets{
 
 			{Sel: ".CTFmSuper", Desc: "CT from main super -- fixed one2one",
 				Params: params.Params{
-					"Prjn.SWt.Init.Mean": "0.8", // 0.8 > 0.5 with lower S -> CT rel (2 instead of 4)
-					"Prjn.PrjnScale.Rel": "1",   // def 2
+					"Prjn.SWt.Init.Mean": "0.5",  // 0.5
+					"Prjn.SWt.Init.Var":  "0.25", // 0.25
+					"Prjn.PrjnScale.Rel": "1",    // def 2
 				}},
 			{Sel: ".CTFmSuperLower", Desc: "CT from main super -- for lower layers",
 				Params: params.Params{
