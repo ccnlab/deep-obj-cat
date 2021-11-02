@@ -184,7 +184,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = false
+	ss.LIPOnly = true
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -429,7 +429,7 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 
 	net.ConnectLayers(v1m, mtpos, pone2one, emer.Forward).SetClass("Fixed")
 	net.ConnectLayers(mtpos, lip, pone2one, emer.Forward).SetClass("Fixed") // has .5 wtscale in Params
-	net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")           // only helpful with rel = 2
+	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")           // only helpful with rel = 2
 
 	net.ConnectLayers(lipct, lipp, full, emer.Forward).SetClass("CTToPulv")
 	net.ConnectLayers(lipp, lipct, full, emer.Forward).SetClass("FmPulv FmLIP")

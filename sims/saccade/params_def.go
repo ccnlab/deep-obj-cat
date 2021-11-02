@@ -42,7 +42,6 @@ var ParamSets = params.Sets{
 					"Layer.Learn.RLrate.ActThr":          "0.1",
 					"Layer.Learn.RLrate.ActDifThr":       "0.05",
 					"Layer.Learn.RLrate.Min":             "0.002",
-					"Layer.Learn.RLrate.CovarTau":        "500",
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
@@ -84,28 +83,28 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#MDe", Desc: "",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.2", // 1.3 > 1.4 > 1.2 > 1.1
+					"Layer.Inhib.Layer.Gi":    "1.4", // 1.3 > 1.4 > 1.2 > 1.1
 					"Layer.Act.Clamp.Ge":      "0.5", // 0.4 > 0.6 > 0.8?
-					"Layer.Inhib.ActAvg.Init": "0.06",
-					"Layer.Inhib.ActAvg.Targ": "0.06",
+					"Layer.Inhib.ActAvg.Init": "0.04",
+					"Layer.Inhib.ActAvg.Targ": "0.04",
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":               "1.4",
 					"Layer.Inhib.Pool.Gi":                "0.8",
 					"Layer.Inhib.Pool.On":                "true",
-					"Layer.Inhib.ActAvg.Init":            "0.06",
-					"Layer.Inhib.ActAvg.Targ":            "0.06",
+					"Layer.Inhib.ActAvg.Init":            "0.03",
+					"Layer.Inhib.ActAvg.Targ":            "0.03",
 					"Layer.Learn.TrgAvgAct.TrgRange.Min": "0.5",
 					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",   // reducing does not help anything
 					"Layer.Learn.TrgAvgAct.Pool":         "false", // pool sizes too small for trgs!
 				}},
-			// {Sel: "#LIPCT", Desc: "strong inhib",
-			// 	Params: params.Params{
-			// 		"Layer.Inhib.Pool.On":     "true",
-			// 		"Layer.Inhib.ActAvg.Init": "0.06",
-			// 		"Layer.Inhib.ActAvg.Targ": "0.06",
-			// 	}},
+			{Sel: "#LIPCT", Desc: "strong inhib",
+				Params: params.Params{
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.ActAvg.Init": "0.04",
+					"Layer.Inhib.ActAvg.Targ": "0.04",
+				}},
 			// {Sel: "#LIP", Desc: "strong inhib",
 			// 	Params: params.Params{
 			// 		"Layer.Inhib.ActAvg.Init": "0.06",
@@ -153,7 +152,6 @@ var ParamSets = params.Sets{
 					"Prjn.SWt.Adapt.Lrate":      "0.1",   // trying faster
 					"Prjn.SWt.Adapt.SigGain":    "6",
 					"Prjn.SWt.Adapt.DreamVar":   "0.0", // 0.02 good in lvis
-					"Prjn.SWt.Adapt.CovarLrate": "0.1", // .1 > lower for RLrate
 					"Prjn.SWt.Init.SPct":        "1",   // 1 > lower
 					"Prjn.SWt.Init.Mean":        "0.5", // .5 > .4 -- key, except v2?
 					"Prjn.SWt.Limit.Min":        "0.2", // .2-.8 == .1-.9; .3-.7 not better
@@ -241,8 +239,9 @@ var ParamSets = params.Sets{
 
 			{Sel: ".CTFmSuper", Desc: "CT from main super -- fixed one2one",
 				Params: params.Params{
-					"Prjn.SWt.Init.Mean": "0.8", // 0.8 > 0.5 with lower S -> CT rel (2 instead of 4)
-					"Prjn.PrjnScale.Rel": "1",   // def 2
+					"Prjn.SWt.Init.Mean": "0.5",  // 0.8 > 0.5 with lower S -> CT rel (2 instead of 4)
+					"Prjn.SWt.Init.Var":  "0.25", // 0.25
+					"Prjn.PrjnScale.Rel": "1",    // def 2
 				}},
 			{Sel: ".CTFmSuperLower", Desc: "CT from main super -- for lower layers",
 				Params: params.Params{

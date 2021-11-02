@@ -344,11 +344,9 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	v1.SetClass("V1")
 
-	lip, lipct, lipp := net.AddDeep4D("LIP", vsz, vsz, 2, 2)
+	lip, lipct, lipp := net.AddSuperCTTRC4D("LIP", vsz, vsz, 2, 2)
 	lipp.Shape().SetShape([]int{vsz, vsz, 1, 1}, nil, nil)
-	lipp.(*deep.TRCLayer).Drivers.Add("S1e") // V1f
-	// lipps := deep.AddTRCLayer4D(net.AsAxon(), "LIPPS", dsz, asz, 1, 1)
-	// lipps.Drivers.Add("S1e")
+	lipp.(*deep.TRCLayer).Driver = "S1e" // V1f
 
 	// lip := net.AddLayer4D("LIP", vsz, vsz, 2, 2, emer.Hidden)
 	lip.SetClass("LIP")
@@ -356,7 +354,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	lipp.SetClass("LIP")
 	// lipps.SetClass("LIP")
 
-	fef := net.AddLayer2D("FEF", vsz, vsz, emer.Hidden)
+	fef := net.AddLayer4D("FEF", vsz, vsz, 1, 1, emer.Hidden)
 
 	// sef, sefct, sefp := net.AddDeep4D("SEF", dsz, asz, 2, 2)
 	// sefp.Shape().SetShape([]int{dsz, asz, 2, 2}, nil, nil)
@@ -384,6 +382,10 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	net.ConnectLayers(s1e, lip, full, emer.Forward)
 	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
 
+	net.ConnectLayers(lipct, lipp, full, emer.Forward).SetClass("CTToPulv")
+	net.ConnectLayers(lipp, lipct, full, emer.Forward).SetClass("FmPulv FmLIP")
+	net.ConnectLayers(lipp, lip, full, emer.Forward).SetClass("FmPulv FmLIP")
+
 	// net.ConnectLayers(lipct, lipps, ss.Prjn5x5Skp1, emer.Forward).SetClass("CTToPulv") // pone2one
 	// net.ConnectLayers(lipps, lip, ss.Prjn5x5Skp1, emer.Back).SetClass("FmPulv")
 	// net.ConnectLayers(lipps, lipct, ss.Prjn5x5Skp1, emer.Back).SetClass("FmPulv")
@@ -393,19 +395,19 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// net.ConnectLayers(md, lipct, full, emer.Forward)
 	// net.BidirConnectLayers(sef, lip, full)
 
-	lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)                          // ss.Prjn5x5Skp1)
-	lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full)   // ss.Prjn5x5Skp1)
-	lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full) // ss.Prjn5x5Skp1)
-	lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
+	// lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)                          // ss.Prjn5x5Skp1)
+	// lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full)   // ss.Prjn5x5Skp1)
+	// lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full) // ss.Prjn5x5Skp1)
+	// lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
-	lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn5x5Skp1)
+	lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn5x5Skp1) // ss.Prjn5x5Skp1
 
 	// InitWts optionally sets ss.PrjnSigTopo
 	// net.ConnectLayers(sc, lip, full, emer.Forward)
 
 	// net.ConnectLayers(v1, fef, full, emer.Forward)
 
-	net.BidirConnectLayers(fef, md, full) // fef gets topo from md -- but sig worse learning
+	net.BidirConnectLayers(fef, md, ss.Prjn5x5Skp1) // was full
 	net.BidirConnectLayers(lip, fef, full)
 	net.ConnectLayers(s1e, fef, full, emer.Back) // actually, is useful!
 	net.ConnectCtxtToCT(md, lipct, full)
