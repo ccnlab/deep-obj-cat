@@ -294,6 +294,14 @@ func (sc *SacEnv) EncodePolar(tsr *etensor.Float32, xy mat32.Vec2) {
 // returning polar decoding and corresponding XY
 func (sc *SacEnv) DecodePolar(tsr *etensor.Float32) (plr, xy mat32.Vec2) {
 	var err error
+	if !sc.UsePolar {
+		plr, err = sc.V1Pop.Decode(tsr)
+		xy = plr
+		if err != nil {
+			fmt.Printf("MD Decoding error: %s\n", err)
+		}
+		return
+	}
 	plr, err = sc.PolarPop.Decode(tsr)
 	if err != nil {
 		fmt.Printf("MD Decoding error: %s\n", err)

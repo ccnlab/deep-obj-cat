@@ -38,10 +38,6 @@ var ParamSets = params.Sets{
 					"Layer.Learn.TrgAvgAct.SynScaleRate": "0.005",   // 0.005 orig > 0.01
 					"Layer.Learn.TrgAvgAct.TrgRange.Min": "0.5",     // .5 > .2 overall
 					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",     // objrec 2 > 1.8
-					"Layer.Learn.RLrate.On":              "true",
-					"Layer.Learn.RLrate.ActThr":          "0.1",
-					"Layer.Learn.RLrate.ActDifThr":       "0.05",
-					"Layer.Learn.RLrate.Min":             "0.002",
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
@@ -51,17 +47,15 @@ var ParamSets = params.Sets{
 					"Layer.Act.NMDA.Gbar":   "0.03",
 					"Layer.Act.GABAB.Gbar":  "0.2",
 					"Layer.Act.Decay.Act":   "0.0", // 0 better
-					"Layer.Act.Decay.Glong": "0.0",
+					"Layer.Act.Decay.Glong": "0.0", // 0 both better than std
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.NoTopo":      "false", //
-					"Layer.TRC.AvgMix":      "0.5",   //
-					"Layer.TRC.DriveScale":  "0.2",   // .2 > .15 > .1, .05
+					"Layer.TRC.DriveScale":  "0.1", // .1 = .2 (v.87)
 					"Layer.Act.NMDA.Gbar":   "0.03",
 					"Layer.Act.GABAB.Gbar":  "0.2", //
-					"Layer.Act.Decay.Act":   "0.5",
-					"Layer.Act.Decay.Glong": "1", // clear long
+					"Layer.Act.Decay.Act":   "0.5", // 0.5 actually better
+					"Layer.Act.Decay.Glong": "1",   // 1 better
 				}},
 			{Sel: "SuperLayer", Desc: "burst params don't really matter",
 				Params: params.Params{
@@ -84,7 +78,7 @@ var ParamSets = params.Sets{
 			{Sel: "#MDe", Desc: "",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":    "1.4", // 1.3 > 1.4 > 1.2 > 1.1
-					"Layer.Act.Clamp.Ge":      "0.5", // 0.4 > 0.6 > 0.8?
+					"Layer.Act.Clamp.Ge":      "0.4", // 0.4 > 0.6 > 0.8?
 					"Layer.Inhib.ActAvg.Init": "0.04",
 					"Layer.Inhib.ActAvg.Targ": "0.04",
 				}},
@@ -127,8 +121,8 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Layer.Gi":       "1.2", // 1.2 > 1.3 > 1.1
 					"Layer.Inhib.Pool.Gi":        "0.9",
 					"Layer.Inhib.Pool.On":        "false", // full layer best
-					"Layer.Inhib.ActAvg.Init":    "0.07",
-					"Layer.Inhib.ActAvg.Targ":    "0.07",
+					"Layer.Inhib.ActAvg.Init":    "0.2",
+					"Layer.Inhib.ActAvg.Targ":    "0.1",
 					"Layer.Learn.TrgAvgAct.Pool": "false", // pool sizes too small for trgs!
 				}},
 			{Sel: ".SEF", Desc: "",
@@ -142,8 +136,7 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base": "0.1", // .04 > .02 probably
-					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
+					"Prjn.Learn.Lrate.Base":     "0.1",   // .04 > .02 probably
 					"Prjn.PrjnScale.ScaleLrate": "0.5",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
@@ -160,7 +153,6 @@ var ParamSets = params.Sets{
 			{Sel: "CTCtxtPrjn", Desc: "defaults for CT Ctxt prjns",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "1",
-					"Prjn.SWt.Init.Var":  "0.25",
 				}},
 			{Sel: ".Fixed", Desc: "fixed weights",
 				Params: params.Params{
@@ -271,6 +263,7 @@ var ParamSets = params.Sets{
 			{Sel: "#LIPToFEF", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "1",
+					"Prjn.PrjnScale.Rel": "1",
 				}},
 			{Sel: "#LIPCTToLIPP", Desc: "stronger",
 				Params: params.Params{

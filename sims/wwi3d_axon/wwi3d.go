@@ -109,6 +109,8 @@ type Sim struct {
 	Prjn8x8Skp4Recip *prjn.PoolTile  `view:"Reciprocal"`
 	Prjn2x2Skp2      *prjn.PoolTile  `view:"sparser skip 2 -- no overlap"`
 	Prjn2x2Skp2Recip *prjn.PoolTile  `view:"Reciprocal"`
+	Prjn4x4Skp4      *prjn.PoolTile  `view:"no ovlp for smaller layers"`
+	Prjn4x4Skp4Recip *prjn.PoolTile  `view:"Reciprocal"`
 	Prjn3x3Skp1      *prjn.PoolTile  `view:"Standard same-to-same size topographic projection"`
 	Prjn5x5Skp1      *prjn.PoolTile  `view:"Standard same-to-same size topographic projection"`
 	PrjnSigTopo      *prjn.PoolTile  `view:"sigmoidal topographic projection used in LIP saccade remapping layers"`
@@ -185,7 +187,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true
+	ss.LIPOnly = false
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -269,6 +271,19 @@ func (ss *Sim) Defaults() {
 	ss.Prjn2x2Skp2Recip.Start.Set(0, 0)
 	ss.Prjn2x2Skp2Recip.TopoRange.Min = 0.8
 	ss.Prjn2x2Skp2Recip.Recip = true
+
+	ss.Prjn4x4Skp4 = prjn.NewPoolTile()
+	ss.Prjn4x4Skp4.Size.Set(4, 4)
+	ss.Prjn4x4Skp4.Skip.Set(4, 4)
+	ss.Prjn4x4Skp4.Start.Set(0, 0)
+	ss.Prjn4x4Skp4.TopoRange.Min = 0.8
+
+	ss.Prjn4x4Skp4Recip = prjn.NewPoolTile()
+	ss.Prjn4x4Skp4Recip.Size.Set(4, 4)
+	ss.Prjn4x4Skp4Recip.Skip.Set(4, 4)
+	ss.Prjn4x4Skp4Recip.Start.Set(0, 0)
+	ss.Prjn4x4Skp4Recip.TopoRange.Min = 0.8
+	ss.Prjn4x4Skp4Recip.Recip = true
 
 	ss.Prjn3x3Skp1 = prjn.NewPoolTile()
 	ss.Prjn3x3Skp1.Size.Set(3, 3)
@@ -576,11 +591,11 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	////////////////////
 	// to LIP -- weak from v2, v3
 
-	net.ConnectLayers(v2, lip, pone2one, emer.Forward).SetClass("FwdWeak")
-	net.ConnectLayers(v3, lip, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
+	// net.ConnectLayers(v2, lip, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
+	// net.ConnectLayers(v3, lip, ss.Prjn4x4Skp4Recip, emer.Forward).SetClass("FwdWeak")
 
-	net.ConnectLayers(v2ct, lipct, pone2one, emer.Forward).SetClass("FwdWeak")
-	net.ConnectLayers(v3ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
+	// net.ConnectLayers(v2ct, lipct, ss.Prjn2x2Skp2Recip, emer.Forward).SetClass("FwdWeak")
+	// net.ConnectLayers(v3ct, lipct, ss.Prjn4x4Skp4Recip, emer.Forward).SetClass("FwdWeak")
 
 	// Pulvinar connections
 	net.ConnectLayers(v2ct, v1mp, pone2one, emer.Back).SetClass("BackToPulv1")
@@ -630,10 +645,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1hp, v2, ss.Prjn2x2Skp2, emer.Forward).SetClass("FmPulv02")
 
 	net.ConnectCtxtToCT(v2ct, v2ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
-	v2ct.RecvPrjns().SendName(v2.Name()).SetClass("CTFmSuperLower")
+	v2ct.RecvPrjns().SendName(v2.Name()).SetPattern(ss.Prjn3x3Skp1).SetClass("CTFmSuperLower")
 
-	net.ConnectLayers(lip, v2, pone2one, emer.Back).SetClass("BackMax FmLIP") // key top-down attn .5 > .2
-	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back)              // key! .1 def
+	net.ConnectLayers(lip, v2, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMax FmLIP") // key top-down attn .5 > .2
+	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back)                    // key! .1 def
 
 	// net.ConnectLayers(teo, v2, ss.Prjn4x4Skp2Recip, emer.Back) // too strong of top-down
 
@@ -641,7 +656,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1mp, v2ct, ss.Prjn3x3Skp1, emer.Forward).SetClass("FmPulv2")
 	net.ConnectLayers(v1hp, v2ct, ss.Prjn4x4Skp2, emer.Forward).SetClass("FmPulv2")
 
-	net.ConnectLayers(lipct, v2ct, pone2one, emer.Back).SetClass("CTBackMax FmLIP")
+	net.ConnectLayers(lipct, v2ct, ss.Prjn2x2Skp2, emer.Back).SetClass("CTBackMax FmLIP")
 	net.ConnectLayers(v3ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBackMax")
 	net.ConnectLayers(v4ct, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBackMax")
 
@@ -664,7 +679,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(dpp, v3, full, emer.Back).SetClass("FmPulv05") // todo: remove?
 
 	net.ConnectCtxtToCT(v3ct, v3ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
-	v3ct.RecvPrjns().SendName(v3.Name()).SetClass("CTFmSuperLower")
+	v3ct.RecvPrjns().SendName(v3.Name()).SetPattern(ss.Prjn3x3Skp1).SetClass("CTFmSuperLower")
 
 	net.ConnectLayers(v4, v3, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong")
 	net.ConnectLayers(lip, v3, ss.Prjn2x2Skp2, emer.Back).SetClass("FmLIP")
@@ -717,6 +732,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1mp, v4, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(v1hp, v4, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
 
+	v4ct.RecvPrjns().SendName(v4.Name()).SetPattern(ss.Prjn3x3Skp1).SetClass("CTFmSuper")
 	net.ConnectCtxtToCT(v4ct, v4ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 
 	// net.ConnectLayers(teoct, v4, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack") // very not beneficial
@@ -752,6 +768,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1mp, teoct, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, teoct, full, emer.Back).SetClass("FmPulv")
 
+	teoct.RecvPrjns().SendName(teo.Name()).SetPattern(ss.Prjn3x3Skp1).SetClass("CTFmSuper")
 	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher") // pone2one similar to 3x3 -- bit better
 
 	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // CTBack > not
@@ -770,6 +787,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1mp, te, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, te, full, emer.Back).SetClass("FmPulv")
 
+	tect.RecvPrjns().SendName(te.Name()).SetPattern(ss.Prjn3x3Skp1).SetClass("CTFmSuper")
 	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher") // pone2one > full
 
 	net.ConnectLayers(v1mp, tect, full, emer.Back).SetClass("FmPulv")
@@ -1055,7 +1073,6 @@ func (ss *Sim) ThetaCyc(train bool) {
 
 		if cyc == plusCyc-1 { // do before view update
 			ss.Net.PlusPhase(&ss.Time)
-			ss.Net.CTCtxt(&ss.Time) // update context at end
 		}
 		if ss.ViewOn {
 			ss.UpdateViewTime(train, viewUpdt)

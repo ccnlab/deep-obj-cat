@@ -76,7 +76,7 @@ const LogPrec = 4
 // for the fields which provide hints to how things should be displayed).
 type Sim struct {
 	Net              *deep.Network   `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
-	BinarizeV1       bool            `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
+	LIPDrive0        bool            `desc:"set drivers on in tick 0"`
 	TrnTrlLog        *etable.Table   `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table   `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
 	TrnTrlRepLog     *etable.Table   `view:"no-inline" desc:"training trial-level reps log data"`
@@ -216,6 +216,8 @@ func (ss *Sim) New() {
 
 // Defaults sets default values for params / prjns
 func (ss *Sim) Defaults() {
+	ss.LIPDrive0 = true
+
 	ss.Prjn4x4Skp2 = prjn.NewPoolTile()
 	ss.Prjn4x4Skp2.Size.Set(4, 4)
 	ss.Prjn4x4Skp2.Skip.Set(2, 2)
@@ -311,16 +313,20 @@ func (ss *Sim) ConfigEnv() {
 		ss.MaxTrls = 64
 	}
 
+	polar := false
+
 	ss.TrainEnv.Nm = "TrainEnv"
 	ss.TrainEnv.Dsc = "training params and state"
 	ss.TrainEnv.Defaults()
 	ss.TrainEnv.Run.Max = ss.MaxRuns // note: we are not setting epoch max -- do that manually
 	ss.TrainEnv.Trial.Max = ss.MaxTrls
+	ss.TrainEnv.UsePolar = polar
 
 	ss.TestEnv.Nm = "TestEnv"
 	ss.TestEnv.Dsc = "testing params and state"
 	ss.TestEnv.Defaults()
 	ss.TestEnv.Trial.Max = 500
+	ss.TestEnv.UsePolar = polar
 
 	ss.TrainEnv.Init(0)
 	ss.TestEnv.Init(0)
@@ -379,11 +385,11 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	_ = full
 
 	net.ConnectLayers(v1, lip, ss.Prjn5x5Skp1, emer.Forward)
-	net.ConnectLayers(s1e, lip, full, emer.Forward)
+	// net.ConnectLayers(s1e, lip, full, emer.Forward)
 	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
 
-	net.ConnectLayers(lipct, lipp, full, emer.Forward).SetClass("CTToPulv")
-	net.ConnectLayers(lipp, lipct, full, emer.Forward).SetClass("FmPulv FmLIP")
+	net.ConnectLayers(lipct, lipp, ss.Prjn3x3Skp1, emer.Forward).SetClass("CTToPulv")
+	net.ConnectLayers(lipp, lipct, ss.Prjn3x3Skp1, emer.Forward).SetClass("FmPulv FmLIP")
 	net.ConnectLayers(lipp, lip, full, emer.Forward).SetClass("FmPulv FmLIP")
 
 	// net.ConnectLayers(lipct, lipps, ss.Prjn5x5Skp1, emer.Forward).SetClass("CTToPulv") // pone2one
@@ -400,7 +406,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full) // ss.Prjn5x5Skp1)
 	// lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
 
-	lipct.RecvPrjns().SendName("LIP").SetPattern(ss.Prjn5x5Skp1) // ss.Prjn5x5Skp1
+	lipct.RecvPrjns().SendName("LIP").SetPattern(full) // ss.Prjn5x5Skp1
 
 	// InitWts optionally sets ss.PrjnSigTopo
 	// net.ConnectLayers(sc, lip, full, emer.Forward)
@@ -412,7 +418,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	net.ConnectLayers(s1e, fef, full, emer.Back) // actually, is useful!
 	net.ConnectCtxtToCT(md, lipct, full)
 	// net.ConnectLayers(fef, lipct, fef, full)
-	net.ConnectLayers(md, lip, full, emer.Back)
+	// net.ConnectLayers(md, lip, full, emer.Back)
 
 	// net.BidirConnectLayers(fef, sef, ss.Prjn3x3Skp1)
 
@@ -630,7 +636,6 @@ func (ss *Sim) ThetaCyc(train bool) {
 
 		if cyc == plusCyc-1 { // do before view update
 			ss.Net.PlusPhase(&ss.Time)
-			ss.Net.CTCtxt(&ss.Time) // update context at end
 		}
 		if ss.ViewOn {
 			ss.UpdateViewTime(train, viewUpdt)
@@ -660,7 +665,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	md := ss.Net.LayerByName("MDe").(axon.AxonLayer).AsAxon()
 	switch tick {
 	case 0:
-		lipp.TRC.DriversOff = true
+		lipp.TRC.DriversOff = !ss.LIPDrive0
 		// lipps.TRC.DriversOff = true
 		md.SetType(emer.Target)
 	case 1:

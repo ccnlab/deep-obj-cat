@@ -49,11 +49,9 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.NoTopo":      "false", //
-					"Layer.TRC.AvgMix":      "0.5",   //
-					"Layer.TRC.DriveScale":  "0.05",  // LIP .1 > .05 -- too high might = too much plus phase
-					"Layer.Act.NMDA.Gbar":   "0.03",  // 0.1 > .05 / .03 > .2 -- much stronger!
-					"Layer.Act.GABAB.Gbar":  "0.2",   //
+					"Layer.TRC.DriveScale":  "0.05", // LIP .1 > .05 -- too high might = too much plus phase
+					"Layer.Act.NMDA.Gbar":   "0.03", // 0.1 > .05 / .03 > .2 -- much stronger!
+					"Layer.Act.GABAB.Gbar":  "0.2",  //
 					"Layer.Act.Decay.Act":   "0.5",
 					"Layer.Act.Decay.Glong": "1", // clear long
 				}},
@@ -101,16 +99,16 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":        "true",
 					"Layer.Inhib.Pool.Gi":        "1.1",
-					"Layer.Inhib.ActAvg.Init":    "0.06", // .06 stable without adapting, was .04
-					"Layer.Inhib.ActAvg.Targ":    "0.06",
+					"Layer.Inhib.ActAvg.Init":    "0.04", // was .06
+					"Layer.Inhib.ActAvg.Targ":    "0.04",
 					"Layer.Inhib.ActAvg.AdaptGi": "false", // try false?
 				}},
 			{Sel: ".V3", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":        "true",
 					"Layer.Inhib.Pool.Gi":        "1.1",
-					"Layer.Inhib.ActAvg.Init":    "0.08", // was .06
-					"Layer.Inhib.ActAvg.Targ":    "0.08",
+					"Layer.Inhib.ActAvg.Init":    "0.06", // was .06
+					"Layer.Inhib.ActAvg.Targ":    "0.06",
 					"Layer.Inhib.ActAvg.AdaptGi": "false",
 				}},
 			{Sel: ".DP", Desc: "no pool inhib, initial activity",
@@ -127,16 +125,16 @@ var ParamSets = params.Sets{
 			{Sel: ".V4", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.06", // .06 once DP, TEO fixed
-					"Layer.Inhib.ActAvg.Targ":    "0.06",
+					"Layer.Inhib.ActAvg.Init":    "0.04", // was .06
+					"Layer.Inhib.ActAvg.Targ":    "0.04",
 					"Layer.Inhib.ActAvg.AdaptGi": "false",
 				}},
 			{Sel: ".TEO", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.Layer.On":       "false",
 					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.1", // .1 for 1.2, .08 for 1.3
-					"Layer.Inhib.ActAvg.Targ":    "0.1",
+					"Layer.Inhib.ActAvg.Init":    "0.05", // was .1 for 1.2, .08 for 1.3
+					"Layer.Inhib.ActAvg.Targ":    "0.05",
 					"Layer.Inhib.ActAvg.AdaptGi": "false", // false works with higher gi
 					"Layer.Inhib.Pool.Gi":        "1.2",
 				}},
@@ -148,8 +146,8 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.On":       "false",
 					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.1",
-					"Layer.Inhib.ActAvg.Targ":    "0.1",
+					"Layer.Inhib.ActAvg.Init":    "0.05", // was .1
+					"Layer.Inhib.ActAvg.Targ":    "0.05",
 					"Layer.Inhib.ActAvg.AdaptGi": "false", // false ok with higher gi
 					"Layer.Inhib.Pool.Gi":        "1.1",
 				}},
@@ -172,18 +170,6 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "2.0", // very high to get center of mass blob
 					"Layer.Inhib.Pool.On":  "false",
-				}},
-			{Sel: "#V2P", Desc: "less AvgMix?",
-				Params: params.Params{
-					"Layer.TRC.AvgMix": "0.0", // no real diff vs. .5
-				}},
-			{Sel: "#TEOP", Desc: "no topo",
-				Params: params.Params{
-					"Layer.TRC.NoTopo": "false", // true def
-				}},
-			{Sel: "#TEP", Desc: "no topo",
-				Params: params.Params{
-					"Layer.TRC.NoTopo": "false", // true def
 				}},
 
 			// prjn classes, specifics
@@ -348,7 +334,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CTFmSuperLower", Desc: "CT from main super -- for lower layers",
 				Params: params.Params{
-					"Prjn.SWt.Init.Mean": "0.8", // 0.8 makes a diff for lower too, more V1 divergence at .5
+					"Prjn.SWt.Init.Mean": "0.5", // 0.5 was 0.8
 					"Prjn.PrjnScale.Rel": "1",   // 1 maybe better
 				}},
 			{Sel: ".CTSelfLIP", Desc: "CT to CT for LIP",
@@ -393,26 +379,26 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.Rel": ".1",
 				}},
 
-			{Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
-				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "0.5",
-					"Prjn.PrjnScale.Rel": "2",
-				}},
-			{Sel: "#V2ToV4", Desc: "otherwise V2 too strong",
-				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "0.5",
-					"Prjn.PrjnScale.Rel": "2",
-				}},
+			// {Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
+			// 	Params: params.Params{
+			// 		"Prjn.PrjnScale.Abs": "0.5",
+			// 		"Prjn.PrjnScale.Rel": "2",
+			// 	}},
+			// {Sel: "#V2ToV4", Desc: "otherwise V2 too strong",
+			// 	Params: params.Params{
+			// 		"Prjn.PrjnScale.Abs": "0.5",
+			// 		"Prjn.PrjnScale.Rel": "2",
+			// 	}},
 			{Sel: "#V3ToDP", Desc: "too weak full from topo",
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "1",
 					"Prjn.PrjnScale.Rel": "1",
 				}},
-			{Sel: "#V4ToTEO", Desc: "too weak full from topo",
-				Params: params.Params{
-					"Prjn.PrjnScale.Abs": ".5",
-					"Prjn.PrjnScale.Rel": "2",
-				}},
+			// {Sel: "#V4ToTEO", Desc: "too weak full from topo",
+			// 	Params: params.Params{
+			// 		"Prjn.PrjnScale.Abs": ".5",
+			// 		"Prjn.PrjnScale.Rel": "2",
+			// 	}},
 			{Sel: "#TEOToTE", Desc: "too weak full from topo",
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "1",
