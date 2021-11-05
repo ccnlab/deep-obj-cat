@@ -39,7 +39,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
-					"Layer.CtxtGeGain":      "0.1",
+					// "Layer.CtxtGeGain":      "0.1",
 					"Layer.Inhib.Layer.Gi":  "1.1",
 					"Layer.Act.KNa.On":      "true",
 					"Layer.Act.NMDA.Gbar":   "0.03", // larger not better
@@ -157,19 +157,25 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#LIPCT", Desc: "special",
 				Params: params.Params{
-					"Layer.CtxtGeGain": "0.2", //
+					// "Layer.CtxtGeGain":        "0.2", //
+					"Layer.Inhib.ActAvg.Init": "0.01",
+					"Layer.Inhib.ActAvg.Targ": "0.01",
 				}},
 			{Sel: "#LIPP", Desc: "layer only",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":   "1.0", //
-					"Layer.Inhib.Pool.On":    "false",
-					"Layer.TRC.DriveScale":   "0.15", // .15 > .1 > .05
-					"Layer.TRC.FullDriveAct": "0.4",
+					"Layer.Inhib.Layer.Gi":    "1.0", //
+					"Layer.Inhib.Pool.On":     "false",
+					"Layer.TRC.DriveScale":    "0.15", // .15 > .1 > .05
+					"Layer.TRC.FullDriveAct":  "0.4",
+					"Layer.Inhib.ActAvg.Init": "0.06",
+					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 			{Sel: "#MTPos", Desc: "layer only",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.0", // very high to get center of mass blob
-					"Layer.Inhib.Pool.On":  "false",
+					"Layer.Inhib.Layer.Gi":    "2.0", // very high to get center of mass blob
+					"Layer.Inhib.Pool.On":     "false",
+					"Layer.Inhib.ActAvg.Init": "0.1",
+					"Layer.Inhib.ActAvg.Targ": "0.1",
 				}},
 
 			// prjn classes, specifics
@@ -412,7 +418,7 @@ var ParamSets = params.Sets{
 
 			{Sel: "#MTPosToLIP", Desc: "fixed weights",
 				Params: params.Params{
-					"Prjn.PrjnScale.Rel": "0.5",
+					"Prjn.PrjnScale.Abs": "0.5",
 				}},
 		},
 	}},

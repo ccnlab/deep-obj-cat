@@ -69,7 +69,7 @@ func (sc *SacEnv) Desc() string { return sc.Dsc }
 
 // Defaults sets generic defaults -- use ParamSet to override
 func (sc *SacEnv) Defaults() {
-	sc.UsePolar = true
+	sc.UsePolar = false
 	sc.NObjRange.Set(1, 1)
 	sc.VisSize = 16 // 11, 16, 21 for small, med, large..
 	sc.AngSize = 16

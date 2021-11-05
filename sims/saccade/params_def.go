@@ -84,20 +84,22 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".LIP", Desc: "high, pool inhib",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":               "1.4",
+					"Layer.Inhib.Layer.Gi":               "1.4", // no perf diff, lower act
 					"Layer.Inhib.Pool.Gi":                "0.8",
-					"Layer.Inhib.Pool.On":                "true",
-					"Layer.Inhib.ActAvg.Init":            "0.03",
-					"Layer.Inhib.ActAvg.Targ":            "0.03",
+					"Layer.Inhib.Pool.On":                "false", // false > true -- no pools!
+					"Layer.Inhib.ActAvg.Init":            "0.1",   // was .03, actual .1
+					"Layer.Inhib.ActAvg.Targ":            "0.1",
 					"Layer.Learn.TrgAvgAct.TrgRange.Min": "0.5",
 					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",   // reducing does not help anything
 					"Layer.Learn.TrgAvgAct.Pool":         "false", // pool sizes too small for trgs!
 				}},
 			{Sel: "#LIPCT", Desc: "strong inhib",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.ActAvg.Init": "0.04",
-					"Layer.Inhib.ActAvg.Targ": "0.04",
+					"Layer.Inhib.Pool.On":     "false",
+					"Layer.Inhib.Layer.Gi":    "1.2", // 1.2 > 1.4 major
+					"Layer.Inhib.Pool.Gi":     "0.8", // 0.8 key for 2x2, 1.0 works for 4x4 but no diff
+					"Layer.Inhib.ActAvg.Init": "0.06",
+					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 			// {Sel: "#LIP", Desc: "strong inhib",
 			// 	Params: params.Params{

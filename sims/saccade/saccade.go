@@ -313,7 +313,7 @@ func (ss *Sim) ConfigEnv() {
 		ss.MaxTrls = 64
 	}
 
-	polar := false
+	polar := false // basically the same perf -- just slightly worse -- need to fix too
 
 	ss.TrainEnv.Nm = "TrainEnv"
 	ss.TrainEnv.Dsc = "training params and state"
@@ -350,7 +350,8 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 
 	v1.SetClass("V1")
 
-	lip, lipct, lipp := net.AddSuperCTTRC4D("LIP", vsz, vsz, 2, 2)
+	lip, lipct, lipp := net.AddSuperCTTRC4D("LIP", vsz, vsz, 1, 1)
+	lipct.Shape().SetShape([]int{vsz, vsz, 1, 1}, nil, nil) // 4x4 with pool gi1.0 is same; 1x1 is best actually
 	lipp.Shape().SetShape([]int{vsz, vsz, 1, 1}, nil, nil)
 	lipp.(*deep.TRCLayer).Driver = "S1e" // V1f
 
@@ -388,6 +389,9 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// net.ConnectLayers(s1e, lip, full, emer.Forward)
 	// net.ConnectCtxtToCT(lipct, lipct, full).SetClass("CTSelfLIP")
 
+	lipct.RecvPrjns().SendName("LIP").SetPattern(full) // critical to have full input
+
+	// topo CT <-> P is critical
 	net.ConnectLayers(lipct, lipp, ss.Prjn3x3Skp1, emer.Forward).SetClass("CTToPulv")
 	net.ConnectLayers(lipp, lipct, ss.Prjn3x3Skp1, emer.Forward).SetClass("FmPulv FmLIP")
 	net.ConnectLayers(lipp, lip, full, emer.Forward).SetClass("FmPulv FmLIP")
@@ -401,20 +405,14 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// net.ConnectLayers(md, lipct, full, emer.Forward)
 	// net.BidirConnectLayers(sef, lip, full)
 
-	// lipp.RecvPrjns().SendName("LIPCT").SetPattern(full)                          // ss.Prjn5x5Skp1)
-	// lip.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full)   // ss.Prjn5x5Skp1)
-	// lipct.RecvPrjns().SendName("LIPP").SetClass("FmPulv FmLIP").SetPattern(full) // ss.Prjn5x5Skp1)
-	// lipct.RecvPrjns().SendName("LIP").SetClass("CTCtxtStd")
-
-	lipct.RecvPrjns().SendName("LIP").SetPattern(full) // ss.Prjn5x5Skp1
-
 	// InitWts optionally sets ss.PrjnSigTopo
 	// net.ConnectLayers(sc, lip, full, emer.Forward)
 
 	// net.ConnectLayers(v1, fef, full, emer.Forward)
 
 	net.BidirConnectLayers(fef, md, ss.Prjn5x5Skp1) // was full
-	net.BidirConnectLayers(lip, fef, full)
+	// net.BidirConnectLayers(lip, fef, full) // not needed
+	net.ConnectLayers(lip, fef, full, emer.Forward)
 	net.ConnectLayers(s1e, fef, full, emer.Back) // actually, is useful!
 	net.ConnectCtxtToCT(md, lipct, full)
 	// net.ConnectLayers(fef, lipct, fef, full)
