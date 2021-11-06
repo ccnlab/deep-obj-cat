@@ -14,30 +14,27 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Inhib.FBAct.Tau":              "30",   // 30 > 20 >> 1 definitively
-					"Layer.Act.Dt.IntTau":                "40",   // 40 > 20
-					"Layer.Inhib.Layer.Gi":               "1.1",  // general default
-					"Layer.Inhib.Pool.Gi":                "1.1",  // general default
-					"Layer.Inhib.ActAvg.LoTol":           "1.1",  // no low adapt
-					"Layer.Inhib.ActAvg.AdaptRate":       "0.2",  // 0.5 default
-					"Layer.Inhib.ActAvg.Init":            "0.06", // .06 = sigma .2, .04 = sigma .15, .02 = sigma .1
-					"Layer.Inhib.ActAvg.Targ":            "0.06",
-					"Layer.Act.Gbar.L":                   "0.2", // 0.2 now best
-					"Layer.Act.Decay.Act":                "0.2", // 0 best
-					"Layer.Act.Decay.Glong":              "0.6", // 0.5 > 0.2
-					"Layer.Act.KNa.Fast.Max":             "0.1", // fm both .2 worse
-					"Layer.Act.KNa.Med.Max":              "0.2", // 0.2 > 0.1 def
-					"Layer.Act.KNa.Slow.Max":             "0.2", // 0.2 > higher
-					"Layer.Act.Noise.Dist":               "Gaussian",
-					"Layer.Act.Noise.Mean":               "0.0",     // .05 max for blowup
-					"Layer.Act.Noise.Var":                "0.01",    // .01 a bit worse
-					"Layer.Act.Noise.Type":               "NoNoise", // off for now
-					"Layer.Act.GTarg.GeMax":              "1.2",     // 1.2 > 1 > .8 -- rescaling not very useful.
-					"Layer.Act.Dt.LongAvgTau":            "20",      // 20 > 50 > 100
-					"Layer.Learn.TrgAvgAct.ErrLrate":     "0.01",    // 0.01 orig > 0.005
-					"Layer.Learn.TrgAvgAct.SynScaleRate": "0.005",   // 0.005 orig > 0.01
-					"Layer.Learn.TrgAvgAct.TrgRange.Min": "0.5",     // .5 > .2 overall
-					"Layer.Learn.TrgAvgAct.TrgRange.Max": "2.0",     // objrec 2 > 1.8
+					"Layer.Inhib.FBAct.Tau":        "30",   // 30 > 20 >> 1 definitively
+					"Layer.Act.Dt.IntTau":          "40",   // 40 > 20
+					"Layer.Inhib.Layer.Gi":         "1.1",  // general default
+					"Layer.Inhib.Pool.Gi":          "1.1",  // general default
+					"Layer.Inhib.ActAvg.LoTol":     "1.1",  // no low adapt
+					"Layer.Inhib.ActAvg.AdaptRate": "0.2",  // 0.5 default
+					"Layer.Inhib.ActAvg.Init":      "0.06", // .06 = sigma .2, .04 = sigma .15, .02 = sigma .1
+					"Layer.Inhib.ActAvg.Targ":      "0.06",
+					"Layer.Act.Gbar.L":             "0.2", // 0.2 now best
+					"Layer.Act.Decay.Act":          "0.2", // 0 best
+					"Layer.Act.Decay.Glong":        "0.6", // 0.5 > 0.2
+					"Layer.Act.KNa.Fast.Max":       "0.1", // fm both .2 worse
+					"Layer.Act.KNa.Med.Max":        "0.2", // 0.2 > 0.1 def
+					"Layer.Act.KNa.Slow.Max":       "0.2", // 0.2 > higher
+					"Layer.Act.Noise.Dist":         "Gaussian",
+					"Layer.Act.Noise.Mean":         "0.0",     // .05 max for blowup
+					"Layer.Act.Noise.Var":          "0.01",    // .01 a bit worse
+					"Layer.Act.Noise.Type":         "NoNoise", // off for now
+					"Layer.Act.GTarg.GeMax":        "1.2",     // 1.2 > 1 > .8 -- rescaling not very useful.
+					"Layer.Act.Dt.LongAvgTau":      "20",      // 20 > 50 > 100
+					"Layer.Learn.TrgAvgAct.On":     "false",   // not relevant to topo-driven layers, makes a diff
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{

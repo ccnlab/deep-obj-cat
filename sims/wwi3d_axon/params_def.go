@@ -78,12 +78,13 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.ActAvg.Init": "0.02",
 					"Layer.Inhib.ActAvg.Targ": "0.02",
 				}},
-			{Sel: ".LIP", Desc: "high, pool inhib",
+			{Sel: ".LIP", Desc: "no trgavgact",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.2",
-					"Layer.Inhib.Pool.On":     "false", // false > true
-					"Layer.Inhib.ActAvg.Init": "0.1",
-					"Layer.Inhib.ActAvg.Targ": "0.1",
+					"Layer.Inhib.Layer.Gi":     "1.2",
+					"Layer.Inhib.Pool.On":      "false", // false > true
+					"Layer.Inhib.ActAvg.Init":  "0.1",
+					"Layer.Inhib.ActAvg.Targ":  "0.1",
+					"Layer.Learn.TrgAvgAct.On": "true", // off = better in saccade, but better here..
 				}},
 			{Sel: ".PopIn", Desc: "pop-code input",
 				Params: params.Params{

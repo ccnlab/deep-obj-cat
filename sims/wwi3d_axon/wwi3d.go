@@ -187,7 +187,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = false
+	ss.LIPOnly = true
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -471,9 +471,9 @@ func (ss *Sim) ConfigNetLIP(net *deep.Network) {
 	// net.ConnectLayers(sacplan, lip, full, emer.Forward) // InitWts sets ss.PrjnSigTopo
 	// net.ConnectLayers(objvel, lip, full, emer.Forward)  // InitWts sets ss.PrjnSigTopo
 
-	net.ConnectLayers(eyepos, lipct, full, emer.Forward) // InitWts sets ss.PrjnGaussTopo
-	net.ConnectLayers(sac, lipct, full, emer.Forward)    // InitWts sets ss.PrjnSigTopo
-	net.ConnectLayers(objvel, lipct, full, emer.Forward) // InitWts sets ss.PrjnSigTopo
+	net.ConnectLayers(sac, lipct, full, emer.Forward)    // essential -- InitWts sets ss.PrjnSigTopo
+	net.ConnectLayers(eyepos, lipct, full, emer.Forward) // beneficial -- InitWts sets ss.PrjnGaussTopo
+	net.ConnectLayers(objvel, lipct, full, emer.Forward) // beneficial -- InitWts sets ss.PrjnSigTopo
 
 	//	Position
 	v1h.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1m.Name(), YAlign: relpos.Front, Space: 2})
