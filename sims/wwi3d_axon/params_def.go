@@ -231,7 +231,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates -- smaller as network gets bigger",
 				Params: params.Params{
-					"Prjn.PrjnScale.Rel": "0.2",
+					"Prjn.PrjnScale.Rel": "0.1", // cemer = .1
 				}},
 			{Sel: ".Inhib", Desc: "inhibitory projection",
 				Params: params.Params{
@@ -250,8 +250,8 @@ var ParamSets = params.Sets{
 					"Prjn.SWt.Init.Mean": "0.4", // .4 here is key!
 					"Prjn.SWt.Limit.Min": "0.1", // .1-.7
 					"Prjn.SWt.Limit.Max": "0.7", //
-					"Prjn.PrjnScale.Abs": "0.5", // .5 = 1.5 MaxGeM
-					"Prjn.PrjnScale.Rel": "2",   //
+					// "Prjn.PrjnScale.Abs": "0.5", // .5 = 1.5 MaxGeM
+					// "Prjn.PrjnScale.Rel": "2",   //
 				}},
 			{Sel: ".FwdWeak", Desc: "weak feedforward",
 				Params: params.Params{
@@ -275,7 +275,11 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".BackMax", Desc: "strongest",
 				Params: params.Params{
-					"Prjn.PrjnScale.Rel": "0.2", // .1 > .2, orig .5 -- see BackStrong
+					"Prjn.PrjnScale.Rel": "0.5", // 0.5
+				}},
+			{Sel: ".BackWeak", Desc: "weak",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.05", // 0.05
 				}},
 
 			{Sel: ".CTToPulv", Desc: "CT to pulvinar needs to be weaker in general, like most prjns",
@@ -311,7 +315,7 @@ var ParamSets = params.Sets{
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
 				Params: params.Params{
-					"Prjn.PrjnScale.Rel": "0.2", // .2 > .1 > .05 still true
+					"Prjn.PrjnScale.Rel": "0.1",
 				}},
 			{Sel: ".FmPulv2", Desc: "strong",
 				Params: params.Params{
@@ -367,6 +371,10 @@ var ParamSets = params.Sets{
 			{Sel: ".CTBackMax", Desc: "CT to CT back (top-down), max",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": ".5",
+				}},
+			{Sel: ".CTBackMax1", Desc: "CT to CT back (top-down), max = 1",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "1",
 				}},
 			{Sel: ".SToCTMax", Desc: "higher Super to CT back (top-down), leaks current state to prediction..",
 				Params: params.Params{
