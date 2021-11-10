@@ -956,14 +956,14 @@ func (ss *Sim) EpochSched(epc int) {
 }
 
 // OpenTrainedWts opens trained weights
-// func (ss *Sim) OpenTrainedWts() {
-// 	ab, err := Asset("objrec_train1.wts") // embedded in executable
-// 	if err != nil {
-// 		log.Println(err)
-// 	}
-// 	ss.Net.ReadWtsJSON(bytes.NewBuffer(ab))
-// 	// ss.Net.OpenWtsJSON("objrec_train1.wts.gz")
-// }
+func (ss *Sim) OpenTrainedWts() {
+	// ab, err := Asset("trained.wts.gz") // embedded in executable
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// ss.Net.ReadWtsJSON(bytes.NewBuffer(ab))
+	ss.Net.OpenWtsJSON("trained.wts.gz")
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Testing
@@ -2063,10 +2063,10 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	// 	vp.SetNeedsFullRender()
 	// })
 
-	tbar.AddAction(gi.ActOpts{Label: "Open Trained Wts", Icon: "update", Tooltip: "open weights trained on first phase of training (excluding 'novel' objects)", UpdateFunc: func(act *gi.Action) {
+	tbar.AddAction(gi.ActOpts{Label: "Open Trained Wts", Icon: "update", Tooltip: "open trained weights (default config)", UpdateFunc: func(act *gi.Action) {
 		act.SetActiveStateUpdt(!ss.IsRunning)
 	}}, win.This(), func(recv, send ki.Ki, sig int64, data interface{}) {
-		// ss.OpenTrainedWts()
+		ss.OpenTrainedWts()
 		vp.SetNeedsFullRender()
 	})
 
