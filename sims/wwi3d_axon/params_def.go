@@ -182,8 +182,7 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base": "0.02", // .02 > .04 here & lvis
-					// "Prjn.SWt.Init.Sym":          "false", // experimenting with asymmetry
+					"Prjn.Learn.Lrate.Base":     "0.04",  // .04 in LVis, > .1 maybe
 					"Prjn.PrjnScale.ScaleLrate": "2",     // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
@@ -358,7 +357,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CTSelfHigher", Desc: "CT to CT for higher-level layers: TEO, TE",
 				Params: params.Params{
-					"Prjn.PrjnScale.Rel": "1", // 1.0 > 0.5
+					"Prjn.PrjnScale.Rel": "4", // 1.0 > 0.5
 				}},
 			{Sel: ".CTBack", Desc: "CT to CT back (top-down)",
 				Params: params.Params{

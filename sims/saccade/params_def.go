@@ -14,7 +14,7 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Inhib.FBAct.Tau":        "30",   // 30 > 20 >> 1 definitively
+					"Layer.Inhib.Inhib.AvgTau":     "30",   // 30 > 20 >> 1 definitively
 					"Layer.Act.Dt.IntTau":          "40",   // 40 > 20
 					"Layer.Inhib.Layer.Gi":         "1.1",  // general default
 					"Layer.Inhib.Pool.Gi":          "1.1",  // general default
@@ -103,7 +103,7 @@ var ParamSets = params.Sets{
 			// 		"Layer.Inhib.ActAvg.Init": "0.06",
 			// 		"Layer.Inhib.ActAvg.Targ": "0.06",
 			// 	}},
-			{Sel: "#LIPP", Desc: "strong inhib",
+			{Sel: "#S1eP", Desc: "strong inhib",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":       "1.2",
 					"Layer.Inhib.Pool.On":        "false",
@@ -135,7 +135,7 @@ var ParamSets = params.Sets{
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base":     "0.1",   // .04 > .02 probably
+					"Prjn.Learn.Lrate.Base":     "0.1",   // .1 with RLrate on seems good
 					"Prjn.PrjnScale.ScaleLrate": "0.5",   // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
@@ -264,7 +264,7 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.Abs": "1",
 					"Prjn.PrjnScale.Rel": "1",
 				}},
-			{Sel: "#LIPCTToLIPP", Desc: "stronger",
+			{Sel: "#LIPCTToS1eP", Desc: "stronger",
 				Params: params.Params{
 					"Prjn.PrjnScale.Abs": "1",
 				}},

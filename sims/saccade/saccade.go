@@ -77,6 +77,7 @@ const LogPrec = 4
 type Sim struct {
 	Net              *deep.Network   `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
 	LIPDrive0        bool            `desc:"set drivers on in tick 0"`
+	V1Pulv           bool            `desc:"if true, connect v1 pulvinar layer"`
 	TrnTrlLog        *etable.Table   `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table   `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
 	TrnTrlRepLog     *etable.Table   `view:"no-inline" desc:"training trial-level reps log data"`
@@ -348,18 +349,18 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	scs := net.AddLayer4D("SCs", dsz, asz, 1, 1, emer.Input)
 	scd := net.AddLayer4D("SCd", dsz, asz, 1, 1, emer.Input)
 
-	v1.SetClass("V1")
+	s1ep := net.AddTRCLayer4D("S1eP", vsz, vsz, 1, 1)
+	s1ep.Driver = "S1e" // V1f
 
-	lip, lipct, lipp := net.AddSuperCTTRC4D("LIP", vsz, vsz, 1, 1)
+	v1fp := net.AddTRCLayer4D("V1fP", vsz, vsz, 1, 1)
+	v1fp.Driver = "V1f"
+
+	lip, lipct := net.AddSuperCT4D("LIP", vsz, vsz, 1, 1)
 	lipct.Shape().SetShape([]int{vsz, vsz, 1, 1}, nil, nil) // 4x4 with pool gi1.0 is same; 1x1 is best actually
-	lipp.Shape().SetShape([]int{vsz, vsz, 1, 1}, nil, nil)
-	lipp.(*deep.TRCLayer).Driver = "S1e" // V1f
 
-	// lip := net.AddLayer4D("LIP", vsz, vsz, 2, 2, emer.Hidden)
 	lip.SetClass("LIP")
 	lipct.SetClass("LIP")
-	lipp.SetClass("LIP")
-	// lipps.SetClass("LIP")
+	s1ep.SetClass("LIP")
 
 	fef := net.AddLayer4D("FEF", vsz, vsz, 1, 1, emer.Hidden)
 
@@ -374,6 +375,7 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	md := net.AddLayer4D("MDe", dsz, asz, 1, 1, emer.Target)
 
 	v1.SetClass("V1f")
+	v1fp.SetClass("V1f")
 	s1e.SetClass("V1f")
 	scs.SetClass("PopIn")
 	scd.SetClass("PopIn")
@@ -392,13 +394,15 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	lipct.RecvPrjns().SendName("LIP").SetPattern(full) // critical to have full input
 
 	// topo CT <-> P is critical
-	net.ConnectLayers(lipct, lipp, ss.Prjn3x3Skp1, emer.Forward).SetClass("CTToPulv")
-	net.ConnectLayers(lipp, lipct, ss.Prjn3x3Skp1, emer.Forward).SetClass("FmPulv FmLIP")
-	net.ConnectLayers(lipp, lip, full, emer.Forward).SetClass("FmPulv FmLIP")
+	net.ConnectLayers(lipct, s1ep, ss.Prjn3x3Skp1, emer.Forward).SetClass("CTToPulv")
+	net.ConnectLayers(s1ep, lipct, ss.Prjn3x3Skp1, emer.Forward).SetClass("FmPulv FmLIP")
+	net.ConnectLayers(s1ep, lip, full, emer.Forward).SetClass("FmPulv FmLIP")
 
-	// net.ConnectLayers(lipct, lipps, ss.Prjn5x5Skp1, emer.Forward).SetClass("CTToPulv") // pone2one
-	// net.ConnectLayers(lipps, lip, ss.Prjn5x5Skp1, emer.Back).SetClass("FmPulv")
-	// net.ConnectLayers(lipps, lipct, ss.Prjn5x5Skp1, emer.Back).SetClass("FmPulv")
+	if ss.V1Pulv {
+		net.ConnectLayers(lipct, v1fp, full, emer.Forward).SetClass("CTToPulv")
+		net.ConnectLayers(v1fp, lipct, full, emer.Forward).SetClass("FmPulv FmLIP")
+		net.ConnectLayers(v1fp, lip, full, emer.Forward).SetClass("FmPulv FmLIP")
+	}
 
 	// net.ConnectLayers(s1e, lipct, full, emer.Forward)
 	// net.ConnectLayers(md, lip, full, emer.Forward)
@@ -424,21 +428,23 @@ func (ss *Sim) ConfigNet(net *deep.Network) {
 	// net.LateralConnectLayerPrjn(lipct, pone2one, &axon.HebbPrjn{}).SetType(emer.Inhib)
 
 	//	Position
+	v1fp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v1.Name(), XAlign: relpos.Left, Space: 5})
 
 	s1e.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v1.Name(), YAlign: relpos.Front, Space: 2})
-	scd.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: s1e.Name(), XAlign: relpos.Left, Space: 10})
-	scs.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: scd.Name(), XAlign: relpos.Left, Space: 10})
+	s1ep.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: s1e.Name(), XAlign: relpos.Left, Space: 5})
+
 	md.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: s1e.Name(), YAlign: relpos.Front, Space: 2})
-	fef.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: md.Name(), XAlign: relpos.Left, Space: 10})
+	scd.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: md.Name(), XAlign: relpos.Left, Space: 5})
+	scs.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: scd.Name(), XAlign: relpos.Left, Space: 5})
 
 	lip.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: v1.Name(), XAlign: relpos.Left, YAlign: relpos.Front})
-	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 10})
-	lipp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lipct.Name(), XAlign: relpos.Left, Space: 10})
-	// lipps.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lipp.Name(), YAlign: relpos.Front, Space: 2})
+	lipct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: lip.Name(), XAlign: relpos.Left, Space: 5})
+
+	fef.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
 
 	// sef.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: lip.Name(), YAlign: relpos.Front, Space: 2})
-	// sefct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sef.Name(), XAlign: relpos.Left, Space: 10})
-	// sefp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sefct.Name(), XAlign: relpos.Left, Space: 10})
+	// sefct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sef.Name(), XAlign: relpos.Left, Space: 5})
+	// sefp.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: sefct.Name(), XAlign: relpos.Left, Space: 5})
 	//
 	net.Defaults()
 	ss.SetParams("Network", false) // only set Network params
@@ -658,16 +664,16 @@ func (ss *Sim) ThetaCyc(train bool) {
 // (training, testing, etc).
 func (ss *Sim) ApplyInputs(en env.Env) {
 	tick, _, _ := en.Counter(env.Tick)
-	lipp := ss.Net.LayerByName("LIPP").(axon.AxonLayer).(*deep.TRCLayer)
+	s1ep := ss.Net.LayerByName("S1eP").(axon.AxonLayer).(*deep.TRCLayer)
 	// lipps := ss.Net.LayerByName("LIPPS").(axon.AxonLayer).(*deep.TRCLayer)
 	md := ss.Net.LayerByName("MDe").(axon.AxonLayer).AsAxon()
 	switch tick {
 	case 0:
-		lipp.TRC.DriversOff = !ss.LIPDrive0
+		s1ep.TRC.DriversOff = !ss.LIPDrive0
 		// lipps.TRC.DriversOff = true
 		md.SetType(emer.Target)
 	case 1:
-		lipp.TRC.DriversOff = false
+		s1ep.TRC.DriversOff = false
 		// lipps.TRC.DriversOff = false
 		md.SetType(emer.Target)
 	}
@@ -828,7 +834,7 @@ func (ss *Sim) TrialStats(ev *SacEnv, tick int) {
 				ss.TrlCosDiff = float64(ly.CosDiff.Cos)
 			}
 		case 1:
-			if lnm == "LIPP" {
+			if lnm == "S1eP" {
 				ss.TrlCosDiff = float64(ly.CosDiff.Cos)
 			}
 		}

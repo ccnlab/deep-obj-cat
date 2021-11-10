@@ -187,7 +187,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = false
+	ss.LIPOnly = true
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -735,7 +735,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(te, v4, full, emer.Back).SetClass("BackStrong")
 
 	// v4ct
-	v4ct.RecvPrjns().SendName(v4.Name()).SetPattern(one2one).SetClass("CTFmSuper")
+	v4ct.RecvPrjns().SendName(v4.Name()).SetPattern(pone2one).SetClass("CTFmSuper")
 	// net.ConnectCtxtToCT(v4ct, v4ct, pone2one).SetClass("CTSelfLower") // was pone2one
 
 	net.ConnectLayers(v1mp, v4ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
@@ -768,7 +768,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv2") // recip
 	net.ConnectLayers(teop, teoct, pone2one, emer.Back).SetClass("BackWeak")
 
-	teoct.RecvPrjns().SendName(teo.Name()).SetPattern(one2one).SetClass("CTFmSuper")
+	teoct.RecvPrjns().SendName(teo.Name()).SetPattern(pone2one).SetClass("CTFmSuper")
 	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher") // pone2one similar to 3x3 -- bit better
 
 	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // CTBack > not
@@ -788,7 +788,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1mp, te, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, te, full, emer.Back).SetClass("FmPulv")
 
-	tect.RecvPrjns().SendName(te.Name()).SetPattern(one2one).SetClass("CTFmSuper")
+	tect.RecvPrjns().SendName(te.Name()).SetPattern(pone2one).SetClass("CTFmSuper")
 	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher") // pone2one > full
 
 	net.ConnectLayers(v1mp, tect, full, emer.Back).SetClass("FmPulv")
@@ -1085,7 +1085,7 @@ func (ss *Sim) ThetaCyc(train bool) {
 	ss.TrialStats(train)
 
 	if train && ss.TrainEnv.Tick.Cur > 0 { // important: don't learn on first tick!
-		ss.ErrLrMod.LrateMod(ss.Net.AsAxon(), float32(1-ss.TrlCosDiff))
+		// ss.ErrLrMod.LrateMod(ss.Net.AsAxon(), float32(1-ss.TrlCosDiff)) // using RLrate per unit now..
 		ss.Net.DWt()
 	}
 
