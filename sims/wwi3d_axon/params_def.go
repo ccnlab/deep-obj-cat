@@ -14,18 +14,22 @@ var ParamSets = params.Sets{
 			// layer classes, specifics
 			{Sel: "Layer", Desc: "needs some special inhibition and learning params",
 				Params: params.Params{
-					"Layer.Inhib.FBAct.Tau":              "30",  // 30 > 20 >> 1 definitively
+					"Layer.Inhib.Inhib.AvgTau":           "30",  // 30 > 20 >> 1 definitively in lvis
 					"Layer.Act.Dt.IntTau":                "40",  // 40 > 20
 					"Layer.Inhib.Layer.Gi":               "1.1", // general default
 					"Layer.Inhib.Pool.Gi":                "1.1", // general default
 					"Layer.Inhib.ActAvg.LoTol":           "1.1", // no low adapt
 					"Layer.Inhib.ActAvg.AdaptRate":       "0.2", // 0.5 default
-					"Layer.Act.Gbar.L":                   "0.2", // 0.2 now best
-					"Layer.Act.Decay.Act":                "0.0", // 0 best
-					"Layer.Act.Decay.Glong":              "0.0", // 0.5 > 0.2
-					"Layer.Act.KNa.Fast.Max":             "0.1", // fm both .2 worse
-					"Layer.Act.KNa.Med.Max":              "0.2", // 0.2 > 0.1 def
-					"Layer.Act.KNa.Slow.Max":             "0.2", // 0.2 > higher
+					"Layer.Inhib.Pool.FFEx0":             "0.15",
+					"Layer.Inhib.Pool.FFEx":              "0.05", // .05 makes big diff on Top5
+					"Layer.Inhib.Layer.FFEx0":            "0.15",
+					"Layer.Inhib.Layer.FFEx":             "0.05", // .05 best so far
+					"Layer.Act.Gbar.L":                   "0.2",  // 0.2 now best
+					"Layer.Act.Decay.Act":                "0.0",  // 0 > .2 ?
+					"Layer.Act.Decay.Glong":              "0.0",  // 0 > .6
+					"Layer.Act.KNa.Fast.Max":             "0.1",  // fm both .2 worse
+					"Layer.Act.KNa.Med.Max":              "0.2",  // 0.2 > 0.1 def
+					"Layer.Act.KNa.Slow.Max":             "0.2",  // 0.2 > higher
 					"Layer.Act.Noise.Dist":               "Gaussian",
 					"Layer.Act.Noise.Mean":               "0.0",     // .05 max for blowup
 					"Layer.Act.Noise.Var":                "0.01",    // .01 a bit worse
@@ -39,21 +43,23 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
-					// "Layer.CtxtGeGain":      "0.1",
+					"Layer.CtxtGeGain":      "0.2", // .15 >= .2 def >= .25
 					"Layer.Inhib.Layer.Gi":  "1.1",
 					"Layer.Act.KNa.On":      "true",
 					"Layer.Act.NMDA.Gbar":   "0.03", // larger not better
 					"Layer.Act.GABAB.Gbar":  "0.2",
-					"Layer.Act.Decay.Act":   "0.0",
-					"Layer.Act.Decay.Glong": "0.0",
+					"Layer.Act.Decay.Act":   "0.0", // 0 > .2
+					"Layer.Act.Decay.Glong": "0.0", // 0 > .6
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.DriveScale":  "0.05", // LIP .1 > .05 -- too high might = too much plus phase
-					"Layer.Act.NMDA.Gbar":   "0.03", // 0.1 > .05 / .03 > .2 -- much stronger!
-					"Layer.Act.GABAB.Gbar":  "0.2",  //
-					"Layer.Act.Decay.Act":   "0.5",
-					"Layer.Act.Decay.Glong": "1", // clear long
+					"Layer.TRC.DriveScale":   "0.05", // .05 >= .1
+					"Layer.Act.NMDA.Gbar":    "0.03", // 0.1 > .05 / .03 > .2 -- much stronger!
+					"Layer.Act.GABAB.Gbar":   "0.2",  //
+					"Layer.Act.Decay.Act":    "0.5",
+					"Layer.Act.Decay.Glong":  "1", // clear long
+					"Layer.Inhib.Pool.FFEx":  "0.0",
+					"Layer.Inhib.Layer.FFEx": "0.0",
 				}},
 			{Sel: "SuperLayer", Desc: "burst params don't really matter",
 				Params: params.Params{
@@ -75,6 +81,20 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#V1h", Desc: "pool inhib, initial activity",
 				Params: params.Params{
+					"Layer.Inhib.ActAvg.Init": "0.02",
+					"Layer.Inhib.ActAvg.Targ": "0.02",
+				}},
+			{Sel: "#V1mP", Desc: "weaker inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi":    "0.8",
+					"Layer.Inhib.Pool.Gi":     "0.8",
+					"Layer.Inhib.ActAvg.Init": "0.03",
+					"Layer.Inhib.ActAvg.Targ": "0.03",
+				}},
+			{Sel: "#V1hP", Desc: "weaker inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi":    "0.9",
+					"Layer.Inhib.Pool.Gi":     "0.9",
 					"Layer.Inhib.ActAvg.Init": "0.02",
 					"Layer.Inhib.ActAvg.Targ": "0.02",
 				}},
@@ -239,7 +259,7 @@ var ParamSets = params.Sets{
 					"Prjn.SWt.Init.Var":     "0.0",
 					"Prjn.SWt.Init.Mean":    "0.1",
 					"Prjn.SWt.Adapt.On":     "false",
-					"Prjn.PrjnScale.Abs":    "0.1", // .1 = .2, slower blowup
+					"Prjn.PrjnScale.Abs":    "0.2", // .2 > 1. for top5 -- better in lvis
 					"Prjn.PrjnScale.Adapt":  "false",
 					"Prjn.IncGain":          "1", // .5 def
 				}},

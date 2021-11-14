@@ -22,12 +22,16 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.ActAvg.AdaptRate": "0.2",  // 0.5 default
 					"Layer.Inhib.ActAvg.Init":      "0.06", // .06 = sigma .2, .04 = sigma .15, .02 = sigma .1
 					"Layer.Inhib.ActAvg.Targ":      "0.06",
-					"Layer.Act.Gbar.L":             "0.2", // 0.2 now best
-					"Layer.Act.Decay.Act":          "0.2", // 0 best
-					"Layer.Act.Decay.Glong":        "0.6", // 0.5 > 0.2
-					"Layer.Act.KNa.Fast.Max":       "0.1", // fm both .2 worse
-					"Layer.Act.KNa.Med.Max":        "0.2", // 0.2 > 0.1 def
-					"Layer.Act.KNa.Slow.Max":       "0.2", // 0.2 > higher
+					"Layer.Inhib.Pool.FFEx0":       "0.18",
+					"Layer.Inhib.Pool.FFEx":        "0.05", // .05 makes big diff on Top5
+					"Layer.Inhib.Layer.FFEx0":      "0.18",
+					"Layer.Inhib.Layer.FFEx":       "0.05", // .05 best so far
+					"Layer.Act.Gbar.L":             "0.2",  // 0.2 now best
+					"Layer.Act.Decay.Act":          "0.2",  // 0 best
+					"Layer.Act.Decay.Glong":        "0.6",  // 0.5 > 0.2
+					"Layer.Act.KNa.Fast.Max":       "0.1",  // fm both .2 worse
+					"Layer.Act.KNa.Med.Max":        "0.2",  // 0.2 > 0.1 def
+					"Layer.Act.KNa.Slow.Max":       "0.2",  // 0.2 > higher
 					"Layer.Act.Noise.Dist":         "Gaussian",
 					"Layer.Act.Noise.Mean":         "0.0",     // .05 max for blowup
 					"Layer.Act.Noise.Var":          "0.01",    // .01 a bit worse
@@ -38,17 +42,17 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".CT", Desc: "CT gain factor is key",
 				Params: params.Params{
-					"Layer.CtxtGeGain":      "0.2", // .2 > .15 > .1 > .05
+					"Layer.CtxtGeGain":      "0.3", // .25 > .2 > .15 > .1 > .05
 					"Layer.Inhib.Layer.Gi":  "1.1",
 					"Layer.Act.KNa.On":      "true",
 					"Layer.Act.NMDA.Gbar":   "0.03",
 					"Layer.Act.GABAB.Gbar":  "0.2",
-					"Layer.Act.Decay.Act":   "0.0", // 0 better
+					"Layer.Act.Decay.Act":   "0.0", // 0 better v91
 					"Layer.Act.Decay.Glong": "0.0", // 0 both better than std
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.DriveScale":  "0.1", // .1 = .2 (v.87)
+					"Layer.TRC.DriveScale":  "0.15", // .15 >= .1 > .05
 					"Layer.Act.NMDA.Gbar":   "0.03",
 					"Layer.Act.GABAB.Gbar":  "0.2", //
 					"Layer.Act.Decay.Act":   "0.5", // 0.5 actually better

@@ -187,7 +187,7 @@ var TheSim Sim
 // New creates new blank elements and initializes defaults
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
-	ss.LIPOnly = true
+	ss.LIPOnly = false
 	ss.BinarizeV1 = false
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
@@ -504,8 +504,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v2, v2ct := net.AddSuperCT4D("V2", 8, 8, 10, 10) // v2p largely redundant with v1
 	v3, v3ct := net.AddSuperCT4D("V3", 4, 4, 10, 10) // v3p is not really useful for training
 	dp, dpct := net.AddSuperCT4D("DP", 1, 1, 10, 10)
-	v4, v4ct, v4p := net.AddSuperCTTRC4D("V4", 4, 4, 10, 10)
-	teo, teoct, teop := net.AddSuperCTTRC4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
+	// v4, v4ct, v4p := net.AddSuperCTTRC4D("V4", 4, 4, 10, 10)
+	// teo, teoct, teop := net.AddSuperCTTRC4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
+	v4, v4ct := net.AddSuperCT4D("V4", 4, 4, 10, 10)
+	teo, teoct := net.AddSuperCT4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
 	te, tect := net.AddSuperCT4D("TE", 2, 2, 10, 10)
 
 	v2.SetClass("V2")
@@ -518,7 +520,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v4.SetClass("V4")
 	v4ct.SetClass("V4")
-	v4p.SetClass("V4")
+	// v4p.SetClass("V4")
 
 	dp.SetClass("DP")
 	dpct.SetClass("DP")
@@ -526,7 +528,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	teo.SetClass("TEO")
 	teoct.SetClass("TEO")
-	teop.SetClass("TEO")
+	// teop.SetClass("TEO")
 
 	te.SetClass("TE")
 	tect.SetClass("TE")
@@ -572,7 +574,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v4v2.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	_, v3v2 := net.BidirConnectLayers(v2, v3, ss.Prjn4x4Skp2)
-	v3v2.SetClass("BackMax") // "BackMax") // this is critical!
+	v3v2.SetClass("BackStrong") // was "BackMax") // this is critical!
 	v3v2.SetPattern(ss.Prjn4x4Skp2Recip)
 
 	_, dpv3 := net.BidirConnectLayers(v3, dp, full)
@@ -596,12 +598,12 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn4x4Skp4Recip, emer.Forward).SetClass("FwdWeak")
 
 	// Pulvinar connections
-	net.ConnectLayers(v2ct, v1mp, pone2one, emer.Back).SetClass("BackToPulv1")
+	net.ConnectLayers(v2ct, v1mp, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv1") // was p1to1
 	net.ConnectLayers(v3ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(v4ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(teoct, v1mp, full, emer.Back).SetClass("BackToPulv") // orig is scheduled
 
-	net.ConnectLayers(v2ct, v1hp, ss.Prjn2x2Skp2Recip, emer.Back).SetClass("BackToPulv1")
+	net.ConnectLayers(v2ct, v1hp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv1") // was 2x2
 	net.ConnectLayers(v3ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(v4ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
 	net.ConnectLayers(teoct, v1hp, full, emer.Back).SetClass("BackToPulv") // orig is scheduled
@@ -616,15 +618,15 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectLayers(v3ct, dpp, full, emer.Back).SetClass("BackToPulv5")  // actually FF
 	// net.ConnectLayers(teoct, dpp, full, emer.Back).SetClass("BackToPulv2") // was uniform rnd but p = 1
 
-	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Back).SetClass("BackToPulv5") // actually FF
-	net.ConnectLayers(v3ct, v4p, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv5") // actually FF
-	net.ConnectLayers(v4ct, v4p, pone2one, emer.Back).SetClass("BackToPulv2")       // self ct -> p -- cemer -- test!
-	net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv2")
+	// net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Back).SetClass("BackToPulv5") // actually FF
+	// net.ConnectLayers(v3ct, v4p, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv5") // actually FF
+	// net.ConnectLayers(v4ct, v4p, pone2one, emer.Back).SetClass("BackToPulv2")       // self ct -> p -- cemer -- test!
+	// net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv2")
 
-	net.ConnectLayers(v3ct, teop, full, emer.Back).SetClass("BackToPulv2") // actually FF
-	net.ConnectLayers(v4ct, teop, full, emer.Back).SetClass("BackToPulv5") // actually FF
-	net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv5")
-	net.ConnectLayers(teoct, teop, pone2one, emer.Back).SetClass("BackToPulv2") // in cemer
+	// net.ConnectLayers(v3ct, teop, full, emer.Back).SetClass("BackToPulv2") // actually FF
+	// net.ConnectLayers(v4ct, teop, full, emer.Back).SetClass("BackToPulv5") // actually FF
+	// net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv5")
+	// net.ConnectLayers(teoct, teop, pone2one, emer.Back).SetClass("BackToPulv2") // in cemer
 
 	// tep.RecvPrjns().SendName(tect.Name()).SetClass("BackToPulv2")          // gp1to1
 	// net.ConnectLayers(v4ct, tep, full, emer.Back).SetClass("BackToPulv5")  // actually FF
@@ -642,8 +644,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// net.ConnectCtxtToCT(v2ct, v2ct, ss.Prjn3x3Skp1).SetClass("CTSelfLower") // was pone2one
 	v2ct.RecvPrjns().SendName(v2.Name()).SetPattern(ss.Prjn3x3Skp1).SetClass("CTFmSuperLower")
 
-	net.ConnectLayers(lip, v2, ss.Prjn2x2Skp2, emer.Back).SetClass("BackMax FmLIP") // key top-down attn .5 > .2
-	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back)                    // key! .1 def
+	net.ConnectLayers(lip, v2, ss.Prjn2x2Skp2, emer.Back).SetClass("BackStrong FmLIP") // was Max
+	net.ConnectLayers(teoct, v2, ss.Prjn4x4Skp2Recip, emer.Back)                       // key! .1 def
 
 	// net.ConnectLayers(teo, v2, ss.Prjn4x4Skp2Recip, emer.Back) // too strong of top-down
 
@@ -692,7 +694,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(lipct, v3ct, ss.Prjn4x4Skp4, emer.Back).SetClass("CTBack FmLIP")
 	net.ConnectLayers(dpct, v3ct, full, emer.Back).SetClass("CTBack")
 	net.ConnectLayers(v4ct, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack")
-	net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackMax") // s -> ct
+	net.ConnectLayers(teo, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("BackStrong") // was BackMax s -> ct
 
 	// todo: retest again:
 	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("SToCT")
@@ -740,7 +742,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v1mp, v4ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(v1hp, v4ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
-	net.ConnectLayers(v4p, v4ct, pone2one, emer.Back).SetClass("FmPulv05")
+	// net.ConnectLayers(v4p, v4ct, pone2one, emer.Back).SetClass("FmPulv05")
 
 	net.ConnectLayers(teoct, v4ct, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack")
 	net.ConnectLayers(teo, v4ct, ss.Prjn3x3Skp1, emer.Back).SetClass("SToCT") // s -> ct -- important
@@ -765,11 +767,11 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// teoct
 	net.ConnectLayers(v1mp, teoct, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, teoct, full, emer.Back).SetClass("FmPulv")
-	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv2") // recip
-	net.ConnectLayers(teop, teoct, pone2one, emer.Back).SetClass("BackWeak")
+	// net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv2") // recip
+	// net.ConnectLayers(teop, teoct, pone2one, emer.Back).SetClass("BackWeak")
 
-	teoct.RecvPrjns().SendName(teo.Name()).SetPattern(pone2one).SetClass("CTFmSuper")
-	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher") // pone2one similar to 3x3 -- bit better
+	teoct.RecvPrjns().SendName(teo.Name()).SetPattern(pone2one).SetClass("CTFmSuper") // pone2one or one2one?
+	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher")              // pone2one similar to 3x3 -- bit better
 
 	net.ConnectLayers(tect, teoct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("CTBack") // CTBack > not
 
@@ -788,13 +790,13 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1mp, te, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, te, full, emer.Back).SetClass("FmPulv")
 
-	tect.RecvPrjns().SendName(te.Name()).SetPattern(pone2one).SetClass("CTFmSuper")
-	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher") // pone2one > full
+	tect.RecvPrjns().SendName(te.Name()).SetPattern(pone2one).SetClass("CTFmSuper") // pone2one or reg?
+	net.ConnectCtxtToCT(tect, tect, pone2one).SetClass("CTSelfHigher")              // pone2one > full
 
 	net.ConnectLayers(v1mp, tect, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, tect, full, emer.Back).SetClass("FmPulv")
-	net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv2")  // recip
-	net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv2") // recip
+	// net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv2")  // recip
+	// net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv2") // recip
 
 	net.ConnectLayers(teoct, tect, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // was FwdWeak
 
@@ -854,11 +856,11 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v4.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3ct.Name(), XAlign: relpos.Left, Space: 10})
 	v4ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v4.Name(), XAlign: relpos.Left, Space: 10})
-	v4p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v4ct.Name(), YAlign: relpos.Back, Space: 2})
+	// v4p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v4ct.Name(), YAlign: relpos.Back, Space: 2})
 
 	teo.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: eyepos.Name(), YAlign: relpos.Front, Space: 2})
 	teoct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teo.Name(), XAlign: relpos.Left, Space: 10})
-	teop.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teoct.Name(), XAlign: relpos.Left, Space: 10})
+	// teop.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teoct.Name(), XAlign: relpos.Left, Space: 10})
 
 	te.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: teo.Name(), YAlign: relpos.Front, Space: 2})
 	tect.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: te.Name(), XAlign: relpos.Left, Space: 10})
@@ -915,12 +917,12 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v4.SetThread(1)
 	v4ct.SetThread(1)
-	v4p.SetThread(1)
+	// v4p.SetThread(1)
 
 	teo.SetThread(1) // 23 M -- by far biggest
 
 	teoct.SetThread(0) // 19 M
-	teop.SetThread(0)
+	// teop.SetThread(0)
 
 	te.SetThread(1)
 
