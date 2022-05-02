@@ -81,7 +81,7 @@ const LogPrec = 4
 type Sim struct {
 	Net              *deep.Network   `view:"no-inline" desc:"the network -- click to view / edit parameters for layers, prjns, etc"`
 	LIPOnly          bool            `desc:"if true, only build, train the LIP portion"`
-	BinarizeV1       bool            `desc:"if true, V1 inputs are binarized -- todo: test continued need for this"`
+	BinarizeV1       bool            `desc:"if true, V1 inputs are binarized"`
 	TrnTrlLog        *etable.Table   `view:"no-inline" desc:"training trial-level log data"`
 	TrnTrlLogAll     *etable.Table   `view:"no-inline" desc:"all training trial-level log data (aggregated from MPI)"`
 	TrnTrlRepLog     *etable.Table   `view:"no-inline" desc:"training trial-level reps log data"`
@@ -98,6 +98,7 @@ type Sim struct {
 	RunStats         *etable.Table   `view:"no-inline" desc:"aggregate stats on all runs"`
 	MinusCycles      int             `desc:"number of minus-phase cycles"`
 	PlusCycles       int             `desc:"number of plus-phase cycles"`
+	AllLaysOnEpc     int             `desc:"epoch to turn all layers on -- start with some toggled off (TE etc)"`
 	SubPools         bool            `desc:"if true, organize layers and connectivity with 2x2 sub-pools within each topological pool"`
 	ErrLrMod         axon.LrateMod   `view:"inline" desc:"learning rate modulation as function of error"`
 	Params           params.Sets     `view:"no-inline" desc:"full collection of param sets"`
@@ -120,7 +121,6 @@ type Sim struct {
 	MaxEpcs          int             `desc:"maximum number of epochs to run per model run"`
 	MaxTrls          int             `desc:"maximum number of training trials per epoch (each trial is MaxTicks ticks)"`
 	MaxTicks         int             `desc:"max number of ticks, for logs, stats"`
-	NZeroStop        int             `desc:"if a positive number, training will stop after this many epochs with zero SSE"`
 	RepsInterval     int             `desc:"how often to analyze the representations"`
 	TrainEnv         Obj3DSacEnv     `desc:"Training environment -- 3D Object training"`
 	TestEnv          Obj3DSacEnv     `desc:"Testing environment -- testing 3D Objects"`
@@ -130,6 +130,7 @@ type Sim struct {
 	TestUpdt         axon.TimeScales `desc:"at what time scale to update the display during testing?  Anything longer than Epoch updates at Epoch in this model"`
 	LayStatNms       []string        `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
 	ActRFNms         []string        `desc:"names of layers to compute activation rfields on"`
+	InitOffNms       []string        `desc:"names of layers to turn off initially"`
 	HidTrlCosDiff    []float64       `view:"-" desc:"trial-level cosine differnces"`
 
 	// statistics: note use float64 as that is best for etable.Table
@@ -188,7 +189,7 @@ var TheSim Sim
 func (ss *Sim) New() {
 	ss.Net = &deep.Network{}
 	ss.LIPOnly = false
-	ss.BinarizeV1 = false
+	ss.BinarizeV1 = false // helps learning of v1hP, but not v1mP -- impairs catdist
 	ss.TrnTrlLog = &etable.Table{}
 	ss.TrnTrlLogAll = &etable.Table{}
 	ss.TrnTrlRepLog = &etable.Table{}
@@ -205,6 +206,7 @@ func (ss *Sim) New() {
 	ss.Time.Defaults()
 	ss.MinusCycles = 150
 	ss.PlusCycles = 50
+	ss.AllLaysOnEpc = 100
 	ss.SubPools = false
 	ss.RepsInterval = 10
 	ss.ErrLrMod.Defaults()
@@ -221,6 +223,7 @@ func (ss *Sim) New() {
 	ss.TestUpdt = axon.Phase
 	ss.LayStatNms = []string{"LIPP"}
 	ss.ActRFNms = []string{"V4:Image", "V4:Output", "IT:Image", "IT:Output"}
+	ss.InitOffNms = []string{"TEO", "TEOCT", "TE", "TECT"}
 	ss.Defaults()
 }
 
@@ -351,7 +354,6 @@ func (ss *Sim) ConfigEnv() {
 		} else {
 			ss.MaxEpcs = 999 // 500
 		}
-		ss.NZeroStop = -1
 	}
 	if ss.MaxTrls == 0 { // allow user override
 		ss.MaxTrls = 64
@@ -363,7 +365,7 @@ func (ss *Sim) ConfigEnv() {
 	ss.TrainEnv.Defaults()
 	ss.TrainEnv.Run.Max = ss.MaxRuns // note: we are not setting epoch max -- do that manually
 	ss.TrainEnv.Trial.Max = ss.MaxTrls
-	ss.TrainEnv.V1Med.Binarize = ss.BinarizeV1
+	ss.TrainEnv.V1Med.Binarize = false // ss.BinarizeV1
 	ss.TrainEnv.V1Hi.Binarize = ss.BinarizeV1
 
 	ss.TestEnv.Nm = "TestEnv"
@@ -371,7 +373,7 @@ func (ss *Sim) ConfigEnv() {
 	ss.TestEnv.Defaults()
 	ss.TestEnv.Path = "images/test"
 	ss.TestEnv.Trial.Max = 500
-	ss.TestEnv.V1Med.Binarize = ss.BinarizeV1
+	ss.TestEnv.V1Med.Binarize = false // ss.BinarizeV1
 	ss.TestEnv.V1Hi.Binarize = ss.BinarizeV1
 
 	ss.TrainEnv.Init(0)
@@ -504,10 +506,10 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	v2, v2ct := net.AddSuperCT4D("V2", 8, 8, 10, 10) // v2p largely redundant with v1
 	v3, v3ct := net.AddSuperCT4D("V3", 4, 4, 10, 10) // v3p is not really useful for training
 	dp, dpct := net.AddSuperCT4D("DP", 1, 1, 10, 10)
-	// v4, v4ct, v4p := net.AddSuperCTTRC4D("V4", 4, 4, 10, 10)
-	// teo, teoct, teop := net.AddSuperCTTRC4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
-	v4, v4ct := net.AddSuperCT4D("V4", 4, 4, 10, 10)
-	teo, teoct := net.AddSuperCT4D("TEO", 4, 4, 10, 10) // 2x2 doesn't work with big V2 topo prjn
+	v4, v4ct, v4p := net.AddSuperCTTRC4D("V4", 4, 4, 10, 10)
+	// v4, v4ct := net.AddSuperCT4D("V4", 4, 4, 10, 10)
+	// teo, teoct, teop := net.AddSuperCTTRC4D("TEO", 4, 4, 10, 10)  // teop not so obviously important
+	teo, teoct := net.AddSuperCT4D("TEO", 4, 4, 10, 10)
 	te, tect := net.AddSuperCT4D("TE", 2, 2, 10, 10)
 
 	v2.SetClass("V2")
@@ -520,7 +522,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v4.SetClass("V4")
 	v4ct.SetClass("V4")
-	// v4p.SetClass("V4")
+	v4p.SetClass("V4")
 
 	dp.SetClass("DP")
 	dpct.SetClass("DP")
@@ -598,39 +600,42 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v3ct, lipct, ss.Prjn4x4Skp4Recip, emer.Forward).SetClass("FwdWeak")
 
 	// Pulvinar connections
-	net.ConnectLayers(v2ct, v1mp, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv1") // was p1to1
-	net.ConnectLayers(v3ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
-	net.ConnectLayers(v4ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv2")
-	net.ConnectLayers(teoct, v1mp, full, emer.Back).SetClass("BackToPulv") // orig is scheduled
+	net.ConnectLayers(v2ct, v1mp, ss.Prjn3x3Skp1, emer.Back).SetClass("ToPulv10") // was p1to1
+	net.ConnectLayers(v3ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("ToPulv2")
+	net.ConnectLayers(v4ct, v1mp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("ToPulv2")
+	net.ConnectLayers(teoct, v1mp, full, emer.Back).SetClass("ToPulv1") // orig is scheduled
 
-	net.ConnectLayers(v2ct, v1hp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv1") // was 2x2
-	net.ConnectLayers(v3ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
-	net.ConnectLayers(v4ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("BackToPulv2")
-	net.ConnectLayers(teoct, v1hp, full, emer.Back).SetClass("BackToPulv") // orig is scheduled
+	net.ConnectLayers(v2ct, v1hp, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("ToPulv10") // was 2x2
+	net.ConnectLayers(v3ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("ToPulv2")
+	net.ConnectLayers(v4ct, v1hp, ss.Prjn8x8Skp4Recip, emer.Back).SetClass("ToPulv2")
+	net.ConnectLayers(teoct, v1hp, full, emer.Back).SetClass("ToPulv1") // orig is scheduled
 
-	// net.ConnectLayers(v2ct, v3p, ss.Prjn4x4Skp2, emer.Back).SetClass("BackToPulv5") // actually FF
-	// net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv2")
-	// net.ConnectLayers(teoct, v3p, full, emer.Back).SetClass("BackToPulv") // was uniform rnd but p = 1
+	// net.ConnectLayers(v2ct, v3p, ss.Prjn4x4Skp2, emer.Back).SetClass("ToPulv5") // actually FF
+	// net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("ToPulv2")
+	// net.ConnectLayers(teoct, v3p, full, emer.Back).SetClass("ToPulv1") // was uniform rnd but p = 1
 
 	// dpp.RecvPrjns().SendName(dpct.Name()).SetPattern(full)
-	// dpp.RecvPrjns().SendName(dpct.Name()).SetClass("BackToPulv2")
-	// net.ConnectLayers(v2ct, dpp, full, emer.Back).SetClass("BackToPulv2")  // actually FF
-	// net.ConnectLayers(v3ct, dpp, full, emer.Back).SetClass("BackToPulv5")  // actually FF
-	// net.ConnectLayers(teoct, dpp, full, emer.Back).SetClass("BackToPulv2") // was uniform rnd but p = 1
+	// dpp.RecvPrjns().SendName(dpct.Name()).SetClass("ToPulv2")
+	// net.ConnectLayers(v2ct, dpp, full, emer.Back).SetClass("ToPulv2")  // actually FF
+	// net.ConnectLayers(v3ct, dpp, full, emer.Back).SetClass("ToPulv5")  // actually FF
+	// net.ConnectLayers(teoct, dpp, full, emer.Back).SetClass("ToPulv2") // was uniform rnd but p = 1
 
-	// net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Back).SetClass("BackToPulv5") // actually FF
-	// net.ConnectLayers(v3ct, v4p, ss.Prjn3x3Skp1, emer.Back).SetClass("BackToPulv5") // actually FF
-	// net.ConnectLayers(v4ct, v4p, pone2one, emer.Back).SetClass("BackToPulv2")       // self ct -> p -- cemer -- test!
-	// net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("BackToPulv2")
+	// todo: explore pulv cons here:
+	net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Back).SetClass("ToPulv5") // actually FF
+	net.ConnectLayers(v3ct, v4p, ss.Prjn3x3Skp1, emer.Back).SetClass("ToPulv5") // actually FF
+	net.ConnectLayers(v4ct, v4p, pone2one, emer.Back).SetClass("ToPulv2")       // self ct -> p -- cemer -- useful
+	net.ConnectLayers(teoct, v4p, full, emer.Back).SetClass("ToPulv2")
+	// net.ConnectLayers(tect, v4p, full, emer.Back).SetClass("ToPulv2") // todo: test
 
-	// net.ConnectLayers(v3ct, teop, full, emer.Back).SetClass("BackToPulv2") // actually FF
-	// net.ConnectLayers(v4ct, teop, full, emer.Back).SetClass("BackToPulv5") // actually FF
-	// net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv5")
-	// net.ConnectLayers(teoct, teop, pone2one, emer.Back).SetClass("BackToPulv2") // in cemer
+	// when teop is on, used all of these prjns:
+	// net.ConnectLayers(v3ct, teop, full, emer.Back).SetClass("FwdToPulv2") // actually FF
+	// net.ConnectLayers(v4ct, teop, full, emer.Back).SetClass("FwdToPulv5") // actually FF
+	// net.ConnectLayers(tect, teop, full, emer.Back).SetClass("ToPulv5")
+	// net.ConnectLayers(teoct, teop, pone2one, emer.Back).SetClass("ToPulv2") // self ct -> p -- cemer -- useful?
 
-	// tep.RecvPrjns().SendName(tect.Name()).SetClass("BackToPulv2")          // gp1to1
-	// net.ConnectLayers(v4ct, tep, full, emer.Back).SetClass("BackToPulv5")  // actually FF
-	// net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("BackToPulv2") // was uniform rnd but p = 1
+	// tep.RecvPrjns().SendName(tect.Name()).SetClass("ToPulv2")          // gp1to1
+	// net.ConnectLayers(v4ct, tep, full, emer.Back).SetClass("ToPulv5")  // actually FF
+	// net.ConnectLayers(teoct, tep, full, emer.Back).SetClass("ToPulv2") // was uniform rnd but p = 1
 
 	////////////////////
 	// to V2
@@ -664,8 +669,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(teo, v2ct, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("SToCTMax") // s -> ct leak -- key @ max
 
 	// CTBack generically worse, generally important for cosdiff
-	// net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv")
-	// net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("BackToPulv") // better without?  not clear
+	// net.ConnectLayers(v3ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("ToPulv1")
+	// net.ConnectLayers(v4ct, v2p, ss.Prjn4x4Skp2Recip, emer.Back).SetClass("ToPulv1") // better without?  not clear
 
 	////////////////////
 	// to V3
@@ -700,7 +705,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(dp, v3ct, full, emer.Back).SetClass("SToCT")
 	net.ConnectLayers(v4, v3ct, ss.Prjn3x3Skp1, emer.Back).SetClass("SToCT") // s -> ct, 3x3 ok
 
-	// net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("BackToPulv") // not much effect on cosdiff
+	// net.ConnectLayers(dpct, v3p, full, emer.Back).SetClass("ToPulv1") // not much effect on cosdiff
 	// net.ConnectLayers(v2ct, v3p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv") // has major effect on cosdiff
 
 	////////////////////
@@ -709,7 +714,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	net.ConnectLayers(v1mp, dp, full, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(v1hp, dp, full, emer.Back).SetClass("FmPulv2")
 	// net.ConnectLayers(v3p, dp, full, emer.Back).SetClass("FmPulv")
-	// net.ConnectLayers(teop, dp, full, emer.Back).SetClass("FmPulv") // todo: test
+	// net.ConnectLayers(teop, dp, full, emer.Back).SetClass("FmPulv") // todo: test (not used in prior teop runs)
 
 	// net.ConnectLayers(v2, dp, full, emer.Forward) // in cemer; no effect?, expensive
 
@@ -742,7 +747,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v1mp, v4ct, ss.Prjn4x4Skp2, emer.Back).SetClass("FmPulv2")
 	net.ConnectLayers(v1hp, v4ct, ss.Prjn8x8Skp4, emer.Back).SetClass("FmPulv2")
-	// net.ConnectLayers(v4p, v4ct, pone2one, emer.Back).SetClass("FmPulv05")
+	net.ConnectLayers(v4p, v4ct, pone2one, emer.Back).SetClass("FmPulv05") // todo: 3x3?  useful
 
 	net.ConnectLayers(teoct, v4ct, ss.Prjn3x3Skp1, emer.Back).SetClass("CTBack")
 	net.ConnectLayers(teo, v4ct, ss.Prjn3x3Skp1, emer.Back).SetClass("SToCT") // s -> ct -- important
@@ -752,8 +757,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	// net.ConnectLayers(v2ct, v4ct, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // instead of direct to v2p -- not helpful
 
-	// net.ConnectLayers(teoct, v4p, ss.Prjn3x3Skp1, emer.Back) // not much additional benefit for cosdiff
-
+	// todo:
 	// net.ConnectLayers(v2ct, v4p, ss.Prjn4x4Skp2, emer.Forward).SetClass("FwdToPulv") // has major effect on cosdiff
 
 	////////////////////
@@ -767,8 +771,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// teoct
 	net.ConnectLayers(v1mp, teoct, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, teoct, full, emer.Back).SetClass("FmPulv")
-	// net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv2") // recip
-	// net.ConnectLayers(teop, teoct, pone2one, emer.Back).SetClass("BackWeak")
+	net.ConnectLayers(v4p, teoct, full, emer.Back).SetClass("FmPulv2") // recip
+	// net.ConnectLayers(teop, teoct, pone2one, emer.Back).SetClass("BackWeak") // self p->ct? (not used)
 
 	teoct.RecvPrjns().SendName(teo.Name()).SetPattern(pone2one).SetClass("CTFmSuper") // pone2one or one2one?
 	net.ConnectCtxtToCT(teoct, teoct, pone2one).SetClass("CTSelfHigher")              // pone2one similar to 3x3 -- bit better
@@ -778,9 +782,9 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 	// not in cemer model:
 	// net.ConnectLayers(v4ct, teoct, full, emer.Forward).SetClass("CTBack") // instead of direct to v2p
 
-	// todo: test topo on both
+	// todo: test topo on both -- not used in prior teop tests
 	// net.ConnectLayers(v4ct, teop, full, emer.Forward).SetClass("FwdToPulv") // sig effect on TEOP cosdiff, but improves TEP
-	// net.ConnectLayers(tect, teop, full, emer.Back).SetClass("BackToPulv") // no effect on cosdiff, but better Cat without
+	// net.ConnectLayers(tect, teop, full, emer.Back).SetClass("ToPulv1") // no effect on cosdiff, but better Cat without
 
 	////////////////////
 	// to TE
@@ -795,8 +799,8 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	net.ConnectLayers(v1mp, tect, full, emer.Back).SetClass("FmPulv")
 	net.ConnectLayers(v1hp, tect, full, emer.Back).SetClass("FmPulv")
-	// net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv2")  // recip
-	// net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv2") // recip
+	net.ConnectLayers(v4p, tect, full, emer.Back).SetClass("FmPulv2") // recip
+	// net.ConnectLayers(teop, tect, full, emer.Back).SetClass("FmPulv2") // recip -- only real output of teop -- not big deal
 
 	net.ConnectLayers(teoct, tect, ss.Prjn4x4Skp2, emer.Forward).SetClass("CTBack") // was FwdWeak
 
@@ -856,7 +860,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v4.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v3ct.Name(), XAlign: relpos.Left, Space: 10})
 	v4ct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: v4.Name(), XAlign: relpos.Left, Space: 10})
-	// v4p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v4ct.Name(), YAlign: relpos.Back, Space: 2})
+	v4p.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: v4ct.Name(), YAlign: relpos.Back, Space: 2})
 
 	teo.SetRelPos(relpos.Rel{Rel: relpos.RightOf, Other: eyepos.Name(), YAlign: relpos.Front, Space: 2})
 	teoct.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: teo.Name(), XAlign: relpos.Left, Space: 10})
@@ -917,7 +921,7 @@ func (ss *Sim) ConfigNetRest(net *deep.Network) {
 
 	v4.SetThread(1)
 	v4ct.SetThread(1)
-	// v4p.SetThread(1)
+	v4p.SetThread(1)
 
 	teo.SetThread(1) // 23 M -- by far biggest
 
@@ -938,6 +942,17 @@ func (ss *Sim) InitWts(net *deep.Network) {
 	if !ss.LIPOnly {
 		mpi.Printf("loading lip_pretrained.wts.gz...\n")
 		net.OpenWtsJSON(gi.FileName("lip_pretrained.wts.gz"))
+	}
+	ss.ToggleLaysOff(true)
+}
+
+func (ss *Sim) ToggleLaysOff(off bool) {
+	if ss.LIPOnly {
+		return
+	}
+	for _, lnm := range ss.InitOffNms {
+		ly := ss.Net.LayerByName(lnm).(axon.AxonLayer).AsAxon()
+		ly.SetOff(off)
 	}
 }
 
@@ -1338,6 +1353,9 @@ func (ss *Sim) SaveWeights() {
 // EpochSched implements the epoch-wise schedule
 func (ss *Sim) EpochSched(epc int) {
 	switch epc {
+	case ss.AllLaysOnEpc:
+		ss.ToggleLaysOff(false) // on
+		mpi.Printf("toggled layers on at epoch: %d\n", epc)
 	case 100:
 		ss.SaveWeights()
 	case 250:

@@ -24,12 +24,13 @@ var ParamSets = params.Sets{
 					"Layer.Inhib.Pool.FFEx":              "0.05", // .05 makes big diff on Top5
 					"Layer.Inhib.Layer.FFEx0":            "0.15",
 					"Layer.Inhib.Layer.FFEx":             "0.05", // .05 best so far
-					"Layer.Act.Gbar.L":                   "0.2",  // 0.2 now best
-					"Layer.Act.Decay.Act":                "0.0",  // 0 > .2 ?
-					"Layer.Act.Decay.Glong":              "0.0",  // 0 > .6
-					"Layer.Act.KNa.Fast.Max":             "0.1",  // fm both .2 worse
-					"Layer.Act.KNa.Med.Max":              "0.2",  // 0.2 > 0.1 def
-					"Layer.Act.KNa.Slow.Max":             "0.2",  // 0.2 > higher
+					"Layer.Inhib.ActAvg.AdaptGi":         "false",
+					"Layer.Act.Gbar.L":                   "0.2", // 0.2 now best
+					"Layer.Act.Decay.Act":                "0.0", // 0 > .2 ?
+					"Layer.Act.Decay.Glong":              "0.0", // 0 > .6
+					"Layer.Act.KNa.Fast.Max":             "0.1", // fm both .2 worse
+					"Layer.Act.KNa.Med.Max":              "0.2", // 0.2 > 0.1 def
+					"Layer.Act.KNa.Slow.Max":             "0.2", // 0.2 > higher
 					"Layer.Act.Noise.Dist":               "Gaussian",
 					"Layer.Act.Noise.Mean":               "0.0",     // .05 max for blowup
 					"Layer.Act.Noise.Var":                "0.01",    // .01 a bit worse
@@ -53,13 +54,15 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "TRCLayer", Desc: "avg mix param",
 				Params: params.Params{
-					"Layer.TRC.DriveScale":   "0.05", // .05 >= .1
+					"Layer.Inhib.Layer.Gi":   "0.8", // in general must be weaker
+					"Layer.Inhib.Pool.Gi":    "0.8",
+					"Layer.Inhib.Pool.FFEx":  "0.0",
+					"Layer.Inhib.Layer.FFEx": "0.0",
+					"Layer.TRC.DriveScale":   "0.15", // .1 > .05
 					"Layer.Act.NMDA.Gbar":    "0.03", // 0.1 > .05 / .03 > .2 -- much stronger!
 					"Layer.Act.GABAB.Gbar":   "0.2",  //
 					"Layer.Act.Decay.Act":    "0.5",
 					"Layer.Act.Decay.Glong":  "1", // clear long
-					"Layer.Inhib.Pool.FFEx":  "0.0",
-					"Layer.Inhib.Layer.FFEx": "0.0",
 				}},
 			{Sel: "SuperLayer", Desc: "burst params don't really matter",
 				Params: params.Params{
@@ -68,76 +71,67 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".V1", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.1",
 					"Layer.Inhib.Pool.On":     "true",
-					"Layer.Inhib.Pool.Gi":     "1.1",
+					"Layer.Inhib.Layer.Gi":    "0.9",
+					"Layer.Inhib.Pool.Gi":     "0.9",
 					"Layer.Inhib.ActAvg.Init": "0.03",
-					"Layer.Inhib.ActAvg.Targ": "0.03",
+					"Layer.Act.Clamp.Ge":      "1.0", // .6 was
+					"Layer.Inhib.Pool.FFEx0":  "0.15",
+					"Layer.Inhib.Pool.FFEx":   "0.00", // todo: expt 0
+					"Layer.Inhib.Layer.FFEx0": "0.15",
+					"Layer.Inhib.Layer.FFEx":  "0.00", // .05 best so far
 				}},
 			{Sel: "#V1m", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.ActAvg.Init": "0.03",
-					"Layer.Inhib.ActAvg.Targ": "0.03",
 				}},
 			{Sel: "#V1h", Desc: "pool inhib, initial activity",
 				Params: params.Params{
 					"Layer.Inhib.ActAvg.Init": "0.02",
-					"Layer.Inhib.ActAvg.Targ": "0.02",
 				}},
 			{Sel: "#V1mP", Desc: "weaker inhib",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":    "0.8",
 					"Layer.Inhib.Pool.Gi":     "0.8",
 					"Layer.Inhib.ActAvg.Init": "0.03",
-					"Layer.Inhib.ActAvg.Targ": "0.03",
 				}},
 			{Sel: "#V1hP", Desc: "weaker inhib",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":    "0.9",
 					"Layer.Inhib.Pool.Gi":     "0.9",
 					"Layer.Inhib.ActAvg.Init": "0.02",
-					"Layer.Inhib.ActAvg.Targ": "0.02",
 				}},
 			{Sel: ".LIP", Desc: "no trgavgact",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":     "1.2",
 					"Layer.Inhib.Pool.On":      "false", // false > true
 					"Layer.Inhib.ActAvg.Init":  "0.1",
-					"Layer.Inhib.ActAvg.Targ":  "0.1",
 					"Layer.Learn.TrgAvgAct.On": "true", // off = better in saccade, but better here..
 				}},
 			{Sel: ".PopIn", Desc: "pop-code input",
 				Params: params.Params{
 					"Layer.Inhib.ActAvg.Init": "0.06",
-					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 			{Sel: "#EyePos", Desc: "eyeposition input",
 				Params: params.Params{
 					"Layer.Inhib.ActAvg.Init": "0.02",
-					"Layer.Inhib.ActAvg.Targ": "0.02",
 				}},
 			{Sel: ".V2", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.Pool.Gi":        "1.1",
-					"Layer.Inhib.ActAvg.Init":    "0.04", // was .06
-					"Layer.Inhib.ActAvg.Targ":    "0.04",
-					"Layer.Inhib.ActAvg.AdaptGi": "false", // try false?
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.1",
+					"Layer.Inhib.ActAvg.Init": "0.04", // was .06
 				}},
 			{Sel: ".V3", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.Pool.Gi":        "1.1",
-					"Layer.Inhib.ActAvg.Init":    "0.06", // was .06
-					"Layer.Inhib.ActAvg.Targ":    "0.06",
-					"Layer.Inhib.ActAvg.AdaptGi": "false",
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.Pool.Gi":     "1.1",
+					"Layer.Inhib.ActAvg.Init": "0.06", // was .06
 				}},
 			{Sel: ".DP", Desc: "no pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":        "false",
-					"Layer.Inhib.ActAvg.Init":    "0.1", // .3 with gi1.1, DPCT .06
-					"Layer.Inhib.ActAvg.Targ":    "0.1",
-					"Layer.Inhib.ActAvg.AdaptGi": "false",
+					"Layer.Inhib.Pool.On":     "false",
+					"Layer.Inhib.ActAvg.Init": "0.1", // .3 with gi1.1, DPCT .06
 				}},
 			{Sel: "#DP", Desc: "no pool inhib, initial activity",
 				Params: params.Params{
@@ -145,32 +139,36 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".V4", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.04", // was .06
-					"Layer.Inhib.ActAvg.Targ":    "0.04",
-					"Layer.Inhib.ActAvg.AdaptGi": "false",
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.ActAvg.Init": "0.04", // was .06
+				}},
+			{Sel: "#V4P", Desc: "weaker inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "0.9", // 0.9 > 0.8 > 1.1
+					"Layer.Inhib.Pool.Gi":  "0.9", // same
 				}},
 			{Sel: ".TEO", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Layer.On":       "false",
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.05", // was .1 for 1.2, .08 for 1.3
-					"Layer.Inhib.ActAvg.Targ":    "0.05",
-					"Layer.Inhib.ActAvg.AdaptGi": "false", // false works with higher gi
-					"Layer.Inhib.Pool.Gi":        "1.2",
+					"Layer.Inhib.Layer.On":    "false",
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.ActAvg.Init": "0.05", // was .1 for 1.2, .08 for 1.3
+					"Layer.Inhib.Pool.Gi":     "1.2",
 				}},
 			{Sel: "#TEO", Desc: "stronger than reg",
 				Params: params.Params{
-					"Layer.Inhib.Pool.Gi": "1.3", // 1.2 or 1.3 > 1.1
+					"Layer.Inhib.Pool.Gi": "1.2", // 1.2 or 1.3 > 1.1
+				}},
+			{Sel: "#TEOP", Desc: "weaker inhib",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "0.9", // 0.9 > 1.0
+					"Layer.Inhib.Pool.Gi":  "0.9", // 0.9 > 1.0
 				}},
 			{Sel: ".TE", Desc: "pool inhib, initial activity",
 				Params: params.Params{
-					"Layer.Inhib.Layer.On":       "false",
-					"Layer.Inhib.Pool.On":        "true",
-					"Layer.Inhib.ActAvg.Init":    "0.05", // was .1
-					"Layer.Inhib.ActAvg.Targ":    "0.05",
-					"Layer.Inhib.ActAvg.AdaptGi": "false", // false ok with higher gi
-					"Layer.Inhib.Pool.Gi":        "1.1",
+					"Layer.Inhib.Layer.On":    "false",
+					"Layer.Inhib.Pool.On":     "true",
+					"Layer.Inhib.ActAvg.Init": "0.05", // was .1
+					"Layer.Inhib.Pool.Gi":     "1.1",
 				}},
 			{Sel: "#TE", Desc: "stronger than reg",
 				Params: params.Params{
@@ -180,29 +178,26 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					// "Layer.CtxtGeGain":        "0.2", //
 					"Layer.Inhib.ActAvg.Init": "0.01",
-					"Layer.Inhib.ActAvg.Targ": "0.01",
 				}},
 			{Sel: "#LIPP", Desc: "layer only",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi":    "1.0", //
+					"Layer.Inhib.Layer.Gi":    "1.0", // lower better
 					"Layer.Inhib.Pool.On":     "false",
 					"Layer.TRC.DriveScale":    "0.15", // .15 > .1 > .05
 					"Layer.TRC.FullDriveAct":  "0.4",
 					"Layer.Inhib.ActAvg.Init": "0.06",
-					"Layer.Inhib.ActAvg.Targ": "0.06",
 				}},
 			{Sel: "#MTPos", Desc: "layer only",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi":    "2.0", // very high to get center of mass blob
 					"Layer.Inhib.Pool.On":     "false",
 					"Layer.Inhib.ActAvg.Init": "0.1",
-					"Layer.Inhib.ActAvg.Targ": "0.1",
 				}},
 
 			// prjn classes, specifics
 			{Sel: "Prjn", Desc: "yes extra learning factors",
 				Params: params.Params{
-					"Prjn.Learn.Lrate.Base":     "0.04",  // .04 in LVis, > .1 maybe
+					"Prjn.Learn.Lrate.Base":     "0.04",  // .04 > .1 for sure in v91, #180 with .1 is whack
 					"Prjn.PrjnScale.ScaleLrate": "2",     // 2 = fast response, effective
 					"Prjn.PrjnScale.LoTol":      "0.8",   // good now...
 					"Prjn.PrjnScale.AvgTau":     "500",   // slower default
@@ -301,35 +296,42 @@ var ParamSets = params.Sets{
 					"Prjn.PrjnScale.Rel": "0.05", // 0.05
 				}},
 
-			{Sel: ".CTToPulv", Desc: "CT to pulvinar needs to be weaker in general, like most prjns",
+			{Sel: ".CTToPulv", Desc: "CT to pulvinar needs to be stronger",
 				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "0.8",
-					"Prjn.PrjnScale.Rel": "1.25",
-				}},
-			{Sel: "#TECTToTEP", Desc: "not as weak",
-				Params: params.Params{
-					"Prjn.PrjnScale.Abs": "0.8",
-					"Prjn.PrjnScale.Rel": "1.25",
-				}},
-			{Sel: ".BackToPulv", Desc: "top-down to pulvinar directly",
-				Params: params.Params{
-					"Prjn.PrjnScale.Rel": "0.1",
-				}},
-			{Sel: ".BackToPulv1", Desc: "top-down to pulvinar, strongest",
-				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1.5",
 					"Prjn.PrjnScale.Rel": "1",
 				}},
-			{Sel: ".BackToPulv2", Desc: "top-down to pulvinar, weakest",
+			{Sel: ".ToPulv1", Desc: "top-down to pulvinar, weaker",
 				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1.5", // pulv GeM is low -- pump it up
+					"Prjn.PrjnScale.Rel": "0.1",
+				}},
+			{Sel: ".ToPulv10", Desc: "top-down to pulvinar, strongest",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1.5", // pulv GeM is low -- pump it up
+					"Prjn.PrjnScale.Rel": "1",
+				}},
+			{Sel: ".ToPulv2", Desc: "top-down to pulvinar, moderate",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1.5", // pulv GeM is low -- pump it up
 					"Prjn.PrjnScale.Rel": "0.2",
 				}},
-			{Sel: ".BackToPulv5", Desc: "top-down to pulvinar directly",
+			{Sel: ".ToPulv5", Desc: "top-down to pulvinar stronger",
 				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "1.5", // pulv GeM is low -- pump it up
 					"Prjn.PrjnScale.Rel": "0.5",
 				}},
 			{Sel: ".FwdToPulv", Desc: "feedforward to pulvinar directly",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": "0.1",
+				}},
+			{Sel: ".FwdToPulv2", Desc: "feedforward to pulvinar directly",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.2",
+				}},
+			{Sel: ".FwdToPulv5", Desc: "feedforward to pulvinar directly",
+				Params: params.Params{
+					"Prjn.PrjnScale.Rel": "0.5",
 				}},
 
 			{Sel: ".FmPulv", Desc: "default for pulvinar",
@@ -411,6 +413,11 @@ var ParamSets = params.Sets{
 			{Sel: "#TEOCTToDPCT", Desc: "todo more consistent if .2",
 				Params: params.Params{
 					"Prjn.PrjnScale.Rel": ".1",
+				}},
+			{Sel: "#TECTToTEP", Desc: "not as weak",
+				Params: params.Params{
+					"Prjn.PrjnScale.Abs": "0.8",
+					"Prjn.PrjnScale.Rel": "1.25",
 				}},
 
 			// {Sel: "#V2ToV3", Desc: "otherwise V2 too strong",
